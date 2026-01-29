@@ -222,7 +222,7 @@ export function AdvancedSlotMachine() {
             <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
           </motion.h2>
           <p className="text-sm text-muted-foreground mt-1">
-            5轮 × 3行 × 15条赔付线 | RTP 92%
+            5轮 × 3行 × 15条赔付线 | 💯 100%返还 零抽成
           </p>
         </div>
 

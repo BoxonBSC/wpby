@@ -41,16 +41,26 @@ export function AdvancedRewardTiers() {
         奖励与赔付表
       </h3>
       
-      {/* RTP 说明 */}
+      {/* 100% 返还说明 */}
       <div className="neon-border-green rounded-lg p-3 bg-neon-green/5 mb-4">
         <h4 className="text-sm font-display text-neon-green mb-2 flex items-center gap-2">
           <TrendingUp className="w-4 h-4" />
-          RTP (返还率): 92%
+          🎯 100% 资金返还 | 零抽成
         </h4>
-        <p className="text-xs text-muted-foreground">
-          长期来看，每投注 1 BNB 平均返还 0.92 BNB。
-          庄家优势仅 8%，远低于传统老虎机。
-        </p>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p className="text-neon-yellow">
+            ✨ 庄家零抽成 - 所有投注资金 100% 进入奖池
+          </p>
+          <p>
+            • 玩家投入的每一分钱都用于奖励派发
+          </p>
+          <p>
+            • 无隐藏费用，无平台抽成
+          </p>
+          <p>
+            • 智能合约透明可验证
+          </p>
+        </div>
       </div>
 
       {/* 6级奖励表 */}
