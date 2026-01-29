@@ -63,12 +63,30 @@ export function useCyberSlots(): UseCyberSlotsReturn {
   const { walletProvider: web3ModalProvider } = useWeb3ModalProvider();
   const { address: web3ModalAddress, isConnected: web3ModalConnected } = useWeb3ModalAccount();
   
-  // 同时从 WalletContext 获取地址（支持原生钱包连接）
-  const { address: walletContextAddress, isConnected: walletContextConnected } = useWallet();
+  // 同时从 WalletContext 获取地址和钱包类型（支持原生钱包连接）
+  const { address: walletContextAddress, isConnected: walletContextConnected, connectedWallet } = useWallet();
   
   // 优先使用 WalletContext 的地址（原生钱包），其次是 Web3Modal 的地址（WalletConnect）
   const address = walletContextAddress || web3ModalAddress;
   const isConnected = walletContextConnected || web3ModalConnected;
+  
+  // 获取原生钱包的 provider
+  const getNativeWalletProvider = useCallback(() => {
+    if (!connectedWallet || connectedWallet === 'walletconnect') return null;
+    
+    switch (connectedWallet) {
+      case 'metamask':
+        return window.ethereum;
+      case 'okx':
+        return (window as unknown as { okxwallet?: unknown }).okxwallet || window.ethereum;
+      case 'binance':
+        return (window as unknown as { BinanceChain?: unknown }).BinanceChain || window.ethereum;
+      case 'tokenpocket':
+        return (window as unknown as { tokenpocket?: unknown }).tokenpocket || window.ethereum;
+      default:
+        return window.ethereum;
+    }
+  }, [connectedWallet]);
   
   const [state, setState] = useState<ContractState>({
     prizePool: '0',
@@ -123,15 +141,26 @@ export function useCyberSlots(): UseCyberSlotsReturn {
 
   // 初始化签名合约（需要钱包连接）
   const initSignerContracts = useCallback(async () => {
-    if (!web3ModalProvider || !isConnected) {
+    // 优先使用原生钱包 provider，其次是 Web3Modal provider
+    const nativeProvider = getNativeWalletProvider();
+    const walletProvider = nativeProvider || web3ModalProvider;
+    
+    if (!walletProvider || !isConnected) {
       signerContractRef.current = null;
       tokenContractRef.current = null;
       providerRef.current = null;
+      console.log('[CyberSlots] No wallet provider for signer contracts');
       return;
     }
 
     try {
-      const provider = new BrowserProvider(web3ModalProvider);
+      console.log('[CyberSlots] Initializing signer contracts with provider:', {
+        hasNativeProvider: !!nativeProvider,
+        hasWeb3ModalProvider: !!web3ModalProvider,
+        connectedWallet,
+      });
+      
+      const provider = new BrowserProvider(walletProvider as { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> });
       const signer = await provider.getSigner();
       
       const slotsAddress = getContractAddress();
@@ -139,17 +168,19 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       
       if (slotsAddress !== '0x0000000000000000000000000000000000000000') {
         signerContractRef.current = new Contract(slotsAddress, CYBER_SLOTS_ABI, signer);
+        console.log('[CyberSlots] Slots signer contract initialized');
       }
       
       if (tokenAddress !== '0x0000000000000000000000000000000000000000') {
         tokenContractRef.current = new Contract(tokenAddress, CYBER_TOKEN_ABI, signer);
+        console.log('[CyberSlots] Token signer contract initialized');
       }
       
       providerRef.current = provider;
     } catch (err) {
-      console.error('Failed to init signer contracts:', err);
+      console.error('[CyberSlots] Failed to init signer contracts:', err);
     }
-  }, [web3ModalProvider, isConnected, getContractAddress, getTokenAddress]);
+  }, [getNativeWalletProvider, web3ModalProvider, isConnected, connectedWallet, getContractAddress, getTokenAddress]);
 
   // 刷新公共数据（无需钱包连接）
   const refreshPublicData = useCallback(async () => {
