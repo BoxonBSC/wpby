@@ -457,4 +457,49 @@
       0 0 40px hsl(var(--neon-blue) / 0.4),
       0 0 60px hsl(var(--neon-blue) / 0.2);
   }
+
+  /* Slot Reel Animations - GPU accelerated */
+  @keyframes scan-line {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(100%);
+    }
+  }
+
+  .animate-scan-line {
+    animation: scan-line 0.25s linear infinite;
+    will-change: transform;
+  }
+
+  @keyframes flash {
+    0% {
+      opacity: 0.8;
+    }
+    50% {
+      opacity: 0.2;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .animate-flash {
+    animation: flash 0.15s ease-out forwards;
+  }
+
+  /* Slot symbol bounce */
+  @keyframes symbol-bounce {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.15);
+    }
+  }
+
+  .animate-symbol-bounce {
+    animation: symbol-bounce 0.6s ease-in-out infinite;
+  }
 }
