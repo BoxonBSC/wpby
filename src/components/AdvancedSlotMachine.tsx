@@ -47,9 +47,8 @@ export function AdvancedSlotMachine() {
   const [useRealContract, setUseRealContract] = useState(false);
   const [pendingResult, setPendingResult] = useState<{symbols: number[], winAmount: bigint, prizeType: string} | null>(null);
 
-  const prizePool = useRealContract && parseFloat(contractPrizePool) > 0 
-    ? parseFloat(contractPrizePool) 
-    : 10.5;
+  // 直接使用合约奖池数据
+  const prizePool = parseFloat(contractPrizePool);
 
   useEffect(() => {
     if (recentWins.length > 0 && address) {
