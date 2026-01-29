@@ -384,13 +384,13 @@ const Rules = () => {
           </h2>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="neon-border rounded-lg p-4 bg-muted/20">
+            <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
               <h3 className="font-display text-foreground mb-2">代币兑换凭证后能退回吗？</h3>
               <p className="text-sm text-muted-foreground">
                 不能。凭证是一次性的游戏筹码，兑换后只能用于游戏，不能转让或退回。请根据自己的需求合理兑换。
               </p>
             </div>
-            <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5">
+            <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
               <h3 className="font-display text-neon-yellow mb-2">💰 奖池的钱从哪来？</h3>
               <div className="text-sm text-muted-foreground space-y-2">
                 <p className="text-foreground">
@@ -399,7 +399,7 @@ const Rules = () => {
                 <p>
                   每一笔代币交易（买入/卖出）都会产生交易税，其中 <span className="text-neon-cyan">3%</span> 会自动进入游戏奖池，用于奖励中奖玩家。
                 </p>
-                <div className="neon-border rounded p-2 bg-muted/20 mt-2">
+                <div className="neon-border-pink rounded p-2 bg-neon-pink/10 mt-2">
                   <p className="text-xs">
                     <span className="text-neon-purple">工作原理：</span>交易税 → 自动兑换为 BNB → 注入奖池合约
                   </p>
@@ -409,13 +409,13 @@ const Rules = () => {
                 </p>
               </div>
             </div>
-            <div className="neon-border rounded-lg p-4 bg-muted/20">
+            <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
               <h3 className="font-display text-foreground mb-2">为什么要用凭证而不是直接用代币？</h3>
               <p className="text-sm text-muted-foreground">
                 凭证系统可以减少链上交易次数，节省 Gas 费。你可以一次兑换大量凭证，然后多次游戏，体验更流畅。
               </p>
             </div>
-            <div className="neon-border rounded-lg p-4 bg-muted/20">
+            <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
               <h3 className="font-display text-foreground mb-2">投注越高真的概率越大吗？</h3>
               <p className="text-sm text-muted-foreground">
                 是的！高投注会增加稀有符号（如7️⃣💎）的出现概率。500K投注相比20K有20倍的概率加成，但请量力而行。
