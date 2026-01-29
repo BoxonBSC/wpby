@@ -53,6 +53,7 @@ export function AdvancedSlotMachine() {
   const { isConnected, connect, address } = useWallet();
   const { 
     playSpinSound, 
+    stopWaitingSound,
     playSmallWinSound, 
     playMediumWinSound, 
     playJackpotSound,
@@ -120,6 +121,9 @@ export function AdvancedSlotMachine() {
         lastProcessedRequestIdRef.current = resultId;
         setIsWaitingForResult(false);
         
+        // 停止等待音效
+        stopWaitingSound();
+        
         // 收到结果，开始揭示动画
         // 生成网格：中间行是实际中奖符号，上下行是随机不同符号
         const ALL_SYMBOLS: SlotSymbol[] = ['seven', 'diamond', 'crown', 'bell', 'star', 'cherry', 'lemon', 'orange', 'grape', 'clover'];
@@ -149,7 +153,7 @@ export function AdvancedSlotMachine() {
         setStoppedReelCount(0);
       }
     }
-  }, [recentWins, address, isWaitingForResult]);
+  }, [recentWins, address, isWaitingForResult, stopWaitingSound]);
   
   // 处理轮子停止完成
   const handleReelStopped = useCallback(() => {
