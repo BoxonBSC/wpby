@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Contract, BrowserProvider, formatEther, parseUnits } from 'ethers';
+import { Contract, BrowserProvider, formatEther, parseUnits, JsonRpcProvider } from 'ethers';
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react';
 import { 
   CYBER_SLOTS_ADDRESS, 
@@ -55,6 +55,9 @@ export interface UseCyberSlotsReturn extends ContractState {
 
 const USE_TESTNET = false; // 使用主网
 
+// BSC 主网公共 RPC
+const BSC_RPC_URL = 'https://bsc-dataseed.binance.org/';
+
 export function useCyberSlots(): UseCyberSlotsReturn {
   const { walletProvider } = useWeb3ModalProvider();
   const { address, isConnected, chainId } = useWeb3ModalAccount();
@@ -78,9 +81,14 @@ export function useCyberSlots(): UseCyberSlotsReturn {
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentSpinRequest, setCurrentSpinRequest] = useState<bigint | null>(null);
   
-  const contractRef = useRef<Contract | null>(null);
+  // 用于写操作的合约（需要钱包签名）
+  const signerContractRef = useRef<Contract | null>(null);
   const tokenContractRef = useRef<Contract | null>(null);
   const providerRef = useRef<BrowserProvider | null>(null);
+  
+  // 用于只读操作的合约（使用公共 RPC）
+  const readOnlyContractRef = useRef<Contract | null>(null);
+  const readOnlyTokenContractRef = useRef<Contract | null>(null);
 
   const getContractAddress = useCallback(() => {
     return USE_TESTNET ? CYBER_SLOTS_ADDRESS.testnet : CYBER_SLOTS_ADDRESS.mainnet;
@@ -90,9 +98,25 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     return USE_TESTNET ? CYBER_TOKEN_ADDRESS.testnet : CYBER_TOKEN_ADDRESS.mainnet;
   }, []);
 
-  const initContracts = useCallback(async () => {
+  // 初始化只读合约（无需钱包连接）
+  useEffect(() => {
+    const slotsAddress = getContractAddress();
+    const tokenAddress = getTokenAddress();
+    
+    if (slotsAddress !== '0x0000000000000000000000000000000000000000') {
+      const readOnlyProvider = new JsonRpcProvider(BSC_RPC_URL);
+      readOnlyContractRef.current = new Contract(slotsAddress, CYBER_SLOTS_ABI, readOnlyProvider);
+      
+      if (tokenAddress !== '0x0000000000000000000000000000000000000000') {
+        readOnlyTokenContractRef.current = new Contract(tokenAddress, CYBER_TOKEN_ABI, readOnlyProvider);
+      }
+    }
+  }, [getContractAddress, getTokenAddress]);
+
+  // 初始化签名合约（需要钱包连接）
+  const initSignerContracts = useCallback(async () => {
     if (!walletProvider || !isConnected) {
-      contractRef.current = null;
+      signerContractRef.current = null;
       tokenContractRef.current = null;
       providerRef.current = null;
       return;
@@ -106,7 +130,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       const tokenAddress = getTokenAddress();
       
       if (slotsAddress !== '0x0000000000000000000000000000000000000000') {
-        contractRef.current = new Contract(slotsAddress, CYBER_SLOTS_ABI, signer);
+        signerContractRef.current = new Contract(slotsAddress, CYBER_SLOTS_ABI, signer);
       }
       
       if (tokenAddress !== '0x0000000000000000000000000000000000000000') {
@@ -115,33 +139,43 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       
       providerRef.current = provider;
     } catch (err) {
-      console.error('Failed to init contracts:', err);
+      console.error('Failed to init signer contracts:', err);
     }
   }, [walletProvider, isConnected, getContractAddress, getTokenAddress]);
 
-  const refreshData = useCallback(async () => {
-    if (!contractRef.current || !address) return;
-    
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+  // 刷新公共数据（无需钱包连接）
+  const refreshPublicData = useCallback(async () => {
+    const contract = readOnlyContractRef.current;
+    if (!contract) return;
     
     try {
-      const contract = contractRef.current;
-      const tokenContract = tokenContractRef.current;
-      
-      const [
-        prizePool,
-        availablePool,
-        totalSpins,
-        totalPaidOut,
-        playerStats,
-        gameCredits,
-        pendingRequest,
-        unclaimedPrize,
-      ] = await Promise.all([
+      const [prizePool, availablePool, totalSpins, totalPaidOut] = await Promise.all([
         contract.getPrizePool(),
         contract.getAvailablePool(),
         contract.totalSpins(),
         contract.totalPaidOut(),
+      ]);
+
+      setState(prev => ({
+        ...prev,
+        prizePool: formatEther(prizePool),
+        availablePool: formatEther(availablePool),
+        totalSpins,
+        totalPaidOut: formatEther(totalPaidOut),
+      }));
+    } catch (err) {
+      console.error('Failed to refresh public data:', err);
+    }
+  }, []);
+
+  // 刷新用户数据（需要钱包连接）
+  const refreshUserData = useCallback(async () => {
+    const contract = readOnlyContractRef.current;
+    const tokenContract = readOnlyTokenContractRef.current;
+    if (!contract || !address) return;
+    
+    try {
+      const [playerStats, gameCredits, pendingRequest, unclaimedPrize] = await Promise.all([
         contract.getPlayerStats(address),
         contract.getCredits(address),
         contract.pendingRequest(address),
@@ -162,10 +196,6 @@ export function useCyberSlots(): UseCyberSlotsReturn {
 
       setState(prev => ({
         ...prev,
-        prizePool: formatEther(prizePool),
-        availablePool: formatEther(availablePool),
-        totalSpins,
-        totalPaidOut: formatEther(totalPaidOut),
         playerStats: {
           totalSpins: playerStats.totalSpins,
           totalWins: playerStats.totalWins,
@@ -177,20 +207,34 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         gameCredits: formatEther(gameCredits),
         pendingRequest,
         unclaimedPrize: formatEther(unclaimedPrize),
-        isLoading: false,
       }));
+    } catch (err) {
+      console.error('Failed to refresh user data:', err);
+    }
+  }, [address, getContractAddress]);
+
+  // 刷新所有数据
+  const refreshData = useCallback(async () => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    
+    try {
+      await refreshPublicData();
+      if (address) {
+        await refreshUserData();
+      }
     } catch (err) {
       console.error('Failed to refresh data:', err);
       setState(prev => ({ 
         ...prev, 
-        isLoading: false, 
         error: '读取合约数据失败' 
       }));
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [address, getContractAddress]);
+  }, [refreshPublicData, refreshUserData, address]);
 
   const spin = useCallback(async (betAmount: number): Promise<string | null> => {
-    if (!contractRef.current || !address) {
+    if (!signerContractRef.current || !address) {
       setState(prev => ({ ...prev, error: '请先连接钱包' }));
       return null;
     }
@@ -205,15 +249,15 @@ export function useCyberSlots(): UseCyberSlotsReturn {
 
     try {
       const betAmountWei = parseUnits(betAmount.toString(), 18);
-      const tx = await contractRef.current.spin(betAmountWei);
+      const tx = await signerContractRef.current.spin(betAmountWei);
       const receipt = await tx.wait();
       
       const spinEvent = receipt.logs.find((log: { topics: string[] }) => 
-        log.topics[0] === contractRef.current?.interface.getEvent('SpinRequested')?.topicHash
+        log.topics[0] === signerContractRef.current?.interface.getEvent('SpinRequested')?.topicHash
       );
       
       if (spinEvent) {
-        const parsed = contractRef.current.interface.parseLog({
+        const parsed = signerContractRef.current.interface.parseLog({
           topics: spinEvent.topics as string[],
           data: spinEvent.data,
         });
@@ -233,10 +277,10 @@ export function useCyberSlots(): UseCyberSlotsReturn {
   }, [address, state.pendingRequest]);
 
   const claimPrize = useCallback(async (): Promise<boolean> => {
-    if (!contractRef.current) return false;
+    if (!signerContractRef.current) return false;
 
     try {
-      const tx = await contractRef.current.claimPrize();
+      const tx = await signerContractRef.current.claimPrize();
       await tx.wait();
       await refreshData();
       return true;
@@ -262,7 +306,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
   }, [getContractAddress, refreshData]);
 
   const depositCredits = useCallback(async (amount: number): Promise<boolean> => {
-    if (!contractRef.current || !tokenContractRef.current) return false;
+    if (!signerContractRef.current || !tokenContractRef.current) return false;
 
     try {
       const amountWei = parseUnits(amount.toString(), 18);
@@ -275,7 +319,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       }
       
       // 调用 depositCredits
-      const tx = await contractRef.current.depositCredits(amountWei);
+      const tx = await signerContractRef.current.depositCredits(amountWei);
       await tx.wait();
       await refreshData();
       return true;
@@ -286,10 +330,10 @@ export function useCyberSlots(): UseCyberSlotsReturn {
   }, [address, getContractAddress, refreshData]);
 
   const cancelStuckRequest = useCallback(async (): Promise<boolean> => {
-    if (!contractRef.current) return false;
+    if (!signerContractRef.current) return false;
 
     try {
-      const tx = await contractRef.current.cancelStuckRequest();
+      const tx = await signerContractRef.current.cancelStuckRequest();
       await tx.wait();
       await refreshData();
       return true;
@@ -299,20 +343,29 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     }
   }, [refreshData]);
 
+  // 初始化签名合约
   useEffect(() => {
-    initContracts();
-  }, [initContracts]);
+    initSignerContracts();
+  }, [initSignerContracts]);
 
+  // 页面加载时刷新公共数据
   useEffect(() => {
-    if (contractRef.current && address) {
-      refreshData();
+    if (readOnlyContractRef.current) {
+      refreshPublicData();
     }
-  }, [address, refreshData]);
+  }, [refreshPublicData]);
 
+  // 钱包连接时刷新用户数据
   useEffect(() => {
-    if (!contractRef.current || !address) return;
+    if (address) {
+      refreshUserData();
+    }
+  }, [address, refreshUserData]);
 
-    const contract = contractRef.current;
+  // 监听 SpinResult 事件
+  useEffect(() => {
+    const contract = readOnlyContractRef.current;
+    if (!contract) return;
 
     const handleSpinResult = (
       player: string,
@@ -332,7 +385,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
 
       setRecentWins(prev => [event, ...prev].slice(0, 20));
 
-      if (player.toLowerCase() === address.toLowerCase()) {
+      if (address && player.toLowerCase() === address.toLowerCase()) {
         setIsSpinning(false);
         setCurrentSpinRequest(null);
         refreshData();
@@ -347,15 +400,19 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     };
   }, [address, refreshData]);
 
+  // 定期刷新数据
   useEffect(() => {
     const interval = setInterval(() => {
-      if (contractRef.current && address && !isSpinning) {
-        refreshData();
+      if (!isSpinning) {
+        refreshPublicData();
+        if (address) {
+          refreshUserData();
+        }
       }
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [address, isSpinning, refreshData]);
+  }, [address, isSpinning, refreshPublicData, refreshUserData]);
 
   return {
     ...state,
