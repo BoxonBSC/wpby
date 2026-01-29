@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ProbabilityCalculator } from './ProbabilityCalculator';
 
 const rarityInfo = {
   legendary: { 
@@ -205,6 +206,11 @@ export function CompactRewardTiers() {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      {/* 概率计算器 */}
+      <div className="mb-3">
+        <ProbabilityCalculator />
+      </div>
 
       {/* 底部信息 */}
       <div className="mt-auto space-y-2">
