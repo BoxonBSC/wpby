@@ -385,54 +385,81 @@ export function useCyberSlots(): UseCyberSlotsReturn {
   }, [getContractAddress, refreshData]);
 
   const depositCredits = useCallback(async (amount: number): Promise<boolean> => {
-    console.log('[CyberSlots] depositCredits called', {
-      amount,
-      hasSignerContract: !!signerContractRef.current,
-      hasTokenContract: !!tokenContractRef.current,
-      address,
-    });
-    
-    if (!signerContractRef.current || !tokenContractRef.current) {
-      console.error('[CyberSlots] depositCredits failed: contracts not initialized');
-      
-      // 尝试重新初始化签名合约
-      await initSignerContracts();
-      
-      if (!signerContractRef.current || !tokenContractRef.current) {
-        console.error('[CyberSlots] depositCredits failed: contracts still not initialized after retry');
+    try {
+      const nativeProvider = getNativeWalletProvider();
+      const walletProvider = nativeProvider || web3ModalProvider;
+      const slotsAddress = getContractAddress();
+      const tokenAddress = getTokenAddress();
+
+      console.log('[CyberSlots] depositCredits called', {
+        amount,
+        address,
+        connectedWallet,
+        slotsAddress,
+        tokenAddress,
+        hasNativeProvider: !!nativeProvider,
+        hasWeb3ModalProvider: !!web3ModalProvider,
+      });
+
+      if (!address || !walletProvider) {
+        setState(prev => ({ ...prev, error: '未检测到可用钱包 Provider，请重新连接钱包' }));
         return false;
       }
-    }
 
-    try {
+      // 每次写入都用当前 Provider 重新创建 signer/合约，避免 ref 指向错误合约
+      const provider = new BrowserProvider(
+        walletProvider as { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> }
+      );
+      const signer = await provider.getSigner();
+      const slots = new Contract(slotsAddress, CYBER_SLOTS_ABI, signer);
+      const token = new Contract(tokenAddress, CYBER_TOKEN_ABI, signer);
+
+      console.log('[CyberSlots] write contracts targets', {
+        slots: (slots as unknown as { target?: string }).target || slotsAddress,
+        token: (token as unknown as { target?: string }).target || tokenAddress,
+      });
+
       const amountWei = parseUnits(amount.toString(), 18);
-      console.log('[CyberSlots] Amount in wei:', amountWei.toString());
-      
+
       // 先检查授权
-      const allowance = await tokenContractRef.current.allowance(address, getContractAddress());
-      console.log('[CyberSlots] Current allowance:', allowance.toString());
-      
+      const spender = slotsAddress;
+      const allowance = await token.allowance(address, spender);
+      console.log('[CyberSlots] allowance before:', allowance.toString());
+
       if (allowance < amountWei) {
-        console.log('[CyberSlots] Need to approve, requesting...');
-        const approveTx = await tokenContractRef.current.approve(getContractAddress(), amountWei);
-        console.log('[CyberSlots] Approve tx submitted:', approveTx.hash);
+        // 兼容部分代币：非 0 -> 非 0 授权可能会 revert（先置 0 再授权）
+        if (allowance > 0n) {
+          const resetTx = await token.approve(spender, 0n);
+          console.log('[CyberSlots] approve reset tx:', resetTx.hash);
+          await resetTx.wait();
+        }
+
+        const approveTx = await token.approve(spender, amountWei);
+        console.log('[CyberSlots] approve tx:', approveTx.hash);
         await approveTx.wait();
-        console.log('[CyberSlots] Approve tx confirmed');
       }
-      
-      // 调用 depositCredits
-      console.log('[CyberSlots] Calling depositCredits on contract...');
-      const tx = await signerContractRef.current.depositCredits(amountWei);
-      console.log('[CyberSlots] depositCredits tx submitted:', tx.hash);
+
+      console.log('[CyberSlots] calling slots.depositCredits...');
+      const tx = await slots.depositCredits(amountWei);
+      console.log('[CyberSlots] depositCredits tx:', tx.hash);
       await tx.wait();
-      console.log('[CyberSlots] depositCredits tx confirmed');
+
       await refreshData();
       return true;
     } catch (err) {
       console.error('[CyberSlots] Deposit credits failed:', err);
+      setState(prev => ({ ...prev, error: '兑换失败：交易被合约回滚（请确认授权/网络/合约地址）' }));
       return false;
     }
-  }, [address, getContractAddress, refreshData, initSignerContracts]);
+  }, [
+    address,
+    connectedWallet,
+    getContractAddress,
+    getNativeWalletProvider,
+    getTokenAddress,
+    refreshData,
+    web3ModalProvider,
+  ]);
 
   const cancelStuckRequest = useCallback(async (): Promise<boolean> => {
     if (!signerContractRef.current) return false;
