@@ -244,42 +244,42 @@ const Rules = () => {
                     <span className="text-neon-yellow font-display flex-1">超级头奖</span>
                     <span className="text-foreground">5个全是7️⃣</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池30%</span>
+                    <span className="text-neon-green font-display">奖池50%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-neon-purple/10">
                     <span>💎</span>
                     <span className="text-neon-purple font-display flex-1">头奖</span>
                     <span className="text-foreground">5个💎 或 4个7️⃣</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池15%</span>
+                    <span className="text-neon-green font-display">奖池25%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>👑</span>
                     <span className="text-foreground font-display flex-1">一等奖</span>
                     <span className="text-muted-foreground">任意5个相同</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池8%</span>
+                    <span className="text-neon-green font-display">奖池13%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>🔔</span>
                     <span className="text-foreground font-display flex-1">二等奖</span>
                     <span className="text-muted-foreground">4个稀有符号相同</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池3%</span>
+                    <span className="text-neon-green font-display">奖池5%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>⭐</span>
                     <span className="text-foreground font-display flex-1">三等奖</span>
                     <span className="text-muted-foreground">4个普通符号相同</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池1%</span>
+                    <span className="text-neon-green font-display">奖池1.7%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>🍀</span>
                     <span className="text-foreground font-display flex-1">小奖</span>
                     <span className="text-muted-foreground">任意3个相同</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池0.3%</span>
+                    <span className="text-neon-green font-display">奖池0.5%</span>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
@@ -296,7 +296,7 @@ const Rules = () => {
                     其中有4个7️⃣，中了<span className="text-neon-purple">头奖</span>！
                   </p>
                   <p>
-                    奖金计算：10 × 15% = <span className="text-neon-green font-display">1.5 BNB</span>（扣除5%运营费后实得约 1.425 BNB）
+                    奖金计算：10 × 25% = <span className="text-neon-green font-display">2.5 BNB</span>（扣除5%运营费后实得约 2.375 BNB）
                   </p>
                 </div>
               </div>

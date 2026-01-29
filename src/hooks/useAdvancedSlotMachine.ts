@@ -83,11 +83,11 @@ export const POOL_PROTECTION = {
 };
 
 export const PRIZE_TIERS: PrizeConfig[] = [
-  { type: 'mega_jackpot', name: '超级头奖', emoji: '🎰', description: '5×7连线', poolPercent: 0.30 },
-  { type: 'jackpot', name: '头奖', emoji: '💎', description: '5×💎 或 4×7', poolPercent: 0.15 },
-  { type: 'first', name: '一等奖', emoji: '👑', description: '5连其他符号', poolPercent: 0.08 },
-  { type: 'second', name: '二等奖', emoji: '🔔', description: '4连高级符号', poolPercent: 0.04 },
-  { type: 'third', name: '三等奖', emoji: '⭐', description: '4连普通符号', poolPercent: 0.02 },
+  { type: 'mega_jackpot', name: '超级头奖', emoji: '🎰', description: '5×7连线', poolPercent: 0.50 },
+  { type: 'jackpot', name: '头奖', emoji: '💎', description: '5×💎 或 4×7', poolPercent: 0.25 },
+  { type: 'first', name: '一等奖', emoji: '👑', description: '5连其他符号', poolPercent: 0.13 },
+  { type: 'second', name: '二等奖', emoji: '🔔', description: '4连高级符号', poolPercent: 0.05 },
+  { type: 'third', name: '三等奖', emoji: '⭐', description: '4连普通符号', poolPercent: 0.017 },
   { type: 'small', name: '小奖', emoji: '🍀', description: '3连任意符号', poolPercent: 0.005 },
 ];
 

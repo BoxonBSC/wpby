@@ -63,12 +63,12 @@ contract CyberSlots is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable
     uint256 public constant BET_LEVEL_5 = 500000 * 10**18;  // 500K - 20x 概率
     
     // ============ 奖励比例常量 (基点，10000 = 100%) ============
-    uint256 public constant SUPER_JACKPOT_PERCENT = 3000;  // 30% - 超级头奖（5个7）
-    uint256 public constant JACKPOT_PERCENT = 1500;        // 15% - 头奖（5💎或4个7）
-    uint256 public constant FIRST_PRIZE_PERCENT = 800;     // 8% - 一等奖（任意5连线）
-    uint256 public constant SECOND_PRIZE_PERCENT = 300;    // 3% - 二等奖（4个传奇/史诗）
-    uint256 public constant THIRD_PRIZE_PERCENT = 100;     // 1% - 三等奖（4个普通）
-    uint256 public constant SMALL_PRIZE_PERCENT = 30;      // 0.3% - 小奖（3连线）
+    uint256 public constant SUPER_JACKPOT_PERCENT = 5000;  // 50% - 超级头奖（5个7）
+    uint256 public constant JACKPOT_PERCENT = 2500;        // 25% - 头奖（5💎或4个7）
+    uint256 public constant FIRST_PRIZE_PERCENT = 1300;    // 13% - 一等奖（任意5连线）
+    uint256 public constant SECOND_PRIZE_PERCENT = 500;    // 5% - 二等奖（4个传奇/史诗）
+    uint256 public constant THIRD_PRIZE_PERCENT = 170;     // 1.7% - 三等奖（4个普通）
+    uint256 public constant SMALL_PRIZE_PERCENT = 50;      // 0.5% - 小奖（3连线）
     
     // ============ 奖池保护常量 ============
     uint256 public constant MAX_SINGLE_PAYOUT_PERCENT = 5000;  // 单次最大派奖：奖池的 50%
