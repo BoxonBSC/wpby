@@ -13,7 +13,8 @@ import { toast } from '@/hooks/use-toast';
 import { formatEther } from 'ethers';
 import { type SlotSymbol } from '@/hooks/useAdvancedSlotMachine';
 
-// 链上符号ID到本地符号ID的映射
+// 链上符号ID到本地符号ID的映射 - 必须与合约 SYMBOL_MAP 完全一致
+// 合约: 0=7️⃣, 1=💎, 2=👑, 3=🔔, 4=⭐, 5=🍒, 6=🍋, 7=🍊, 8=🍇, 9=🍀
 const CHAIN_SYMBOL_MAP: Record<number, SlotSymbol> = {
   0: 'seven',
   1: 'diamond',
@@ -22,8 +23,8 @@ const CHAIN_SYMBOL_MAP: Record<number, SlotSymbol> = {
   4: 'star',
   5: 'cherry',
   6: 'lemon',
-  7: 'grape',
-  8: 'watermelon',
+  7: 'orange',
+  8: 'grape',
   9: 'clover',
 };
 
@@ -32,7 +33,7 @@ const DEFAULT_GRID: SlotSymbol[][] = [
   ['seven', 'diamond', 'crown'],
   ['bell', 'star', 'cherry'],
   ['diamond', 'lemon', 'grape'],
-  ['crown', 'watermelon', 'clover'],
+  ['crown', 'orange', 'clover'],
   ['bell', 'seven', 'star'],
 ];
 

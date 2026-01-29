@@ -15,7 +15,7 @@ const getSymbolInfo = (id: SlotSymbol): SymbolInfo => {
   return SYMBOLS.find(s => s.id === id) || SYMBOLS[0];
 };
 
-const ALL_SYMBOL_IDS: SlotSymbol[] = ['seven', 'diamond', 'crown', 'bell', 'star', 'cherry', 'lemon', 'grape', 'watermelon', 'clover'];
+const ALL_SYMBOL_IDS: SlotSymbol[] = ['seven', 'diamond', 'crown', 'bell', 'star', 'cherry', 'lemon', 'orange', 'grape', 'clover'];
 
 const rarityBorder: Record<string, string> = {
   legendary: 'border-neon-yellow',
