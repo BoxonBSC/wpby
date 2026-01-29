@@ -2,10 +2,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AdvancedSlotReel } from './AdvancedSlotReel';
 import { PaylineLines } from './PaylineLines';
 import { WinDisplay } from './WinDisplay';
+import { AutoSpinControls } from './AutoSpinControls';
 import { useAdvancedSlotMachine } from '@/hooks/useAdvancedSlotMachine';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAudioContext } from '@/contexts/AudioContext';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Zap, TrendingUp, Coins, Sparkles, Flame, Trophy } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -21,6 +22,11 @@ export function AdvancedSlotMachine() {
     playClickSound,
   } = useAudioContext();
   const [showPaylines, setShowPaylines] = useState(false);
+  
+  // 自动旋转状态
+  const [isAutoSpinning, setIsAutoSpinning] = useState(false);
+  const [autoSpinCount, setAutoSpinCount] = useState(0);
+  const autoSpinRef = useRef(false);
 
   // 设置音效回调
   useEffect(() => {
@@ -62,16 +68,15 @@ export function AdvancedSlotMachine() {
     return gameState.lastResult.winLines.map(line => line.lineIndex);
   }, [gameState.lastResult, gameState.isSpinning]);
 
-  const handleSpin = async () => {
-    playClickSound();
-    
+  // 执行单次旋转
+  const executeSpin = useCallback(async () => {
     if (!isConnected) {
       toast({
         title: "请先连接钱包",
         description: "需要连接 MetaMask 钱包才能开始游戏",
         variant: "destructive",
       });
-      return;
+      return null;
     }
 
     if (Number(tokenBalance) < tokensPerSpin) {
@@ -80,7 +85,7 @@ export function AdvancedSlotMachine() {
         description: `需要 ${tokensPerSpin.toLocaleString()} 代币才能游戏`,
         variant: "destructive",
       });
-      return;
+      return null;
     }
 
     const result = await spin();
@@ -92,6 +97,82 @@ export function AdvancedSlotMachine() {
         description: `${result.winLines.length} 条赔付线中奖！${result.multiplier > 1 ? `${result.multiplier}x 倍数！` : ''} 赢得 ${bnbWin} BNB！`,
       });
     }
+    
+    return result;
+  }, [isConnected, tokenBalance, tokensPerSpin, spin, prizePool]);
+
+  // 手动旋转
+  const handleSpin = async () => {
+    playClickSound();
+    await executeSpin();
+  };
+
+  // 自动旋转逻辑
+  const runAutoSpin = useCallback(async () => {
+    if (!autoSpinRef.current || autoSpinCount <= 0) {
+      setIsAutoSpinning(false);
+      autoSpinRef.current = false;
+      return;
+    }
+
+    const result = await executeSpin();
+    
+    // 如果旋转失败（代币不足等），停止自动旋转
+    if (result === null) {
+      setIsAutoSpinning(false);
+      autoSpinRef.current = false;
+      setAutoSpinCount(0);
+      toast({
+        title: "自动旋转已停止",
+        description: "由于代币不足或其他原因",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAutoSpinCount(prev => prev - 1);
+  }, [autoSpinCount, executeSpin]);
+
+  // 监听自动旋转
+  useEffect(() => {
+    if (isAutoSpinning && !gameState.isSpinning && autoSpinCount > 0 && autoSpinRef.current) {
+      // 延迟一下再开始下一次旋转
+      const timer = setTimeout(() => {
+        runAutoSpin();
+      }, 500);
+      return () => clearTimeout(timer);
+    } else if (autoSpinCount <= 0 && isAutoSpinning) {
+      setIsAutoSpinning(false);
+      autoSpinRef.current = false;
+      toast({
+        title: "自动旋转完成",
+        description: "已完成所有自动旋转",
+      });
+    }
+  }, [isAutoSpinning, gameState.isSpinning, autoSpinCount, runAutoSpin]);
+
+  // 开始自动旋转
+  const handleStartAutoSpin = (count: number) => {
+    if (!isConnected) {
+      toast({
+        title: "请先连接钱包",
+        variant: "destructive",
+      });
+      return;
+    }
+    setAutoSpinCount(count);
+    setIsAutoSpinning(true);
+    autoSpinRef.current = true;
+  };
+
+  // 停止自动旋转
+  const handleStopAutoSpin = () => {
+    autoSpinRef.current = false;
+    setIsAutoSpinning(false);
+    setAutoSpinCount(0);
+    toast({
+      title: "自动旋转已停止",
+    });
   };
 
   const handlePaylineToggle = () => {
@@ -230,47 +311,64 @@ export function AdvancedSlotMachine() {
           </div>
         </div>
 
-        {/* 旋转按钮 */}
-        <div className="mt-6">
+        {/* 旋转按钮区域 */}
+        <div className="mt-6 space-y-3">
           {isConnected ? (
-            <motion.button
-              onClick={handleSpin}
-              disabled={gameState.isSpinning}
-              whileHover={{ scale: gameState.isSpinning ? 1 : 1.02 }}
-              whileTap={{ scale: gameState.isSpinning ? 1 : 0.98 }}
-              className={`
-                cyber-button w-full text-lg rounded-xl py-5
-                ${gameState.isSpinning 
-                  ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:shadow-[0_0_40px_hsl(195_100%_50%/0.5)]'}
-              `}
-            >
-              {gameState.isSpinning ? (
-                <span className="flex items-center justify-center gap-3">
-                  <motion.span
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
-                    className="text-2xl"
-                  >
-                    🎰
-                  </motion.span>
-                  <span>转动中...</span>
-                  <motion.span
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
-                    className="text-2xl"
-                  >
-                    🎰
-                  </motion.span>
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  <Zap className="w-6 h-6" />
-                  开始游戏
-                  <Zap className="w-6 h-6" />
-                </span>
-              )}
-            </motion.button>
+            <>
+              {/* 主按钮和自动旋转 */}
+              <div className="flex gap-3">
+                <motion.button
+                  onClick={handleSpin}
+                  disabled={gameState.isSpinning || isAutoSpinning}
+                  whileHover={{ scale: (gameState.isSpinning || isAutoSpinning) ? 1 : 1.02 }}
+                  whileTap={{ scale: (gameState.isSpinning || isAutoSpinning) ? 1 : 0.98 }}
+                  className={`
+                    cyber-button flex-1 text-lg rounded-xl py-5
+                    ${(gameState.isSpinning || isAutoSpinning)
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:shadow-[0_0_40px_hsl(195_100%_50%/0.5)]'}
+                  `}
+                >
+                  {gameState.isSpinning ? (
+                    <span className="flex items-center justify-center gap-3">
+                      <motion.span
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
+                        className="text-2xl"
+                      >
+                        🎰
+                      </motion.span>
+                      <span>转动中...</span>
+                      <motion.span
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
+                        className="text-2xl"
+                      >
+                        🎰
+                      </motion.span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Zap className="w-6 h-6" />
+                      开始游戏
+                      <Zap className="w-6 h-6" />
+                    </span>
+                  )}
+                </motion.button>
+              </div>
+              
+              {/* 自动旋转控制 */}
+              <div className="flex justify-center">
+                <AutoSpinControls
+                  isAutoSpinning={isAutoSpinning}
+                  remainingSpins={autoSpinCount}
+                  onStartAutoSpin={handleStartAutoSpin}
+                  onStopAutoSpin={handleStopAutoSpin}
+                  disabled={gameState.isSpinning}
+                  playClickSound={playClickSound}
+                />
+              </div>
+            </>
           ) : (
             <motion.button
               onClick={() => { playClickSound(); connect(); }}
