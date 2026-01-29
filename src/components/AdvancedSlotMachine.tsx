@@ -71,6 +71,10 @@ export function AdvancedSlotMachine() {
   const [shouldStopReels, setShouldStopReels] = useState(false);
   const [stoppedReelCount, setStoppedReelCount] = useState(0);
   
+  // 追踪我们自己的等待状态（独立于 hook 的 isSpinning）
+  const [isWaitingForResult, setIsWaitingForResult] = useState(false);
+  const lastProcessedRequestIdRef = useRef<string | null>(null);
+  
   // 中奖弹窗状态
   const [showWinOverlay, setShowWinOverlay] = useState(false);
   const [winOverlayData, setWinOverlayData] = useState<{
@@ -93,13 +97,24 @@ export function AdvancedSlotMachine() {
   const totalWinsDisplay = playerStats ? Number(playerStats.totalWins) : 0;
   const creditsDisplay = parseFloat(gameCredits);
 
-  // 监听中奖结果
+  // 监听中奖结果 - 使用 requestId 去重，避免重复处理
   useEffect(() => {
-    if (recentWins.length > 0 && address) {
+    if (recentWins.length > 0 && address && isWaitingForResult) {
       const myResult = recentWins.find(
         w => w.player.toLowerCase() === address.toLowerCase() && w.timestamp > Date.now() - 60000
       );
-      if (myResult && isSpinning) {
+      
+      if (myResult) {
+        // 检查是否已经处理过这个结果
+        const resultId = `${myResult.requestId}-${myResult.timestamp}`;
+        if (lastProcessedRequestIdRef.current === resultId) {
+          return; // 已经处理过，跳过
+        }
+        
+        // 标记为已处理
+        lastProcessedRequestIdRef.current = resultId;
+        setIsWaitingForResult(false);
+        
         // 收到结果，开始揭示动画
         const newGrid: SlotSymbol[][] = myResult.symbols.map(s => {
           const symbol = CHAIN_SYMBOL_MAP[s] || 'seven';
@@ -123,7 +138,7 @@ export function AdvancedSlotMachine() {
         setStoppedReelCount(0);
       }
     }
-  }, [recentWins, address, isSpinning]);
+  }, [recentWins, address, isWaitingForResult]);
   
   // 处理轮子停止完成
   const handleReelStopped = useCallback(() => {
@@ -196,6 +211,8 @@ export function AdvancedSlotMachine() {
     lastActionRef.current = 'spin';
     const txHash = await contractSpin(currentBetCredits);
     if (txHash) {
+      // 设置等待结果状态
+      setIsWaitingForResult(true);
       toast({
         title: "🎰 游戏已提交",
         description: "等待VRF回调结果...",
@@ -422,7 +439,7 @@ export function AdvancedSlotMachine() {
                 <AdvancedSlotReel
                   key={reelIndex}
                   symbols={column}
-                  isSpinning={isSpinning || isRevealing}
+                  isSpinning={isSpinning || isWaitingForResult || isRevealing}
                   reelIndex={reelIndex}
                   winningPositions={new Set()}
                   isRevealing={isRevealing}
@@ -433,7 +450,7 @@ export function AdvancedSlotMachine() {
             </div>
           </div>
           
-          {(isSpinning || isRevealing) && (
+          {(isSpinning || isWaitingForResult || isRevealing) && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -456,7 +473,7 @@ export function AdvancedSlotMachine() {
           <BetSelector
             currentBet={currentBetCredits}
             onBetChange={setCurrentBetCredits}
-            disabled={isSpinning || isAutoSpinning}
+            disabled={isSpinning || isAutoSpinning || isWaitingForResult || isRevealing}
             playClickSound={playClickSound}
           />
         </div>
@@ -499,17 +516,17 @@ export function AdvancedSlotMachine() {
               <div className="flex gap-3">
                 <motion.button
                   onClick={handleSpin}
-                  disabled={isSpinning || isAutoSpinning || isRevealing}
-                  whileHover={{ scale: (isSpinning || isAutoSpinning || isRevealing) ? 1 : 1.02 }}
-                  whileTap={{ scale: (isSpinning || isAutoSpinning || isRevealing) ? 1 : 0.98 }}
+                  disabled={isSpinning || isAutoSpinning || isRevealing || isWaitingForResult}
+                  whileHover={{ scale: (isSpinning || isAutoSpinning || isRevealing || isWaitingForResult) ? 1 : 1.02 }}
+                  whileTap={{ scale: (isSpinning || isAutoSpinning || isRevealing || isWaitingForResult) ? 1 : 0.98 }}
                   className={`
                     cyber-button flex-1 text-lg rounded-xl py-5
-                    ${(isSpinning || isAutoSpinning || isRevealing)
+                    ${(isSpinning || isAutoSpinning || isRevealing || isWaitingForResult)
                       ? 'opacity-50 cursor-not-allowed' 
                       : 'hover:shadow-[0_0_40px_hsl(195_100%_50%/0.5)]'}
                   `}
                 >
-                  {(isSpinning || isRevealing) ? (
+                  {(isSpinning || isWaitingForResult || isRevealing) ? (
                     <span className="flex items-center justify-center gap-3">
                       <motion.span
                         animate={{ rotate: 360 }}
@@ -543,7 +560,7 @@ export function AdvancedSlotMachine() {
                   remainingSpins={autoSpinCount}
                   onStartAutoSpin={handleStartAutoSpin}
                   onStopAutoSpin={handleStopAutoSpin}
-                  disabled={isSpinning || isRevealing}
+                  disabled={isSpinning || isRevealing || isWaitingForResult}
                   playClickSound={playClickSound}
                 />
               </div>
