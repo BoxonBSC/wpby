@@ -192,8 +192,8 @@ const Rules = () => {
                 <div>
                   <div className="font-display text-foreground mb-1">4. 开始游戏！</div>
                   <div className="text-sm text-muted-foreground">
-                    点击"开始"按钮，5个转轮会开始转动。等待停止后，系统会自动检查15条赔付线，
-                    <span className="text-neon-yellow">匹配到相同符号就中奖！</span>
+                    点击"开始"按钮，5个转轮会开始转动。每个轮子停止后显示一个符号，
+                    <span className="text-neon-yellow">根据5个符号中相同符号的数量判定中奖！</span>
                   </div>
                 </div>
               </div>
@@ -218,19 +218,19 @@ const Rules = () => {
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span>游戏有 <span className="text-neon-cyan">5个转轮</span>，每个转轮 <span className="text-neon-cyan">3行</span></span>
+                    <span>游戏有 <span className="text-neon-cyan">5个转轮</span>，每轮产生 <span className="text-neon-cyan">1个符号</span></span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span>共 <span className="text-neon-purple">15条赔付线</span> 同时检测</span>
+                    <span>根据 <span className="text-neon-purple">5个符号中相同符号的数量</span> 判定中奖</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span>连续 <span className="text-neon-yellow">3个以上相同符号</span> 就算中奖</span>
+                    <span><span className="text-neon-yellow">3个以上相同符号</span> 就算中奖</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span>取 <span className="text-neon-green">最高等级奖励</span> 发放</span>
+                    <span>界面显示3行，但只有 <span className="text-neon-green">中间行（高亮行）</span> 是实际结果</span>
                   </li>
                 </ul>
               </div>
@@ -242,55 +242,63 @@ const Rules = () => {
                   <div className="flex items-center gap-2 p-2 rounded bg-neon-yellow/10">
                     <span>🎰</span>
                     <span className="text-neon-yellow font-display flex-1">超级头奖</span>
-                    <span className="text-foreground">5个7连线</span>
+                    <span className="text-foreground">5个全是7️⃣</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池50%</span>
+                    <span className="text-neon-green font-display">奖池30%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-neon-purple/10">
                     <span>💎</span>
                     <span className="text-neon-purple font-display flex-1">头奖</span>
-                    <span className="text-foreground">5个💎或4个7</span>
+                    <span className="text-foreground">5个💎 或 4个7️⃣</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池25%</span>
+                    <span className="text-neon-green font-display">奖池15%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>👑</span>
                     <span className="text-foreground font-display flex-1">一等奖</span>
-                    <span className="text-muted-foreground">任意5连线</span>
+                    <span className="text-muted-foreground">任意5个相同</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池10%</span>
+                    <span className="text-neon-green font-display">奖池8%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>🔔</span>
                     <span className="text-foreground font-display flex-1">二等奖</span>
-                    <span className="text-muted-foreground">4个稀有符号</span>
+                    <span className="text-muted-foreground">4个稀有符号相同</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池5%</span>
+                    <span className="text-neon-green font-display">奖池3%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>⭐</span>
                     <span className="text-foreground font-display flex-1">三等奖</span>
-                    <span className="text-muted-foreground">4个普通符号</span>
+                    <span className="text-muted-foreground">4个普通符号相同</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池2%</span>
+                    <span className="text-neon-green font-display">奖池1%</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>🍀</span>
                     <span className="text-foreground font-display flex-1">小奖</span>
-                    <span className="text-muted-foreground">任意3连线</span>
+                    <span className="text-muted-foreground">任意3个相同</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池0.5%</span>
+                    <span className="text-neon-green font-display">奖池0.3%</span>
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  * 单次最大派奖不超过奖池的50%
+                </p>
               </div>
 
               {/* 举例说明 */}
               <div className="neon-border-green rounded-lg p-4 bg-neon-green/5">
                 <h3 className="font-display text-neon-green mb-2">📖 举个例子</h3>
-                <p className="text-sm text-muted-foreground">
-                  假设当前奖池有 <span className="text-neon-yellow font-display">10 BNB</span>，你投注后中了<span className="text-neon-purple">头奖</span>，
-                  那你将获得 10 × 25% = <span className="text-neon-green font-display">2.5 BNB</span> 的奖励！
-                </p>
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p>
+                    假设当前奖池有 <span className="text-neon-yellow font-display">10 BNB</span>，你投注后开出 [7️⃣ 💎 7️⃣ 7️⃣ 7️⃣]，
+                    其中有4个7️⃣，中了<span className="text-neon-purple">头奖</span>！
+                  </p>
+                  <p>
+                    奖金计算：10 × 15% = <span className="text-neon-green font-display">1.5 BNB</span>（扣除5%运营费后实得约 1.425 BNB）
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -312,24 +320,27 @@ const Rules = () => {
             <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5 text-center">
               <div className="text-3xl mb-2">7️⃣ 💎</div>
               <div className="font-display text-neon-yellow">传说符号</div>
-              <div className="text-xs text-muted-foreground mt-1">最稀有，出现概率约2-3%</div>
+              <div className="text-xs text-muted-foreground mt-1">最稀有，基础概率约1-2%</div>
             </div>
             <div className="neon-border-purple rounded-lg p-4 bg-neon-purple/5 text-center">
               <div className="text-3xl mb-2">👑 🔔 ⭐</div>
               <div className="font-display text-neon-purple">史诗符号</div>
-              <div className="text-xs text-muted-foreground mt-1">较稀有，出现概率约5-10%</div>
+              <div className="text-xs text-muted-foreground mt-1">较稀有，基础概率约3-5%</div>
             </div>
             <div className="neon-border-cyan rounded-lg p-4 bg-neon-cyan/5 text-center">
-              <div className="text-3xl mb-2">🍒 🍋</div>
+              <div className="text-3xl mb-2">🍒 🍋 🍊</div>
               <div className="font-display text-neon-cyan">稀有符号</div>
-              <div className="text-xs text-muted-foreground mt-1">出现概率约15%</div>
+              <div className="text-xs text-muted-foreground mt-1">基础概率约17%</div>
             </div>
             <div className="neon-border rounded-lg p-4 bg-muted/20 text-center">
-              <div className="text-3xl mb-2">🍊 🍇 🍀 🎲</div>
+              <div className="text-3xl mb-2">🍇 🍀</div>
               <div className="font-display text-foreground">普通符号</div>
-              <div className="text-xs text-muted-foreground mt-1">出现概率约12-15%</div>
+              <div className="text-xs text-muted-foreground mt-1">基础概率约17%</div>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground text-center mt-3">
+            💡 投注越高，稀有符号出现概率越大！500K投注时稀有符号概率提升20倍
+          </p>
         </motion.div>
 
         {/* 安全与公平性 */}
