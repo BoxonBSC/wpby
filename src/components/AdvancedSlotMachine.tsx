@@ -96,15 +96,9 @@ export function AdvancedSlotMachine() {
     const betMultiplier = currentBet / 20000; // 基准是 20K
     const result = await spin(betMultiplier);
     
-    if (result.bnbWin > 0) {
-      const prizeLabels = {
-        jackpot: '🎰 超级大奖！！！',
-        second: '🎉 二等奖！',
-        small: '✨ 小奖！',
-        none: '',
-      };
+    if (result.bnbWin > 0 && result.prizeConfig) {
       toast({
-        title: prizeLabels[result.prizeType],
+        title: `${result.prizeConfig.emoji} ${result.prizeConfig.name}！`,
         description: `${result.winLines.length} 条赔付线中奖！${result.multiplier > 1 ? `${result.multiplier}x 倍数！` : ''} 赢得 ${result.bnbWin.toFixed(4)} BNB！`,
       });
     }
