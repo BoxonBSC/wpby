@@ -462,31 +462,39 @@
   @keyframes scan-line {
     0% {
       transform: translateY(-100%);
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 1;
     }
     100% {
-      transform: translateY(100%);
+      transform: translateY(200%);
+      opacity: 0.3;
     }
   }
 
   .animate-scan-line {
-    animation: scan-line 0.25s linear infinite;
+    animation: scan-line 0.8s linear infinite;
     will-change: transform;
   }
 
   @keyframes flash {
     0% {
-      opacity: 0.8;
+      opacity: 1;
+      transform: scale(1);
     }
     50% {
-      opacity: 0.2;
+      opacity: 0.5;
+      transform: scale(1.02);
     }
     100% {
       opacity: 0;
+      transform: scale(1);
     }
   }
 
   .animate-flash {
-    animation: flash 0.15s ease-out forwards;
+    animation: flash 0.3s ease-out forwards;
   }
 
   /* Slot symbol bounce */
@@ -501,5 +509,55 @@
 
   .animate-symbol-bounce {
     animation: symbol-bounce 0.6s ease-in-out infinite;
+  }
+
+  /* Landing bounce animation */
+  @keyframes landing-bounce {
+    0% {
+      transform: scale(1.05);
+    }
+    30% {
+      transform: scale(0.98);
+    }
+    60% {
+      transform: scale(1.02);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .animate-landing {
+    animation: landing-bounce 0.4s ease-out;
+  }
+
+  /* Reel glow pulse */
+  @keyframes reel-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(195 100% 50% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 35px hsl(195 100% 50% / 0.5);
+    }
+  }
+
+  .animate-reel-glow {
+    animation: reel-glow 1s ease-in-out infinite;
+  }
+
+  /* Win celebration */
+  @keyframes win-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(50 100% 50% / 0.4);
+      border-color: hsl(50 100% 50% / 0.6);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(50 100% 50% / 0.7);
+      border-color: hsl(50 100% 50% / 1);
+    }
+  }
+
+  .animate-win-pulse {
+    animation: win-pulse 0.5s ease-in-out infinite;
   }
 }
