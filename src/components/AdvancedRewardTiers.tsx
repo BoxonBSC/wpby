@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { SYMBOLS, PAYLINES, PRIZE_TIERS, PAYOUT_TABLE, COUNT_MULTIPLIERS } from '@/hooks/useAdvancedSlotMachine';
-import { Trophy, Medal, Award, Star, Gem, Crown, Info, TrendingUp } from 'lucide-react';
+import { SYMBOLS, PAYLINES, PRIZE_TIERS, POOL_PROTECTION } from '@/hooks/useAdvancedSlotMachine';
+import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield } from 'lucide-react';
 
 const rarityInfo = {
   legendary: { 
@@ -44,30 +44,37 @@ export function AdvancedRewardTiers() {
       {/* 100% 返还说明 */}
       <div className="neon-border-green rounded-lg p-3 bg-neon-green/5 mb-4">
         <h4 className="text-sm font-display text-neon-green mb-2 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
+          <Shield className="w-4 h-4" />
           🎯 100% 资金返还 | 零抽成
         </h4>
         <div className="text-xs text-muted-foreground space-y-1">
           <p className="text-neon-yellow">
             ✨ 庄家零抽成 - 所有投注资金 100% 进入奖池
           </p>
-          <p>
-            • 玩家投入的每一分钱都用于奖励派发
-          </p>
-          <p>
-            • 无隐藏费用，无平台抽成
-          </p>
-          <p>
-            • 智能合约透明可验证
-          </p>
+          <p>• 玩家投入的每一分钱都用于奖励派发</p>
+          <p>• 无隐藏费用，无平台抽成</p>
+          <p>• 智能合约透明可验证</p>
         </div>
       </div>
 
-      {/* 6级奖励表 */}
+      {/* 奖池保护机制 */}
+      <div className="neon-border-pink rounded-lg p-3 bg-neon-pink/5 mb-4">
+        <h4 className="text-sm font-display text-neon-pink mb-2 flex items-center gap-2">
+          <Shield className="w-4 h-4" />
+          奖池保护机制
+        </h4>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p>• 单次最大派奖: 奖池的 <span className="text-neon-yellow">{(POOL_PROTECTION.maxSinglePayout * 100).toFixed(0)}%</span></p>
+          <p>• 最低派奖阈值: <span className="text-neon-cyan">{POOL_PROTECTION.minPoolThreshold} BNB</span></p>
+          <p>• 储备金保留: <span className="text-neon-green">{(POOL_PROTECTION.reservePercent * 100).toFixed(0)}%</span> 用于持续运营</p>
+        </div>
+      </div>
+
+      {/* 6级奖励表 - 基于奖池百分比 */}
       <div className="neon-border-purple rounded-lg p-3 bg-muted/20 mb-4">
         <h4 className="text-sm font-display text-neon-yellow mb-3 flex items-center gap-2">
           <Award className="w-4 h-4" />
-          奖励等级
+          奖励等级 (基于奖池)
         </h4>
         <div className="space-y-1.5">
           {PRIZE_TIERS.map((prize, index) => (
@@ -95,47 +102,14 @@ export function AdvancedRewardTiers() {
                 {prize.description}
               </span>
               <span className="text-neon-green font-display">
-                ≥{prize.minMultiplier}x
+                {(prize.poolPercent * 100).toFixed(1)}%
               </span>
             </motion.div>
           ))}
         </div>
-      </div>
-
-      {/* 赔付表 */}
-      <div className="neon-border rounded-lg p-3 bg-muted/20 mb-4">
-        <h4 className="text-sm font-display text-neon-cyan mb-2 flex items-center gap-2">
-          <Info className="w-4 h-4" />
-          符号赔付倍数 (×投注)
-        </h4>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-muted-foreground">
-                <th className="text-left py-1">符号</th>
-                <th className="text-center py-1">3连</th>
-                <th className="text-center py-1">4连</th>
-                <th className="text-center py-1">5连</th>
-              </tr>
-            </thead>
-            <tbody>
-              {PAYOUT_TABLE.map((row) => {
-                const rarity = rarityInfo[row.symbol.rarity];
-                return (
-                  <tr key={row.symbol.id} className={`border-t border-border/30 ${rarity.bg}`}>
-                    <td className="py-1.5 flex items-center gap-1">
-                      <span className="text-base">{row.symbol.emoji}</span>
-                      <span className={`${rarity.color} text-xs`}>{rarity.label}</span>
-                    </td>
-                    <td className="text-center text-neon-green">{row.three}x</td>
-                    <td className="text-center text-neon-yellow">{row.four}x</td>
-                    <td className="text-center text-neon-pink">{row.five}x</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          * 实际派奖 = 奖池 × 百分比 (不超过最大派奖限制)
+        </p>
       </div>
 
       {/* 符号出现概率 */}
@@ -177,17 +151,30 @@ export function AdvancedRewardTiers() {
         </div>
       </div>
 
+      {/* 中奖条件 */}
+      <div className="neon-border rounded-lg p-3 bg-muted/20 mb-4">
+        <h4 className="text-sm font-display text-neon-cyan mb-2 flex items-center gap-2">
+          <Info className="w-4 h-4" />
+          中奖条件
+        </h4>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p><span className="text-neon-yellow">🎰 超级头奖:</span> 5个7连线</p>
+          <p><span className="text-neon-purple">💎 头奖:</span> 5个💎 或 4个7</p>
+          <p><span className="text-neon-orange">👑 一等奖:</span> 任意5连线</p>
+          <p><span className="text-neon-pink">🔔 二等奖:</span> 4个传奇/史诗符号</p>
+          <p><span className="text-neon-cyan">⭐ 三等奖:</span> 4连普通符号</p>
+          <p><span className="text-neon-green">🍀 小奖:</span> 任意3连线</p>
+        </div>
+      </div>
+
       {/* 赔付线信息 */}
       <div className="neon-border rounded-lg p-3 bg-muted/20 mb-4">
         <h4 className="text-sm font-display text-neon-purple mb-2 flex items-center gap-2">
           <Medal className="w-4 h-4" />
           赔付线 ({PAYLINES.length}条)
         </h4>
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p>多条线同时中奖时，倍数累加：</p>
-          <div className="flex items-center gap-2 mt-1 text-neon-green">
-            例：3条线各2x = 总计6x
-          </div>
+        <div className="text-xs text-muted-foreground">
+          <p>15条赔付线同时检测，取最高奖励等级派奖</p>
         </div>
       </div>
 

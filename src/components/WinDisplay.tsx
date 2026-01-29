@@ -1,10 +1,9 @@
 import { motion } from 'framer-motion';
 import { SpinResult, PrizeType } from '@/hooks/useAdvancedSlotMachine';
-import { Sparkles, Zap, Crown, Star, Gem, Trophy } from 'lucide-react';
+import { Sparkles, Crown, Star, Gem, Trophy } from 'lucide-react';
 
 interface WinDisplayProps {
   result: SpinResult;
-  betAmount: number;
 }
 
 // 6级奖励显示配置
@@ -66,7 +65,7 @@ const PRIZE_DISPLAY: Record<PrizeType, {
   },
 };
 
-export function WinDisplay({ result, betAmount }: WinDisplayProps) {
+export function WinDisplay({ result }: WinDisplayProps) {
   const displayConfig = PRIZE_DISPLAY[result.prizeType];
   const isHighTier = ['mega_jackpot', 'jackpot', 'first'].includes(result.prizeType);
   
@@ -126,22 +125,20 @@ export function WinDisplay({ result, betAmount }: WinDisplayProps) {
           {displayConfig.icon}
         </motion.div>
 
-        {/* 中奖倍数和金额 */}
+        {/* 中奖金额和奖池百分比 */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.3, type: 'spring' }}
           className="mb-4"
         >
-          <div className="text-4xl md:text-6xl font-display text-neon-yellow
-            drop-shadow-[0_0_20px_hsl(50_100%_50%/0.6)]">
-            {result.totalMultiplier}x
+          <div className="text-5xl md:text-7xl font-display text-neon-green
+            drop-shadow-[0_0_20px_hsl(150_100%_50%/0.6)]">
+            +{result.poolPayout.toFixed(4)}
           </div>
-          <div className="text-2xl md:text-3xl text-neon-green font-display mt-2">
-            +{result.totalWin.toFixed(4)} BNB
-          </div>
-          <div className="text-sm text-muted-foreground mt-1">
-            投注 {betAmount.toFixed(4)} BNB × {result.totalMultiplier} 倍
+          <div className="text-xl text-neon-green/80 font-display">BNB</div>
+          <div className="text-sm text-muted-foreground mt-2">
+            奖池 {(result.poolPercentUsed * 100).toFixed(1)}%
           </div>
         </motion.div>
 
@@ -156,13 +153,6 @@ export function WinDisplay({ result, betAmount }: WinDisplayProps) {
             <Sparkles className="w-4 h-4 text-neon-purple" />
             <span>{result.winLines.length} 条赔付线中奖</span>
           </div>
-          
-          {result.winLines.length >= 3 && (
-            <div className="flex items-center justify-center gap-2 text-neon-orange">
-              <Zap className="w-4 h-4" />
-              <span className="font-display">多线连中奖励！</span>
-            </div>
-          )}
 
           {/* 中奖线详情 */}
           <div className="flex flex-wrap justify-center gap-2 mt-3">
@@ -176,7 +166,6 @@ export function WinDisplay({ result, betAmount }: WinDisplayProps) {
               >
                 <span className="mr-1">{line.symbol.emoji}</span>
                 <span className="text-muted-foreground">×{line.count}</span>
-                <span className="text-neon-green ml-1">({line.multiplier}x)</span>
               </motion.div>
             ))}
             {result.winLines.length > 5 && (
