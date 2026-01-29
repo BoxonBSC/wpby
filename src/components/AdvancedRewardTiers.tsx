@@ -17,28 +17,32 @@ const rarityInfo = {
     label: '传说', 
     color: 'text-neon-yellow', 
     bg: 'bg-neon-yellow/10',
-    border: 'border-neon-yellow/50',
+    border: 'border-neon-yellow/60',
+    glow: 'shadow-[0_0_8px_hsl(50_100%_50%/0.3)]',
     icon: Crown,
   },
   epic: { 
     label: '史诗', 
     color: 'text-neon-purple', 
     bg: 'bg-neon-purple/10',
-    border: 'border-neon-purple/50',
+    border: 'border-neon-purple/60',
+    glow: 'shadow-[0_0_8px_hsl(280_100%_60%/0.3)]',
     icon: Gem,
   },
   rare: { 
     label: '稀有', 
     color: 'text-neon-cyan', 
     bg: 'bg-neon-cyan/10',
-    border: 'border-neon-cyan/50',
+    border: 'border-neon-cyan/60',
+    glow: 'shadow-[0_0_8px_hsl(180_100%_50%/0.3)]',
     icon: Star,
   },
   common: { 
     label: '普通', 
-    color: 'text-muted-foreground', 
-    bg: 'bg-muted/10',
-    border: 'border-border',
+    color: 'text-neon-green', 
+    bg: 'bg-neon-green/10',
+    border: 'border-neon-green/60',
+    glow: 'shadow-[0_0_8px_hsl(120_100%_40%/0.2)]',
     icon: Star,
   },
 };
@@ -177,7 +181,7 @@ export function AdvancedRewardTiers() {
       {/* 符号出现概率 */}
       <div className="mb-4">
         <h4 className="text-sm font-display text-neon-purple mb-2">符号稀有度</h4>
-        <div className="space-y-1.5">
+        <div className="grid grid-cols-2 gap-2">
           {SYMBOLS.map((symbol, index) => {
             const rarity = rarityInfo[symbol.rarity];
             const Icon = rarity.icon;
@@ -185,18 +189,18 @@ export function AdvancedRewardTiers() {
             return (
               <motion.div
                 key={symbol.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.03 }}
                 className={`
-                  flex items-center gap-2 p-1.5 rounded-lg
-                  border ${rarity.border} ${rarity.bg}
-                  hover:bg-muted/30 transition-colors
+                  flex items-center gap-2 p-2 rounded-lg
+                  border ${rarity.border} ${rarity.bg} ${rarity.glow}
+                  hover:scale-105 transition-transform duration-200
                 `}
               >
-                <span className="text-xl w-8 text-center">{symbol.emoji}</span>
+                <span className="text-2xl">{symbol.emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <div className={`text-xs flex items-center gap-1 ${rarity.color}`}>
+                  <div className={`text-xs font-display flex items-center gap-1 ${rarity.color}`}>
                     <Icon className="w-3 h-3" />
                     {rarity.label}
                   </div>
