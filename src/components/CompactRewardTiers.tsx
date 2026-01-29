@@ -40,8 +40,8 @@ const rarityInfo = {
 };
 
 export function CompactRewardTiers() {
-  const [showSymbols, setShowSymbols] = useState(false);
-  const [showConditions, setShowConditions] = useState(false);
+  const [showSymbols, setShowSymbols] = useState(true);
+  const [showConditions, setShowConditions] = useState(true);
 
   return (
     <div className="cyber-card h-full flex flex-col">
