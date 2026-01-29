@@ -96,16 +96,21 @@ export function AdvancedSlotMachine() {
     const betMultiplier = currentBet / 20000; // 基准是 20K
     const result = await spin(betMultiplier);
     
-    if (result.totalWin > 0) {
-      const bnbWin = (result.totalWin / 1000 * prizePool).toFixed(4);
+    if (result.bnbWin > 0) {
+      const prizeLabels = {
+        jackpot: '🎰 超级大奖！！！',
+        second: '🎉 二等奖！',
+        small: '✨ 小奖！',
+        none: '',
+      };
       toast({
-        title: result.isJackpot ? '🎰 超级大奖！！！' : '🎉 恭喜中奖！',
-        description: `${result.winLines.length} 条赔付线中奖！${result.multiplier > 1 ? `${result.multiplier}x 倍数！` : ''} 赢得 ${bnbWin} BNB！`,
+        title: prizeLabels[result.prizeType],
+        description: `${result.winLines.length} 条赔付线中奖！${result.multiplier > 1 ? `${result.multiplier}x 倍数！` : ''} 赢得 ${result.bnbWin.toFixed(4)} BNB！`,
       });
     }
     
     return result;
-  }, [isConnected, tokenBalance, currentBet, spin, prizePool]);
+  }, [isConnected, tokenBalance, currentBet, spin]);
 
   // 手动旋转
   const handleSpin = async () => {
@@ -278,7 +283,7 @@ export function AdvancedSlotMachine() {
 
           {/* 中奖显示 */}
           <AnimatePresence>
-            {gameState.lastResult && gameState.lastResult.totalWin > 0 && !gameState.isSpinning && (
+            {gameState.lastResult && gameState.lastResult.bnbWin > 0 && !gameState.isSpinning && (
               <WinDisplay result={gameState.lastResult} prizePool={prizePool} />
             )}
           </AnimatePresence>

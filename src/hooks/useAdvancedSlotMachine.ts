@@ -54,16 +54,21 @@ export interface WinLine {
   symbol: SymbolInfo;
   count: number;
   positions: [number, number][]; // [reel, row]
-  payout: number;
+  payout: number; // 基础分数
 }
+
+export type PrizeType = 'jackpot' | 'second' | 'small' | 'none';
 
 export interface SpinResult {
   grid: SlotSymbol[][];
   winLines: WinLine[];
-  totalWin: number;
+  totalWin: number;        // 总分数
+  bnbWin: number;          // 实际 BNB 奖励
+  prizeType: PrizeType;    // 奖励类型
   isJackpot: boolean;
   newProbability: number;
   multiplier: number;
+  prizePoolAfter: number;  // 派奖后奖池
 }
 
 export interface GameState {
@@ -80,10 +85,16 @@ export interface GameState {
   reelStates: ('spinning' | 'stopping' | 'stopped')[];
 }
 
-const TOKENS_PER_SPIN = 20000;
+const BASE_TOKENS_PER_SPIN = 20000;
 const BASE_PROBABILITY = 5;
 const PROBABILITY_INCREMENT = 2;
 const MAX_PROBABILITY = 50;
+
+// 奖金比例 (基于奖池) - 与智能合约一致
+const JACKPOT_REWARD_RATE = 0.20;    // 头奖: 奖池的 20%
+const SECOND_PRIZE_RATE = 0.05;      // 二等奖: 奖池的 5%
+const SMALL_PRIZE_RATE = 0.01;       // 小奖: 奖池的 1%
+const MIN_POOL_THRESHOLD = 0.5;      // 最低奖池阈值 (BNB)
 
 const getRandomSymbol = (rng: () => number): SlotSymbol => {
   const roll = rng() * 100;
@@ -116,6 +127,7 @@ const findSymbolInfo = (id: SlotSymbol): SymbolInfo => {
   return SYMBOLS.find(s => s.id === id) || SYMBOLS[0];
 };
 
+// 计算赔付线奖励 - 返回奖励类型和倍数
 const checkPayline = (grid: SlotSymbol[][], payline: number[]): WinLine | null => {
   const positions: [number, number][] = payline.map((row, reel) => [reel, row]);
   const symbols = positions.map(([reel, row]) => grid[reel][row]);
@@ -134,13 +146,14 @@ const checkPayline = (grid: SlotSymbol[][], payline: number[]): WinLine | null =
   
   if (count >= 3) {
     const symbolInfo = findSymbolInfo(firstSymbol);
-    const basePayout = symbolInfo.multiplier * (count - 2); // 3连x1, 4连x2, 5连x3
+    // 基础分数 (用于计算相对权重，不是实际BNB奖励)
+    const baseScore = symbolInfo.multiplier * (count - 2);
     return {
       lineIndex: 0,
       symbol: symbolInfo,
       count,
       positions: positions.slice(0, count),
-      payout: basePayout,
+      payout: baseScore,
     };
   }
   
@@ -152,6 +165,47 @@ export interface SpinCallbacks {
   onReelStop?: (reelIndex: number) => void;
   onSpinEnd?: (result: SpinResult) => void;
 }
+
+// 计算奖励类型和 BNB 数量
+const calculatePrize = (
+  winLines: WinLine[], 
+  prizePool: number, 
+  betMultiplier: number
+): { prizeType: PrizeType; bnbWin: number } => {
+  if (winLines.length === 0) {
+    return { prizeType: 'none', bnbWin: 0 };
+  }
+
+  // 检查奖池是否足够
+  if (prizePool < MIN_POOL_THRESHOLD) {
+    return { prizeType: 'none', bnbWin: 0 };
+  }
+
+  // 检查头奖: 5个7连线
+  const hasJackpot = winLines.some(line => 
+    line.symbol.id === 'seven' && line.count === 5
+  );
+  
+  if (hasJackpot) {
+    // 头奖: 奖池的 20%
+    const bnbWin = prizePool * JACKPOT_REWARD_RATE * betMultiplier;
+    return { prizeType: 'jackpot', bnbWin };
+  }
+
+  // 检查二等奖: 5个相同 (非7) 或 多条5连线
+  const hasFiveMatch = winLines.some(line => line.count === 5);
+  const multipleWinLines = winLines.length >= 3;
+  
+  if (hasFiveMatch || multipleWinLines) {
+    // 二等奖: 奖池的 5%
+    const bnbWin = prizePool * SECOND_PRIZE_RATE * betMultiplier;
+    return { prizeType: 'second', bnbWin };
+  }
+
+  // 小奖: 任意中奖线
+  const bnbWin = prizePool * SMALL_PRIZE_RATE * betMultiplier;
+  return { prizeType: 'small', bnbWin };
+};
 
 export function useAdvancedSlotMachine() {
   const [gameState, setGameState] = useState<GameState>({
@@ -168,7 +222,8 @@ export function useAdvancedSlotMachine() {
     reelStates: ['stopped', 'stopped', 'stopped', 'stopped', 'stopped'],
   });
 
-  const [prizePool] = useState(10.5);
+  // 模拟奖池 (实际应从链上读取)
+  const [prizePool, setPrizePool] = useState(10.5);
   const callbacksRef = useRef<SpinCallbacks>({});
 
   const setCallbacks = useCallback((callbacks: SpinCallbacks) => {
@@ -237,28 +292,47 @@ export function useAdvancedSlotMachine() {
           }
         });
 
-        // 基础奖金乘以投注倍数
-        const baseWin = winLines.reduce((sum, line) => sum + line.payout, 0);
-        const totalWin = baseWin * betMultiplier;
+        // 计算基础分数
+        const baseScore = winLines.reduce((sum, line) => sum + line.payout, 0);
+        
+        // 检查是否头奖
         const isJackpot = winLines.some(line => 
           line.symbol.id === 'seven' && line.count === 5
         );
 
-        // 计算倍数
+        // 计算连线倍数
         let multiplier = 1;
         if (winLines.length >= 3) multiplier = 2;
         if (winLines.length >= 5) multiplier = 3;
         if (isJackpot) multiplier = 10;
 
+        // 基于奖池计算实际 BNB 奖励
+        const { prizeType, bnbWin } = calculatePrize(
+          winLines, 
+          prizePool, 
+          betMultiplier * multiplier
+        );
+
+        // 更新奖池 (扣除派奖)
+        const newPrizePool = prizePool - bnbWin;
+
         const result: SpinResult = {
           grid: finalGrid,
           winLines,
-          totalWin: totalWin * multiplier,
+          totalWin: baseScore * multiplier,
+          bnbWin,
+          prizeType,
           isJackpot,
-          newProbability: totalWin > 0 ? BASE_PROBABILITY : 
+          newProbability: winLines.length > 0 ? BASE_PROBABILITY : 
             Math.min(gameState.winProbability + PROBABILITY_INCREMENT, MAX_PROBABILITY),
           multiplier,
+          prizePoolAfter: newPrizePool,
         };
+
+        // 更新奖池
+        if (bnbWin > 0) {
+          setPrizePool(newPrizePool);
+        }
 
         setGameState(prev => ({
           ...prev,
@@ -266,10 +340,10 @@ export function useAdvancedSlotMachine() {
           grid: finalGrid,
           winProbability: result.newProbability,
           totalSpins: prev.totalSpins + 1,
-          totalWins: totalWin > 0 ? prev.totalWins + 1 : prev.totalWins,
+          totalWins: winLines.length > 0 ? prev.totalWins + 1 : prev.totalWins,
           lastResult: result,
           currentMultiplier: multiplier,
-          combo: totalWin > 0 ? prev.combo + 1 : 0,
+          combo: winLines.length > 0 ? prev.combo + 1 : 0,
           reelStates: ['stopped', 'stopped', 'stopped', 'stopped', 'stopped'],
         }));
 
@@ -277,7 +351,7 @@ export function useAdvancedSlotMachine() {
         resolve(result);
       }, 1400); // 比最后轮子停止时间稍晚
     });
-  }, [gameState.winProbability]);
+  }, [gameState.winProbability, prizePool]);
 
   return {
     gameState,

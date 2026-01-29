@@ -1,14 +1,21 @@
 import { motion } from 'framer-motion';
 import { SpinResult } from '@/hooks/useAdvancedSlotMachine';
-import { Trophy, Sparkles, Zap } from 'lucide-react';
+import { Trophy, Sparkles, Zap, Crown, Star } from 'lucide-react';
 
 interface WinDisplayProps {
   result: SpinResult;
   prizePool: number;
 }
 
-export function WinDisplay({ result, prizePool }: WinDisplayProps) {
-  const bnbWin = (result.totalWin / 1000 * prizePool).toFixed(4);
+export function WinDisplay({ result }: WinDisplayProps) {
+  const prizeLabels = {
+    jackpot: { title: '🎰 JACKPOT 🎰', subtitle: '超级大奖', color: 'text-neon-yellow' },
+    second: { title: '👑 二等奖 👑', subtitle: '大奖', color: 'text-neon-purple' },
+    small: { title: '⭐ 中奖 ⭐', subtitle: '小奖', color: 'text-neon-cyan' },
+    none: { title: '', subtitle: '', color: '' },
+  };
+  
+  const prizeInfo = prizeLabels[result.prizeType];
   
   return (
     <motion.div
@@ -55,8 +62,8 @@ export function WinDisplay({ result, prizePool }: WinDisplayProps) {
         transition={{ type: 'spring', damping: 15 }}
         className="relative z-10 text-center"
       >
-        {/* 大奖标题 */}
-        {result.isJackpot ? (
+        {/* 奖励标题 */}
+        {result.prizeType === 'jackpot' ? (
           <motion.div
             animate={{ 
               scale: [1, 1.1, 1],
@@ -67,8 +74,20 @@ export function WinDisplay({ result, prizePool }: WinDisplayProps) {
           >
             <h3 className="text-4xl md:text-6xl font-display text-neon-yellow 
               drop-shadow-[0_0_30px_hsl(50_100%_50%/0.8)]">
-              🎰 JACKPOT 🎰
+              {prizeInfo.title}
             </h3>
+          </motion.div>
+        ) : result.prizeType === 'second' ? (
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+            className="mb-4 flex items-center justify-center gap-2"
+          >
+            <Crown className="w-8 h-8 text-neon-purple" />
+            <h3 className="text-2xl md:text-4xl font-display neon-text-purple">
+              {prizeInfo.title}
+            </h3>
+            <Crown className="w-8 h-8 text-neon-purple" />
           </motion.div>
         ) : (
           <motion.div
@@ -76,11 +95,11 @@ export function WinDisplay({ result, prizePool }: WinDisplayProps) {
             transition={{ duration: 0.5, repeat: Infinity }}
             className="mb-4 flex items-center justify-center gap-2"
           >
-            <Trophy className="w-8 h-8 text-neon-yellow" />
-            <h3 className="text-2xl md:text-4xl font-display neon-text-blue">
-              恭喜中奖！
+            <Star className="w-6 h-6 text-neon-cyan" />
+            <h3 className="text-2xl md:text-3xl font-display neon-text-cyan">
+              {prizeInfo.title}
             </h3>
-            <Trophy className="w-8 h-8 text-neon-yellow" />
+            <Star className="w-6 h-6 text-neon-cyan" />
           </motion.div>
         )}
 
@@ -93,7 +112,7 @@ export function WinDisplay({ result, prizePool }: WinDisplayProps) {
         >
           <div className="text-5xl md:text-7xl font-display text-neon-green
             drop-shadow-[0_0_20px_hsl(150_100%_50%/0.6)]">
-            +{bnbWin}
+            +{result.bnbWin.toFixed(4)}
           </div>
           <div className="text-xl text-neon-green/80 font-display">BNB</div>
         </motion.div>
