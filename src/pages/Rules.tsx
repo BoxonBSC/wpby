@@ -514,11 +514,105 @@ const Rules = () => {
           </div>
         </motion.div>
 
+        {/* 管理员权限说明 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mt-6 cyber-card"
+        >
+          <h2 className="text-xl font-display neon-text-yellow flex items-center gap-2 mb-4">
+            <Shield className="w-5 h-5" />
+            🔒 管理员权限设计：只降不升
+          </h2>
+
+          <div className="space-y-4">
+            {/* 核心设计理念 */}
+            <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5">
+              <h3 className="font-display text-neon-yellow mb-3">⚡ 核心设计：投注门槛只能降低，不能提高</h3>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p className="text-foreground">
+                  智能合约内置了<span className="text-neon-green">单向调整机制</span>：管理员只有<span className="text-neon-cyan">降低</span>投注门槛的权限，
+                  <span className="text-neon-pink">永远无法提高</span>门槛。
+                </p>
+                <div className="grid md:grid-cols-2 gap-3 mt-3">
+                  <div className="p-3 rounded bg-neon-green/10 border border-neon-green/30">
+                    <div className="text-neon-green font-display mb-1">✅ 允许的操作</div>
+                    <p className="text-xs">降低门槛：例如 10K → 5K → 2K</p>
+                    <p className="text-xs">让更多玩家能参与游戏</p>
+                  </div>
+                  <div className="p-3 rounded bg-neon-pink/10 border border-neon-pink/30">
+                    <div className="text-neon-pink font-display mb-1">❌ 禁止的操作</div>
+                    <p className="text-xs">提高门槛：例如 10K → 20K → 50K</p>
+                    <p className="text-xs">合约代码层面完全禁止</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 为什么这样设计 */}
+            <div className="neon-border-cyan rounded-lg p-4 bg-neon-cyan/5">
+              <h3 className="font-display text-neon-cyan mb-3">💡 为什么这样设计？</h3>
+              <div className="text-sm text-muted-foreground space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-neon-yellow/20 flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-4 h-4 text-neon-yellow" />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-display">应对币价上涨</p>
+                    <p>如果代币价格上涨10倍，原来 10K 代币可能价值就变得很高。管理员可以降低门槛到 1K，让普通玩家依然能玩得起。</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-neon-green/20 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-4 h-4 text-neon-green" />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-display">保护玩家利益</p>
+                    <p>防止管理员通过<span className="text-neon-pink">提高门槛</span>来变相压榨玩家。如果能提高门槛，管理员可能在玩家充值凭证后突然提高投注要求。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 对玩家的保障 */}
+            <div className="neon-border-green rounded-lg p-4 bg-neon-green/5">
+              <h3 className="font-display text-neon-green mb-2">🛡️ 这意味着什么？</h3>
+              <ul className="text-sm text-muted-foreground space-y-2">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
+                  <span><span className="text-neon-yellow">你的凭证永远够用</span>：门槛只会降低，你的凭证只会越来越"值钱"</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
+                  <span><span className="text-neon-yellow">中奖概率不变</span>：调整门槛不会改变游戏概率，只影响每次投注的数量要求</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
+                  <span><span className="text-neon-yellow">代码层面保障</span>：这不是承诺，是智能合约硬编码的规则，任何人都无法绕过</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* 技术说明 */}
+            <div className="neon-border rounded-lg p-4 bg-muted/20">
+              <h3 className="font-display text-muted-foreground mb-2">📝 技术实现</h3>
+              <p className="text-xs text-muted-foreground font-mono bg-muted/30 p-2 rounded">
+                require(_level1 &lt;= betLevel1, "Can only lower level 1");<br/>
+                // 合约代码强制要求：新门槛 ≤ 旧门槛
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                这段代码写在智能合约里，部署后永远无法修改。任何尝试提高门槛的交易都会被自动拒绝。
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* FAQ */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.35 }}
           className="mt-6 cyber-card"
         >
           <h2 className="text-xl font-display neon-text-pink flex items-center gap-2 mb-4">
