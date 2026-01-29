@@ -59,6 +59,66 @@ const USE_TESTNET = false; // 使用主网
 // BSC 主网公共 RPC（支持浏览器 CORS）
 const BSC_RPC_URL = 'https://bsc.publicnode.com';
 
+type TxErrorLike = {
+  code?: string;
+  shortMessage?: string;
+  message?: string;
+  info?: { error?: { message?: string } };
+};
+
+function compactEthersMessage(raw: string): string {
+  // 只取第一行，并移除 ethers 常见的巨大 transaction 对象片段
+  let msg = raw.split('\n')[0]?.trim() ?? '';
+  msg = msg.replace(/\s*\(action=.*$/, '').trim();
+  msg = msg.replace(/\s*\(estimateGas\).*$/, '').trim();
+  msg = msg.replace(/\s*transaction=\{.*$/, '').trim();
+  msg = msg.replace(/\s*data=0x[0-9a-fA-F]+.*$/, '').trim();
+
+  // 提取 execution reverted 的原因
+  const revertedMatch = msg.match(/execution reverted(?::\s*(.*))?/i);
+  if (revertedMatch) {
+    const reason = revertedMatch[1]?.trim();
+    return reason ? `合约回滚：${reason}` : '合约回滚：条件不满足';
+  }
+
+  return msg || raw;
+}
+
+function toFriendlyTxError(err: unknown, fallback = '交易失败，请稍后重试'): string {
+  const e = err as TxErrorLike;
+
+  if (e?.code === 'ACTION_REJECTED') return '你在钱包里取消了交易';
+
+  const raw =
+    (typeof e?.shortMessage === 'string' && e.shortMessage.trim())
+      ? e.shortMessage
+      : (typeof e?.info?.error?.message === 'string' && e.info.error.message.trim())
+        ? e.info.error.message
+        : (typeof e?.message === 'string' && e.message.trim())
+          ? e.message
+          : fallback;
+
+  const compact = compactEthersMessage(raw);
+  const lower = compact.toLowerCase();
+
+  if (lower.includes('insufficient funds')) {
+    return 'BNB Gas 不足：请确保钱包里有足够 BNB 支付手续费';
+  }
+
+  // 常见链上回滚原因（来自合约 revert string / 节点提示）
+  if (lower.includes('prize pool too low') || lower.includes('pool too low')) {
+    return '奖池可用余额不足，暂时无法开始游戏（可尝试降低投注档位或等待奖池增加）';
+  }
+  if (lower.includes('pending request') || lower.includes('has pending')) {
+    return '你有一笔待处理的旋转请求：请等待 VRF 回调；如超过 1 小时可使用“解除卡住请求”';
+  }
+  if (lower.includes('wrong network') || lower.includes('chain')) {
+    return '网络不匹配：请切换到 BNB Smart Chain（BSC 主网，ChainId 56）';
+  }
+
+  return compact;
+}
+
 export function useCyberSlots(): UseCyberSlotsReturn {
   const { walletProvider: web3ModalProvider } = useWeb3ModalProvider();
   const { address: web3ModalAddress, isConnected: web3ModalConnected } = useWeb3ModalAccount();
@@ -330,6 +390,20 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     setState(prev => ({ ...prev, error: null }));
 
     try {
+      // 额外网络校验（避免用户连接到错误链导致“能点但必失败”）
+      const provider = providerRef.current;
+      if (provider) {
+        const network = await provider.getNetwork();
+        const chainId = Number(network.chainId);
+        const expected = USE_TESTNET ? 97 : 56;
+        if (chainId !== expected) {
+          const msg = `网络不匹配：当前 ChainId ${chainId}，请切换到 ${expected === 56 ? 'BSC 主网(56)' : 'BSC 测试网(97)'}`;
+          setState(prev => ({ ...prev, error: msg }));
+          setIsSpinning(false);
+          return null;
+        }
+      }
+
       const betAmountWei = parseUnits(betAmount.toString(), 18);
       const tx = await signerContractRef.current.spin(betAmountWei);
       const receipt = await tx.wait();
@@ -350,9 +424,9 @@ export function useCyberSlots(): UseCyberSlotsReturn {
 
       return tx.hash;
     } catch (err: unknown) {
-      const error = err as Error;
-      console.error('Spin failed:', error);
-      setState(prev => ({ ...prev, error: error.message || '游戏失败' }));
+      console.error('Spin failed:', err);
+      const msg = toFriendlyTxError(err, '开始游戏失败');
+      setState(prev => ({ ...prev, error: msg }));
       setIsSpinning(false);
       return null;
     }
@@ -502,8 +576,9 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       await tx.wait();
       await refreshData();
       return true;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Cancel request failed:', err);
+      setState(prev => ({ ...prev, error: toFriendlyTxError(err, '解除卡住请求失败') }));
       return false;
     }
   }, [refreshData]);

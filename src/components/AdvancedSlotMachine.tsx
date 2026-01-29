@@ -40,9 +40,11 @@ export function AdvancedSlotMachine() {
     prizePool: contractPrizePool,
     playerStats,
     gameCredits,
+    pendingRequest,
     unclaimedPrize,
     spin: contractSpin,
     claimPrize,
+    cancelStuckRequest,
     isSpinning,
     recentWins,
     error: contractError,
@@ -61,6 +63,7 @@ export function AdvancedSlotMachine() {
   const [autoSpinCount, setAutoSpinCount] = useState(0);
   const autoSpinRef = useRef(false);
   const [displayGrid, setDisplayGrid] = useState<SlotSymbol[][]>(DEFAULT_GRID);
+  const lastActionRef = useRef<'spin' | null>(null);
 
   // 直接使用合约奖池数据
   const prizePool = parseFloat(contractPrizePool);
@@ -121,6 +124,7 @@ export function AdvancedSlotMachine() {
       return null;
     }
 
+    lastActionRef.current = 'spin';
     const txHash = await contractSpin(currentBetCredits);
     if (txHash) {
       toast({
@@ -132,6 +136,19 @@ export function AdvancedSlotMachine() {
     }
     return null;
   }, [isConnected, creditsDisplay, currentBetCredits, contractSpin, playSpinSound]);
+
+  // 仅在“开始游戏”动作触发后，把 hook 里的错误以更友好的方式弹出
+  useEffect(() => {
+    if (!contractError) return;
+    if (lastActionRef.current !== 'spin') return;
+
+    toast({
+      title: '开始游戏失败',
+      description: contractError,
+      variant: 'destructive',
+    });
+    lastActionRef.current = null;
+  }, [contractError]);
 
   const handleSpin = async () => {
     playClickSound();
@@ -145,6 +162,16 @@ export function AdvancedSlotMachine() {
     } else {
       toast({ title: "领取失败", variant: "destructive" });
     }
+  };
+
+  const handleCancelStuck = async () => {
+    playClickSound();
+    const ok = await cancelStuckRequest();
+    toast({
+      title: ok ? '已尝试解除卡住请求' : '解除失败',
+      description: ok ? '如确实已超时，将会重置你的挂起状态。' : (contractError || '请稍后重试（注意：需要超过 1 小时超时才能解除）'),
+      variant: ok ? undefined : 'destructive',
+    });
   };
 
   const runAutoSpin = useCallback(async () => {
@@ -253,6 +280,33 @@ export function AdvancedSlotMachine() {
               className="px-3 py-1 rounded bg-neon-green/20 text-neon-green text-sm hover:bg-neon-green/30 transition-colors"
             >
               领取
+            </button>
+          </motion.div>
+        )}
+
+        {pendingRequest > 0n && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-destructive" />
+              <div className="text-sm">
+                <div>
+                  检测到挂起旋转请求：<strong className="text-destructive">#{pendingRequest.toString()}</strong>
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  等待 VRF 回调；如超过 1 小时可尝试解除。
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleCancelStuck}
+              disabled={isSpinning}
+              className="px-3 py-1 rounded bg-destructive/15 text-destructive text-sm hover:bg-destructive/25 transition-colors disabled:opacity-50"
+            >
+              解除
             </button>
           </motion.div>
         )}
