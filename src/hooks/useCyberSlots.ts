@@ -46,7 +46,7 @@ export interface UseCyberSlotsReturn extends ContractState {
   spin: (betAmount: number) => Promise<string | null>;
   claimPrize: () => Promise<boolean>;
   approveToken: (amount: number) => Promise<boolean>;
-  depositCredits: (amount: number) => Promise<boolean>;
+  depositCredits: (amount: number) => Promise<{ ok: boolean; error?: string }>;
   cancelStuckRequest: () => Promise<boolean>;
   refreshData: () => Promise<void>;
   recentWins: SpinResultEvent[];
@@ -115,6 +115,9 @@ export function useCyberSlots(): UseCyberSlotsReturn {
   // 用于只读操作的合约（使用公共 RPC）
   const readOnlyContractRef = useRef<Contract | null>(null);
   const readOnlyTokenContractRef = useRef<Contract | null>(null);
+
+  // SpinResult 事件轮询：记录上次已处理的区块高度（避免依赖 RPC 的 filter 机制）
+  const lastSpinResultBlockRef = useRef<number | null>(null);
 
   const getContractAddress = useCallback(() => {
     return USE_TESTNET ? CYBER_SLOTS_ADDRESS.testnet : CYBER_SLOTS_ADDRESS.mainnet;
@@ -384,7 +387,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     }
   }, [getContractAddress, refreshData]);
 
-  const depositCredits = useCallback(async (amount: number): Promise<boolean> => {
+  const depositCredits = useCallback(async (amount: number): Promise<{ ok: boolean; error?: string }> => {
     try {
       const nativeProvider = getNativeWalletProvider();
       const walletProvider = nativeProvider || web3ModalProvider;
@@ -402,8 +405,9 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       });
 
       if (!address || !walletProvider) {
-        setState(prev => ({ ...prev, error: '未检测到可用钱包 Provider，请重新连接钱包' }));
-        return false;
+        const msg = '未检测到可用钱包 Provider，请重新连接钱包';
+        setState(prev => ({ ...prev, error: msg }));
+        return { ok: false, error: msg };
       }
 
       // 每次写入都用当前 Provider 重新创建 signer/合约，避免 ref 指向错误合约
@@ -442,11 +446,9 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         const allowanceAfter = await token.allowance(address, spender);
         console.log('[CyberSlots] allowance after:', allowanceAfter.toString());
         if (allowanceAfter < amountWei) {
-          setState(prev => ({
-            ...prev,
-            error: '授权未生效：请确认授权对象是“游戏合约地址”，并重试（可尝试先取消授权/设为0再授权）',
-          }));
-          return false;
+          const msg = '授权未生效：请确认授权对象是“游戏合约地址”，并重试（可尝试先取消授权/设为0再授权）';
+          setState(prev => ({ ...prev, error: msg }));
+          return { ok: false, error: msg };
         }
       }
 
@@ -456,7 +458,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       await tx.wait();
 
       await refreshData();
-      return true;
+      return { ok: true };
     } catch (err: unknown) {
       console.error('[CyberSlots] Deposit credits failed:', err);
 
@@ -480,7 +482,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       }
 
       setState(prev => ({ ...prev, error: msg }));
-      return false;
+      return { ok: false, error: msg };
     }
   }, [
     address,
@@ -525,10 +527,12 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     }
   }, [address, refreshUserData]);
 
-  // 监听 SpinResult 事件
+  // 监听 SpinResult 事件（使用轮询 queryFilter，避免部分公共 RPC 不支持/不稳定的 filters）
   useEffect(() => {
     const contract = readOnlyContractRef.current;
     if (!contract) return;
+
+    let cancelled = false;
 
     const handleSpinResult = (
       player: string,
@@ -556,10 +560,50 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     };
 
     const filter = contract.filters.SpinResult();
-    contract.on(filter, handleSpinResult);
+
+    const poll = async () => {
+      try {
+        const runner = contract.runner as unknown as { getBlockNumber?: () => Promise<number> };
+        if (!runner?.getBlockNumber) return;
+
+        const latest = await runner.getBlockNumber();
+
+        // 首次启动时回溯一小段区块，避免漏掉刚发生的事件
+        const from = lastSpinResultBlockRef.current ?? Math.max(0, latest - 2000);
+        const to = latest;
+
+        const events = await contract.queryFilter(filter, from, to);
+        if (cancelled) return;
+
+        for (const ev of events) {
+          const args = (ev as unknown as { args?: unknown }).args as
+            | {
+                player: string;
+                requestId: bigint;
+                symbols: number[];
+                winAmount: bigint;
+                prizeType: string;
+              }
+            | undefined;
+
+          if (!args) continue;
+          handleSpinResult(args.player, args.requestId, args.symbols, args.winAmount, args.prizeType);
+        }
+
+        // 下一次从最新区块的下一块开始拉取，减少重复
+        lastSpinResultBlockRef.current = to + 1;
+      } catch (e) {
+        // 公共 RPC 偶发失败时不影响主流程
+        console.warn('[CyberSlots] SpinResult poll failed:', e);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 8000);
 
     return () => {
-      contract.off(filter, handleSpinResult);
+      cancelled = true;
+      clearInterval(interval);
     };
   }, [address, refreshData]);
 

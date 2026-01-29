@@ -38,9 +38,9 @@ export function CreditsExchange() {
     setIsExchanging(true);
     
     try {
-      const success = await depositCredits(selectedAmount);
+      const result = await depositCredits(selectedAmount);
       
-      if (success) {
+      if (result.ok) {
         setShowSuccess(true);
         toast({
           title: "兑换成功！🎉",
@@ -51,7 +51,7 @@ export function CreditsExchange() {
       } else {
         toast({
           title: "兑换失败",
-          description: contractError || "请检查授权和余额",
+          description: result.error || contractError || "请检查授权和余额",
           variant: "destructive",
         });
       }
