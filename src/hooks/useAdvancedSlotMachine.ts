@@ -77,6 +77,7 @@ export interface GameState {
   combo: number;
   freeSpins: number;
   wildPositions: [number, number][];
+  reelStates: ('spinning' | 'stopping' | 'stopped')[];
 }
 
 const TOKENS_PER_SPIN = 20000;
@@ -146,6 +147,12 @@ const checkPayline = (grid: SlotSymbol[][], payline: number[]): WinLine | null =
   return null;
 };
 
+export interface SpinCallbacks {
+  onSpinStart?: () => void;
+  onReelStop?: (reelIndex: number) => void;
+  onSpinEnd?: (result: SpinResult) => void;
+}
+
 export function useAdvancedSlotMachine() {
   const [gameState, setGameState] = useState<GameState>({
     isSpinning: false,
@@ -158,14 +165,25 @@ export function useAdvancedSlotMachine() {
     combo: 0,
     freeSpins: 0,
     wildPositions: [],
+    reelStates: ['stopped', 'stopped', 'stopped', 'stopped', 'stopped'],
   });
 
   const [prizePool] = useState(10.5);
-  const spinningReels = useRef<boolean[]>([false, false, false, false, false]);
+  const callbacksRef = useRef<SpinCallbacks>({});
+
+  const setCallbacks = useCallback((callbacks: SpinCallbacks) => {
+    callbacksRef.current = callbacks;
+  }, []);
 
   const spin = useCallback(async (): Promise<SpinResult> => {
     return new Promise((resolve) => {
-      setGameState(prev => ({ ...prev, isSpinning: true }));
+      setGameState(prev => ({ 
+        ...prev, 
+        isSpinning: true,
+        reelStates: ['spinning', 'spinning', 'spinning', 'spinning', 'spinning'],
+      }));
+      
+      callbacksRef.current.onSpinStart?.();
 
       // 每个轮子依次停止
       const stopTimes = [800, 1200, 1600, 2000, 2400];
@@ -193,11 +211,17 @@ export function useAdvancedSlotMachine() {
           }
           finalGrid[reelIndex] = column;
           
+          // 更新状态
           setGameState(prev => {
             const newGrid = [...prev.grid];
             newGrid[reelIndex] = column;
-            return { ...prev, grid: newGrid };
+            const newReelStates = [...prev.reelStates];
+            newReelStates[reelIndex] = 'stopped';
+            return { ...prev, grid: newGrid, reelStates: newReelStates };
           });
+          
+          // 触发轮子停止回调
+          callbacksRef.current.onReelStop?.(reelIndex);
         }, time);
       });
 
@@ -244,8 +268,10 @@ export function useAdvancedSlotMachine() {
           lastResult: result,
           currentMultiplier: multiplier,
           combo: totalWin > 0 ? prev.combo + 1 : 0,
+          reelStates: ['stopped', 'stopped', 'stopped', 'stopped', 'stopped'],
         }));
 
+        callbacksRef.current.onSpinEnd?.(result);
         resolve(result);
       }, 2600);
     });
@@ -258,5 +284,6 @@ export function useAdvancedSlotMachine() {
     symbols: SYMBOLS,
     paylines: PAYLINES,
     spin,
+    setCallbacks,
   };
 }
