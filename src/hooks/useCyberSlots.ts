@@ -535,24 +535,57 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       return { ok: true };
     } catch (err: unknown) {
       console.error('[CyberSlots] Deposit credits failed:', err);
+      console.error('[CyberSlots] Full error object:', JSON.stringify(err, Object.getOwnPropertyNames(err as object), 2));
 
       const e = err as {
         code?: string;
         shortMessage?: string;
         message?: string;
-        info?: { error?: { message?: string } };
+        reason?: string;
+        data?: string;
+        info?: { error?: { message?: string; data?: string } };
       };
 
+      // 提取更多错误信息用于调试
+      console.error('[CyberSlots] Error details:', {
+        code: e?.code,
+        shortMessage: e?.shortMessage,
+        reason: e?.reason,
+        data: e?.data,
+        infoError: e?.info?.error,
+      });
+
       let msg = '兑换失败：交易被合约回滚';
-      if (e?.code === 'ACTION_REJECTED') msg = '你在钱包里取消了授权/交易';
-      else if (typeof e?.message === 'string' && e.message.toLowerCase().includes('insufficient funds')) {
+      
+      // 检查具体的 revert 原因
+      const fullMessage = [e?.shortMessage, e?.reason, e?.message, e?.info?.error?.message].join(' ').toLowerCase();
+      
+      if (e?.code === 'ACTION_REJECTED') {
+        msg = '你在钱包里取消了授权/交易';
+      } else if (fullMessage.includes('insufficient funds')) {
         msg = 'BNB Gas 不足：请确保钱包有足够 BNB 支付手续费';
+      } else if (fullMessage.includes('paused')) {
+        msg = '合约已暂停：请联系管理员';
+      } else if (fullMessage.includes('insufficient token balance')) {
+        msg = '代币余额不足';
+      } else if (fullMessage.includes('insufficient allowance')) {
+        msg = '授权额度不足，请先授权';
+      } else if (fullMessage.includes('token transfer failed')) {
+        msg = '代币转账失败：可能是代币合约限制';
       } else if (typeof e?.shortMessage === 'string' && e.shortMessage.trim()) {
         msg = e.shortMessage;
+      } else if (typeof e?.reason === 'string' && e.reason.trim()) {
+        msg = `合约回滚：${e.reason}`;
       } else if (typeof e?.info?.error?.message === 'string' && e.info.error.message.trim()) {
         msg = e.info.error.message;
       } else if (typeof e?.message === 'string' && e.message.trim()) {
-        msg = e.message;
+        // 从 message 中提取 revert 原因
+        const revertMatch = e.message.match(/reverted with reason string '([^']+)'/);
+        if (revertMatch) {
+          msg = `合约回滚：${revertMatch[1]}`;
+        } else {
+          msg = e.message.split('\n')[0].substring(0, 100);
+        }
       }
 
       setState(prev => ({ ...prev, error: msg }));
