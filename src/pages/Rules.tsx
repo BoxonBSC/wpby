@@ -374,11 +374,24 @@ const Rules = () => {
                 不能。凭证是一次性的游戏筹码，兑换后只能用于游戏，不能转让或退回。请根据自己的需求合理兑换。
               </p>
             </div>
-            <div className="neon-border rounded-lg p-4 bg-muted/20">
-              <h3 className="font-display text-foreground mb-2">奖池的钱从哪来？</h3>
-              <p className="text-sm text-muted-foreground">
-                奖池由项目方初始注入 BNB。你每次游戏消耗的代币会被销毁（通缩机制），但不会进入奖池。奖池独立运作。
-              </p>
+            <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5">
+              <h3 className="font-display text-neon-yellow mb-2">💰 奖池的钱从哪来？</h3>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p className="text-foreground">
+                  奖池资金来源于 <span className="text-neon-green font-display">交易税的 3%</span>！
+                </p>
+                <p>
+                  每一笔代币交易（买入/卖出）都会产生交易税，其中 <span className="text-neon-cyan">3%</span> 会自动进入游戏奖池，用于奖励中奖玩家。
+                </p>
+                <div className="neon-border rounded p-2 bg-muted/20 mt-2">
+                  <p className="text-xs">
+                    <span className="text-neon-purple">工作原理：</span>交易税 → 自动兑换为 BNB → 注入奖池合约
+                  </p>
+                </div>
+                <p className="text-neon-green text-xs">
+                  ✨ 交易越活跃，奖池越大，中奖奖励越多！
+                </p>
+              </div>
             </div>
             <div className="neon-border rounded-lg p-4 bg-muted/20">
               <h3 className="font-display text-foreground mb-2">为什么要用凭证而不是直接用代币？</h3>
