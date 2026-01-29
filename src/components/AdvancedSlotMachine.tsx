@@ -1,38 +1,55 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdvancedSlotReel } from './AdvancedSlotReel';
 import { PaylineLines } from './PaylineLines';
-import { WinDisplay } from './WinDisplay';
 import { AutoSpinControls } from './AutoSpinControls';
 import { BetSelector, BET_AMOUNTS } from './BetSelector';
-import { useAdvancedSlotMachine, SYMBOLS } from '@/hooks/useAdvancedSlotMachine';
-import { useCyberSlots, formatSymbols, formatPrizeType } from '@/hooks/useCyberSlots';
+import { useCyberSlots, formatPrizeType } from '@/hooks/useCyberSlots';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAudioContext } from '@/contexts/AudioContext';
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { Zap, TrendingUp, Coins, Sparkles, Flame, Trophy, Ticket, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Zap, TrendingUp, Coins, Sparkles, Trophy, Ticket, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { formatEther } from 'ethers';
+import { type SlotSymbol } from '@/hooks/useAdvancedSlotMachine';
+
+// 链上符号ID到本地符号ID的映射
+const CHAIN_SYMBOL_MAP: Record<number, SlotSymbol> = {
+  0: 'seven',
+  1: 'diamond',
+  2: 'crown',
+  3: 'bell',
+  4: 'star',
+  5: 'cherry',
+  6: 'lemon',
+  7: 'grape',
+  8: 'watermelon',
+  9: 'clover',
+};
+
+// 默认转轮显示
+const DEFAULT_GRID: SlotSymbol[][] = [
+  ['seven', 'diamond', 'crown'],
+  ['bell', 'star', 'cherry'],
+  ['diamond', 'lemon', 'grape'],
+  ['crown', 'watermelon', 'clover'],
+  ['bell', 'seven', 'star'],
+];
 
 export function AdvancedSlotMachine() {
-  const { gameState, spin: localSpin, setCallbacks } = useAdvancedSlotMachine();
   const { 
     prizePool: contractPrizePool,
-    availablePool,
     playerStats,
-    tokenBalance,
+    gameCredits,
     unclaimedPrize,
     spin: contractSpin,
     claimPrize,
-    isSpinning: isContractSpinning,
+    isSpinning,
     recentWins,
-    refreshData,
     error: contractError,
   } = useCyberSlots();
-  const { isConnected, gameCredits: walletCredits, useCredits, connect, address } = useWallet();
-  const { gameCredits: contractCredits } = useCyberSlots();
+  const { isConnected, connect, address } = useWallet();
   const { 
     playSpinSound, 
-    playReelStopSound, 
     playSmallWinSound, 
     playMediumWinSound, 
     playJackpotSound,
@@ -43,24 +60,27 @@ export function AdvancedSlotMachine() {
   const [isAutoSpinning, setIsAutoSpinning] = useState(false);
   const [autoSpinCount, setAutoSpinCount] = useState(0);
   const autoSpinRef = useRef(false);
-  
-  const [useRealContract, setUseRealContract] = useState(false);
-  const [pendingResult, setPendingResult] = useState<{symbols: number[], winAmount: bigint, prizeType: string} | null>(null);
+  const [displayGrid, setDisplayGrid] = useState<SlotSymbol[][]>(DEFAULT_GRID);
 
   // 直接使用合约奖池数据
   const prizePool = parseFloat(contractPrizePool);
+  const totalSpinsDisplay = playerStats ? Number(playerStats.totalSpins) : 0;
+  const totalWinsDisplay = playerStats ? Number(playerStats.totalWins) : 0;
+  const creditsDisplay = parseFloat(gameCredits);
 
+  // 监听中奖结果
   useEffect(() => {
     if (recentWins.length > 0 && address) {
       const myResult = recentWins.find(
         w => w.player.toLowerCase() === address.toLowerCase() && w.timestamp > Date.now() - 60000
       );
-      if (myResult && isContractSpinning === false) {
-        setPendingResult({
-          symbols: myResult.symbols,
-          winAmount: myResult.winAmount,
-          prizeType: myResult.prizeType,
+      if (myResult && !isSpinning) {
+        // 更新转轮显示 - 将链上符号ID转换为本地符号ID
+        const newGrid: SlotSymbol[][] = myResult.symbols.map(s => {
+          const symbol = CHAIN_SYMBOL_MAP[s] || 'seven';
+          return [symbol, symbol, symbol];
         });
+        setDisplayGrid(newGrid);
         
         const prizeInfo = formatPrizeType(myResult.prizeType);
         if (myResult.winAmount > 0n) {
@@ -79,42 +99,7 @@ export function AdvancedSlotMachine() {
         }
       }
     }
-  }, [recentWins, address, isContractSpinning, playJackpotSound, playMediumWinSound, playSmallWinSound]);
-
-  useEffect(() => {
-    setCallbacks({
-      onSpinStart: () => playSpinSound(),
-      onReelStop: (reelIndex) => playReelStopSound(reelIndex),
-      onSpinEnd: (result) => {
-        if (!useRealContract) {
-          if (result.isJackpot) {
-            playJackpotSound();
-          } else if (result.winLines.length >= 3) {
-            playMediumWinSound();
-          } else if (result.winLines.length > 0) {
-            playSmallWinSound();
-          }
-        }
-      },
-    });
-  }, [setCallbacks, playSpinSound, playReelStopSound, playSmallWinSound, playMediumWinSound, playJackpotSound, useRealContract]);
-
-  const winningPositions = useMemo(() => {
-    const positions = new Set<string>();
-    if (gameState.lastResult?.winLines && !gameState.isSpinning) {
-      gameState.lastResult.winLines.forEach(line => {
-        line.positions.forEach(([reel, row]) => {
-          positions.add(`${reel}-${row}`);
-        });
-      });
-    }
-    return positions;
-  }, [gameState.lastResult, gameState.isSpinning]);
-
-  const activeLines = useMemo(() => {
-    if (!gameState.lastResult?.winLines || gameState.isSpinning) return [];
-    return gameState.lastResult.winLines.map(line => line.lineIndex);
-  }, [gameState.lastResult, gameState.isSpinning]);
+  }, [recentWins, address, isSpinning, playJackpotSound, playMediumWinSound, playSmallWinSound]);
 
   const executeSpin = useCallback(async () => {
     if (!isConnected) {
@@ -126,47 +111,27 @@ export function AdvancedSlotMachine() {
       return null;
     }
 
-    if (useRealContract) {
-      const txHash = await contractSpin(currentBetCredits);
-      if (txHash) {
-        toast({
-          title: "🎰 游戏已提交",
-          description: "等待VRF回调结果...",
-        });
-        playSpinSound();
-        return { submitted: true };
-      }
+    // 检查游戏凭证
+    if (creditsDisplay < currentBetCredits) {
+      toast({
+        title: "凭证不足",
+        description: `需要 ${currentBetCredits.toLocaleString()} 游戏凭证。请先销毁代币兑换凭证。`,
+        variant: "destructive",
+      });
       return null;
-    } else {
-      // 演示模式：优先使用链上凭证，否则使用本地模拟凭证
-      const currentCredits = useRealContract ? Number(contractCredits) : walletCredits;
-      if (currentCredits < currentBetCredits) {
-        toast({
-          title: "凭证不足",
-          description: `需要 ${currentBetCredits.toLocaleString()} 游戏凭证。请先销毁代币兑换凭证。`,
-          variant: "destructive",
-        });
-        return null;
-      }
-
-      const success = useCredits(currentBetCredits);
-      if (!success) {
-        toast({ title: "凭证扣除失败", variant: "destructive" });
-        return null;
-      }
-
-      const result = await localSpin(currentBetCredits);
-      
-      if (result.poolPayout > 0 && result.prizeConfig) {
-        toast({
-          title: `${result.prizeConfig.emoji} ${result.prizeConfig.name}！`,
-          description: `${result.winLines.length} 条赔付线中奖！获得奖池 ${(result.poolPercentUsed * 100).toFixed(1)}%，赢得 ${result.poolPayout.toFixed(4)} BNB！`,
-        });
-      }
-      
-      return result;
     }
-  }, [isConnected, useRealContract, contractSpin, currentBetCredits, walletCredits, contractCredits, useCredits, localSpin, playSpinSound]);
+
+    const txHash = await contractSpin(currentBetCredits);
+    if (txHash) {
+      toast({
+        title: "🎰 游戏已提交",
+        description: "等待VRF回调结果...",
+      });
+      playSpinSound();
+      return { submitted: true };
+    }
+    return null;
+  }, [isConnected, creditsDisplay, currentBetCredits, contractSpin, playSpinSound]);
 
   const handleSpin = async () => {
     playClickSound();
@@ -197,7 +162,7 @@ export function AdvancedSlotMachine() {
       setAutoSpinCount(0);
       toast({
         title: "自动旋转已停止",
-        description: "由于代币不足或其他原因",
+        description: "由于凭证不足或其他原因",
         variant: "destructive",
       });
       return;
@@ -207,7 +172,6 @@ export function AdvancedSlotMachine() {
   }, [autoSpinCount, executeSpin]);
 
   useEffect(() => {
-    const isSpinning = useRealContract ? isContractSpinning : gameState.isSpinning;
     if (isAutoSpinning && !isSpinning && autoSpinCount > 0 && autoSpinRef.current) {
       const timer = setTimeout(() => runAutoSpin(), 500);
       return () => clearTimeout(timer);
@@ -216,7 +180,7 @@ export function AdvancedSlotMachine() {
       autoSpinRef.current = false;
       toast({ title: "自动旋转完成", description: "已完成所有自动旋转" });
     }
-  }, [isAutoSpinning, gameState.isSpinning, isContractSpinning, autoSpinCount, runAutoSpin, useRealContract]);
+  }, [isAutoSpinning, isSpinning, autoSpinCount, runAutoSpin]);
 
   const handleStartAutoSpin = (count: number) => {
     if (!isConnected) {
@@ -239,10 +203,6 @@ export function AdvancedSlotMachine() {
     playClickSound();
     setShowPaylines(!showPaylines);
   };
-
-  const isSpinning = useRealContract ? isContractSpinning : gameState.isSpinning;
-  const totalSpinsDisplay = useRealContract && playerStats ? Number(playerStats.totalSpins) : gameState.totalSpins;
-  const totalWinsDisplay = useRealContract && playerStats ? Number(playerStats.totalWins) : gameState.totalWins;
 
   return (
     <div className="relative">
@@ -272,16 +232,9 @@ export function AdvancedSlotMachine() {
             <p className="text-sm text-muted-foreground">
               5轮 × 3行 × 15条赔付线 | 💯 100%返还
             </p>
-            <button
-              onClick={() => setUseRealContract(!useRealContract)}
-              className={`text-xs px-2 py-0.5 rounded ${
-                useRealContract 
-                  ? 'bg-neon-green/20 text-neon-green border border-neon-green/30' 
-                  : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {useRealContract ? '🔗 链上' : '🎮 演示'}
-            </button>
+            <span className="text-xs px-2 py-0.5 rounded bg-neon-green/20 text-neon-green border border-neon-green/30">
+              🔗 链上模式
+            </span>
           </div>
         </div>
 
@@ -312,17 +265,11 @@ export function AdvancedSlotMachine() {
             <span className="text-xs text-neon-pink">BNB</span>
           </div>
           
-          {gameState.combo > 0 && (
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="neon-border rounded-lg px-4 py-2 bg-neon-yellow/10 flex items-center gap-2"
-            >
-              <Flame className="w-4 h-4 text-neon-orange" />
-              <span className="font-display text-neon-orange">{gameState.combo}x</span>
-              <span className="text-xs text-muted-foreground">连胜</span>
-            </motion.div>
-          )}
+          <div className="neon-border rounded-lg px-4 py-2 bg-muted/50 flex items-center gap-2">
+            <Ticket className="w-4 h-4 text-neon-cyan" />
+            <span className="text-xs text-muted-foreground">凭证</span>
+            <span className="text-lg font-display text-neon-cyan">{creditsDisplay.toLocaleString()}</span>
+          </div>
           
           <button
             onClick={handlePaylineToggle}
@@ -338,33 +285,27 @@ export function AdvancedSlotMachine() {
 
         <div className="relative p-4 rounded-2xl bg-gradient-to-b from-muted/30 to-muted/10 border border-border/50">
           <div className="relative">
-            {(showPaylines || activeLines.length > 0) && (
+            {showPaylines && (
               <PaylineLines 
-                activeLines={activeLines}
-                showAll={showPaylines && activeLines.length === 0}
+                activeLines={[]}
+                showAll={true}
               />
             )}
             
             <div className="flex justify-center items-center gap-2 relative z-10">
-              {gameState.grid.map((column, reelIndex) => (
+              {displayGrid.map((column, reelIndex) => (
                 <AdvancedSlotReel
                   key={reelIndex}
                   symbols={column}
                   isSpinning={isSpinning}
                   reelIndex={reelIndex}
-                  winningPositions={winningPositions}
+                  winningPositions={new Set()}
                 />
               ))}
             </div>
           </div>
-
-          <AnimatePresence>
-            {gameState.lastResult && gameState.lastResult.poolPayout > 0 && !isSpinning && (
-              <WinDisplay result={gameState.lastResult} />
-            )}
-          </AnimatePresence>
           
-          {isContractSpinning && useRealContract && (
+          {isSpinning && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -450,7 +391,7 @@ export function AdvancedSlotMachine() {
                       >
                         🎰
                       </motion.span>
-                      <span>{useRealContract ? '等待结果...' : '转动中...'}</span>
+                      <span>等待结果...</span>
                       <motion.span
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
@@ -496,14 +437,6 @@ export function AdvancedSlotMachine() {
           <span>总游戏: {totalSpinsDisplay}</span>
           <span className="mx-3">|</span>
           <span>总中奖: {totalWinsDisplay}</span>
-          {gameState.lastResult && gameState.lastResult.poolPayout > 0 && !useRealContract && (
-            <>
-              <span className="mx-3">|</span>
-              <span className="text-neon-green">
-                上次: +{gameState.lastResult.poolPayout.toFixed(4)} BNB
-              </span>
-            </>
-          )}
         </div>
         
         {contractError && (

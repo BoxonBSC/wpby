@@ -55,8 +55,8 @@ export interface UseCyberSlotsReturn extends ContractState {
 
 const USE_TESTNET = false; // 使用主网
 
-// BSC 主网公共 RPC
-const BSC_RPC_URL = 'https://bsc-dataseed.binance.org/';
+// BSC 主网公共 RPC（支持浏览器 CORS）
+const BSC_RPC_URL = 'https://bsc.publicnode.com';
 
 export function useCyberSlots(): UseCyberSlotsReturn {
   const { walletProvider } = useWeb3ModalProvider();
