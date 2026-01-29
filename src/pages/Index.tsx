@@ -3,8 +3,10 @@ import { AdvancedSlotMachine } from '@/components/AdvancedSlotMachine';
 import { WalletConnect } from '@/components/WalletConnect';
 import { CompactRewardTiers } from '@/components/CompactRewardTiers';
 import { CompactGameHistory } from '@/components/CompactGameHistory';
+import { FloatingElements } from '@/components/FloatingElements';
+import { JackpotTicker } from '@/components/JackpotTicker';
 import { Navbar } from '@/components/Navbar';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Zap, Trophy } from 'lucide-react';
 
 const Index = () => {
   return (
@@ -34,6 +36,9 @@ const Index = () => {
           className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-blue/10 rounded-full blur-[100px]"
         />
       </div>
+
+      {/* 浮动装饰元素 */}
+      <FloatingElements count={10} />
       
       <Navbar />
       
@@ -54,23 +59,59 @@ const Index = () => {
             }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <h1 className="text-3xl md:text-5xl font-display neon-text-blue mb-2 glitch flex items-center justify-center gap-3">
-              <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
+            <h1 className="text-3xl md:text-5xl font-display text-shimmer mb-2 flex items-center justify-center gap-3">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Sparkles className="w-8 h-8 text-neon-yellow" />
+              </motion.div>
               CYBER SLOTS
-              <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
+              <motion.div
+                animate={{ rotate: [0, -10, 10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Sparkles className="w-8 h-8 text-neon-yellow" />
+              </motion.div>
             </h1>
           </motion.div>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-sm text-muted-foreground max-w-2xl mx-auto"
+          
+          {/* 动态标签 */}
+          <div className="flex flex-wrap justify-center gap-2 mb-2">
+            <motion.span
+              whileHover={{ scale: 1.1 }}
+              className="px-3 py-1 rounded-full text-xs font-display bg-neon-purple/20 text-neon-purple border border-neon-purple/30 flex items-center gap-1"
+            >
+              <Zap className="w-3 h-3" /> 5轮 × 3行
+            </motion.span>
+            <motion.span
+              whileHover={{ scale: 1.1 }}
+              className="px-3 py-1 rounded-full text-xs font-display bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
+            >
+              15条赔付线
+            </motion.span>
+            <motion.span
+              whileHover={{ scale: 1.1 }}
+              className="px-3 py-1 rounded-full text-xs font-display bg-neon-pink/20 text-neon-pink border border-neon-pink/30"
+            >
+              10种符号
+            </motion.span>
+            <motion.span
+              whileHover={{ scale: 1.1 }}
+              className="px-3 py-1 rounded-full text-xs font-display bg-neon-green/20 text-neon-green border border-neon-green/30 flex items-center gap-1"
+            >
+              <Trophy className="w-3 h-3" /> 100% 返还
+            </motion.span>
+          </div>
+
+          {/* 中奖播报 */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
           >
-            <span className="text-neon-purple">5轮 × 3行</span> • 
-            <span className="text-neon-cyan"> 15条赔付线</span> • 
-            <span className="text-neon-pink"> 10种符号</span> • 
-            <span className="text-neon-green"> Chainlink VRF</span>
-          </motion.p>
+            <JackpotTicker />
+          </motion.div>
         </motion.div>
 
         {/* 主游戏区域 - 三栏等高布局 */}

@@ -264,4 +264,182 @@
   .jackpot {
     animation: jackpot 0.5s ease-in-out infinite;
   }
+
+  /* Floating Animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(3deg);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Sparkle Effect */
+  @keyframes sparkle {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1) rotate(180deg);
+    }
+  }
+
+  .sparkle {
+    animation: sparkle 2s ease-in-out infinite;
+  }
+
+  /* Rainbow Glow */
+  @keyframes rainbow-glow {
+    0% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
+    25% { box-shadow: 0 0 20px hsl(var(--neon-purple) / 0.5), 0 0 40px hsl(var(--neon-purple) / 0.3); }
+    50% { box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.5), 0 0 40px hsl(var(--neon-pink) / 0.3); }
+    75% { box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.5), 0 0 40px hsl(var(--neon-cyan) / 0.3); }
+    100% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
+  }
+
+  .rainbow-glow {
+    animation: rainbow-glow 4s linear infinite;
+  }
+
+  /* Shine Effect */
+  @keyframes shine {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .shine-effect {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--neon-yellow) / 0.3) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shine 3s ease-in-out infinite;
+  }
+
+  /* Coin Rain */
+  @keyframes coin-fall {
+    0% {
+      transform: translateY(-100%) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  .coin-rain {
+    animation: coin-fall 3s linear infinite;
+  }
+
+  /* Pulse Ring */
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.8);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  .pulse-ring {
+    animation: pulse-ring 1.5s ease-out infinite;
+  }
+
+  /* Electric Border */
+  @keyframes electric-border {
+    0%, 100% {
+      border-color: hsl(var(--neon-blue));
+      box-shadow: 0 0 10px hsl(var(--neon-blue) / 0.5);
+    }
+    25% {
+      border-color: hsl(var(--neon-cyan));
+      box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.7);
+    }
+    50% {
+      border-color: hsl(var(--neon-purple));
+      box-shadow: 0 0 30px hsl(var(--neon-purple) / 0.7);
+    }
+    75% {
+      border-color: hsl(var(--neon-pink));
+      box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.7);
+    }
+  }
+
+  .electric-border {
+    animation: electric-border 2s linear infinite;
+  }
+
+  /* Bounce In */
+  @keyframes bounce-in {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .bounce-in {
+    animation: bounce-in 0.5s ease-out;
+  }
+
+  /* Text Shimmer */
+  @keyframes text-shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  .text-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--neon-yellow)) 0%,
+      hsl(var(--neon-orange)) 25%,
+      hsl(var(--neon-pink)) 50%,
+      hsl(var(--neon-purple)) 75%,
+      hsl(var(--neon-yellow)) 100%
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: text-shimmer 3s linear infinite;
+  }
+
+  /* Glow Button Hover */
+  .glow-hover {
+    transition: all 0.3s ease;
+  }
+
+  .glow-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+      0 0 20px hsl(var(--neon-blue) / 0.6),
+      0 0 40px hsl(var(--neon-blue) / 0.4),
+      0 0 60px hsl(var(--neon-blue) / 0.2);
+  }
 }
