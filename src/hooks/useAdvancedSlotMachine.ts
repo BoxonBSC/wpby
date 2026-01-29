@@ -78,7 +78,6 @@ export interface PrizeConfig {
 // 奖池保护配置
 export const POOL_PROTECTION = {
   maxSinglePayout: 0.5,    // 单次最大派奖 = 奖池的 50%
-  minPoolThreshold: 0.1,   // 最低奖池阈值 (BNB)，低于此不派奖
   reservePercent: 0.1,     // 保留 10% 奖池作为储备
 };
 
@@ -236,11 +235,6 @@ const calculatePoolPayout = (
   currentPool: number
 ): { payout: number; percentUsed: number } => {
   if (prizeType === 'none' || !prizeConfig) {
-    return { payout: 0, percentUsed: 0 };
-  }
-
-  // 检查奖池是否足够
-  if (currentPool < POOL_PROTECTION.minPoolThreshold) {
     return { payout: 0, percentUsed: 0 };
   }
 
