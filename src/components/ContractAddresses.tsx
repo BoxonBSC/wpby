@@ -56,7 +56,7 @@ export function ContractAddresses() {
       {/* 代币合约 */}
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-neon-yellow/10 to-neon-orange/5 border border-neon-yellow/30 backdrop-blur-sm">
         <span className="text-sm">🪙</span>
-        <span className="text-xs text-neon-yellow font-display">CST代币:</span>
+        <span className="text-xs text-neon-yellow font-display">代币合约:</span>
         <code className="text-xs text-foreground/80 font-mono">
           {formatAddress(CYBER_TOKEN_ADDRESS.mainnet)}
         </code>
