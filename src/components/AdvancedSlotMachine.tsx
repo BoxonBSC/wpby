@@ -363,15 +363,12 @@ export function AdvancedSlotMachine() {
           
           {isSpinning && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-2xl"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-background/95 border border-neon-cyan/50 shadow-[0_0_20px_hsl(195_100%_50%/0.3)]"
             >
-              <div className="text-center">
-                <Loader2 className="w-12 h-12 text-neon-cyan animate-spin mx-auto mb-2" />
-                <p className="text-neon-cyan font-display">等待VRF回调...</p>
-                <p className="text-xs text-muted-foreground mt-1">Chainlink正在生成随机数</p>
-              </div>
+              <Loader2 className="w-4 h-4 text-neon-cyan animate-spin" />
+              <span className="text-sm text-neon-cyan font-display whitespace-nowrap">等待随机数...</span>
             </motion.div>
           )}
         </div>
