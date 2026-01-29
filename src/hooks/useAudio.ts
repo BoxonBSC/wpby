@@ -14,9 +14,23 @@ export function useAudio() {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [isBgMusicPlaying, setIsBgMusicPlaying] = useState(false);
+  const [isWaitingSoundPlaying, setIsWaitingSoundPlaying] = useState(false);
   
   const bgMusicOscillators = useRef<OscillatorNode[]>([]);
   const bgMusicGain = useRef<GainNode | null>(null);
+  
+  // 等待音效相关
+  const waitingSoundRef = useRef<{
+    oscillators: OscillatorNode[];
+    gainNode: GainNode | null;
+    intervalId: NodeJS.Timeout | null;
+    isPlaying: boolean;
+  }>({
+    oscillators: [],
+    gainNode: null,
+    intervalId: null,
+    isPlaying: false,
+  });
 
   // 播放单个音调
   const playTone = useCallback((
@@ -46,49 +60,149 @@ export function useAudio() {
     oscillator.stop(ctx.currentTime + delay + duration);
   }, [isMuted, volume]);
 
-  // 转轮滚动音效 - 持续的电子滴答声
-  const playSpinSound = useCallback(() => {
-    if (isMuted) return;
+  // 开始等待VRF音效 - 持续循环的赛博朋克风格音效
+  const startWaitingSound = useCallback(() => {
+    if (isMuted || waitingSoundRef.current.isPlaying) return;
     
     const ctx = getAudioContext();
-    let tickCount = 0;
-    const maxTicks = 50;
+    waitingSoundRef.current.isPlaying = true;
+    setIsWaitingSoundPlaying(true);
     
-    const playTick = () => {
-      if (tickCount >= maxTicks) return;
-      
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      
-      // 随着时间推移，频率降低，间隔增加
-      const progress = tickCount / maxTicks;
-      const frequency = 800 - progress * 400;
-      const interval = 30 + progress * 70;
-      
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
-      
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(2000, ctx.currentTime);
-      
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(volume * 0.15, ctx.currentTime + 0.005);
-      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.03);
-      
-      oscillator.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.03);
-      
-      tickCount++;
-      setTimeout(playTick, interval);
-    };
+    // 主增益节点
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(volume * 0.25, ctx.currentTime);
+    masterGain.connect(ctx.destination);
+    waitingSoundRef.current.gainNode = masterGain;
     
-    playTick();
+    // 低频脉冲 - 心跳般的节奏
+    const pulseOsc = ctx.createOscillator();
+    const pulseGain = ctx.createGain();
+    const pulseFilter = ctx.createBiquadFilter();
+    
+    pulseOsc.type = 'sine';
+    pulseOsc.frequency.setValueAtTime(60, ctx.currentTime);
+    
+    pulseFilter.type = 'lowpass';
+    pulseFilter.frequency.setValueAtTime(150, ctx.currentTime);
+    
+    pulseGain.gain.setValueAtTime(0.4, ctx.currentTime);
+    
+    pulseOsc.connect(pulseFilter);
+    pulseFilter.connect(pulseGain);
+    pulseGain.connect(masterGain);
+    pulseOsc.start();
+    waitingSoundRef.current.oscillators.push(pulseOsc);
+    
+    // 脉冲节奏 LFO
+    const pulseLfo = ctx.createOscillator();
+    const pulseLfoGain = ctx.createGain();
+    pulseLfo.type = 'sine';
+    pulseLfo.frequency.setValueAtTime(1.5, ctx.currentTime); // 每秒1.5拍
+    pulseLfoGain.gain.setValueAtTime(0.3, ctx.currentTime);
+    pulseLfo.connect(pulseLfoGain);
+    pulseLfoGain.connect(pulseGain.gain);
+    pulseLfo.start();
+    waitingSoundRef.current.oscillators.push(pulseLfo);
+    
+    // 高频扫描音效 - 赛博朋克风格
+    const sweepOsc = ctx.createOscillator();
+    const sweepGain = ctx.createGain();
+    const sweepFilter = ctx.createBiquadFilter();
+    
+    sweepOsc.type = 'sawtooth';
+    sweepOsc.frequency.setValueAtTime(200, ctx.currentTime);
+    
+    sweepFilter.type = 'bandpass';
+    sweepFilter.frequency.setValueAtTime(800, ctx.currentTime);
+    sweepFilter.Q.setValueAtTime(10, ctx.currentTime);
+    
+    sweepGain.gain.setValueAtTime(0.08, ctx.currentTime);
+    
+    sweepOsc.connect(sweepFilter);
+    sweepFilter.connect(sweepGain);
+    sweepGain.connect(masterGain);
+    sweepOsc.start();
+    waitingSoundRef.current.oscillators.push(sweepOsc);
+    
+    // 频率扫描 LFO
+    const sweepLfo = ctx.createOscillator();
+    const sweepLfoGain = ctx.createGain();
+    sweepLfo.type = 'triangle';
+    sweepLfo.frequency.setValueAtTime(0.3, ctx.currentTime); // 慢速扫描
+    sweepLfoGain.gain.setValueAtTime(600, ctx.currentTime);
+    sweepLfo.connect(sweepLfoGain);
+    sweepLfoGain.connect(sweepFilter.frequency);
+    sweepLfo.start();
+    waitingSoundRef.current.oscillators.push(sweepLfo);
+    
+    // 电子滴答声循环
+    let tickPhase = 0;
+    const tickInterval = setInterval(() => {
+      if (!waitingSoundRef.current.isPlaying) {
+        clearInterval(tickInterval);
+        return;
+      }
+      
+      const tickOsc = ctx.createOscillator();
+      const tickGain = ctx.createGain();
+      
+      // 交替高低音
+      const freqs = [600, 800, 700, 900, 650, 850];
+      tickOsc.type = 'square';
+      tickOsc.frequency.setValueAtTime(freqs[tickPhase % freqs.length], ctx.currentTime);
+      
+      tickGain.gain.setValueAtTime(0, ctx.currentTime);
+      tickGain.gain.linearRampToValueAtTime(volume * 0.12, ctx.currentTime + 0.01);
+      tickGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.08);
+      
+      tickOsc.connect(tickGain);
+      tickGain.connect(masterGain);
+      
+      tickOsc.start();
+      tickOsc.stop(ctx.currentTime + 0.08);
+      
+      tickPhase++;
+    }, 200); // 每200ms一次滴答
+    
+    waitingSoundRef.current.intervalId = tickInterval;
+    
   }, [isMuted, volume]);
+
+  // 停止等待音效
+  const stopWaitingSound = useCallback(() => {
+    if (!waitingSoundRef.current.isPlaying) return;
+    
+    waitingSoundRef.current.isPlaying = false;
+    setIsWaitingSoundPlaying(false);
+    
+    // 停止所有振荡器
+    waitingSoundRef.current.oscillators.forEach(osc => {
+      try {
+        osc.stop();
+      } catch (e) {
+        // 忽略已停止的
+      }
+    });
+    waitingSoundRef.current.oscillators = [];
+    
+    // 清除定时器
+    if (waitingSoundRef.current.intervalId) {
+      clearInterval(waitingSoundRef.current.intervalId);
+      waitingSoundRef.current.intervalId = null;
+    }
+    
+    // 断开增益节点
+    if (waitingSoundRef.current.gainNode) {
+      waitingSoundRef.current.gainNode.disconnect();
+      waitingSoundRef.current.gainNode = null;
+    }
+  }, []);
+
+  // 旧的一次性转轮音效（保留用于其他场景）
+  const playSpinSound = useCallback(() => {
+    // 现在直接启动等待音效
+    startWaitingSound();
+  }, [startWaitingSound]);
 
   // 轮子停止音效
   const playReelStopSound = useCallback((reelIndex: number) => {
@@ -397,15 +511,20 @@ export function useAudio() {
     setIsMuted(prev => {
       if (!prev) {
         stopBgMusic();
+        stopWaitingSound();
       }
       return !prev;
     });
-  }, [stopBgMusic]);
+  }, [stopBgMusic, stopWaitingSound]);
 
   // 更新背景音乐音量
   useEffect(() => {
     if (bgMusicGain.current) {
       bgMusicGain.current.gain.setValueAtTime(volume * 0.15, getAudioContext().currentTime);
+    }
+    // 更新等待音效音量
+    if (waitingSoundRef.current.gainNode) {
+      waitingSoundRef.current.gainNode.gain.setValueAtTime(volume * 0.25, getAudioContext().currentTime);
     }
   }, [volume]);
 
@@ -413,16 +532,20 @@ export function useAudio() {
   useEffect(() => {
     return () => {
       stopBgMusic();
+      stopWaitingSound();
     };
-  }, [stopBgMusic]);
+  }, [stopBgMusic, stopWaitingSound]);
 
   return {
     isMuted,
     volume,
     isBgMusicPlaying,
+    isWaitingSoundPlaying,
     setVolume,
     toggleMute,
     playSpinSound,
+    startWaitingSound,
+    stopWaitingSound,
     playReelStopSound,
     playSmallWinSound,
     playMediumWinSound,
