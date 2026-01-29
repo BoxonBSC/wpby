@@ -9,21 +9,22 @@ export interface SymbolInfo {
   id: SlotSymbol;
   emoji: string;
   name: string;
-  multiplier: number;
+  baseMultiplier: number;  // 3连倍数
   rarity: 'legendary' | 'epic' | 'rare' | 'common';
 }
 
+// 符号配置 - 基础倍数为3连时的倍数
 export const SYMBOLS: SymbolInfo[] = [
-  { id: 'seven', emoji: '7️⃣', name: 'Lucky Seven', multiplier: 100, rarity: 'legendary' },
-  { id: 'diamond', emoji: '💎', name: 'Diamond', multiplier: 50, rarity: 'legendary' },
-  { id: 'crown', emoji: '👑', name: 'Crown', multiplier: 30, rarity: 'epic' },
-  { id: 'bell', emoji: '🔔', name: 'Bell', multiplier: 20, rarity: 'epic' },
-  { id: 'star', emoji: '⭐', name: 'Star', multiplier: 15, rarity: 'epic' },
-  { id: 'cherry', emoji: '🍒', name: 'Cherry', multiplier: 10, rarity: 'rare' },
-  { id: 'grape', emoji: '🍇', name: 'Grape', multiplier: 8, rarity: 'rare' },
-  { id: 'watermelon', emoji: '🍉', name: 'Watermelon', multiplier: 6, rarity: 'rare' },
-  { id: 'lemon', emoji: '🍋', name: 'Lemon', multiplier: 4, rarity: 'common' },
-  { id: 'clover', emoji: '🍀', name: 'Clover', multiplier: 2, rarity: 'common' },
+  { id: 'seven', emoji: '7️⃣', name: 'Lucky Seven', baseMultiplier: 50, rarity: 'legendary' },
+  { id: 'diamond', emoji: '💎', name: 'Diamond', baseMultiplier: 30, rarity: 'legendary' },
+  { id: 'crown', emoji: '👑', name: 'Crown', baseMultiplier: 15, rarity: 'epic' },
+  { id: 'bell', emoji: '🔔', name: 'Bell', baseMultiplier: 10, rarity: 'epic' },
+  { id: 'star', emoji: '⭐', name: 'Star', baseMultiplier: 8, rarity: 'epic' },
+  { id: 'cherry', emoji: '🍒', name: 'Cherry', baseMultiplier: 5, rarity: 'rare' },
+  { id: 'grape', emoji: '🍇', name: 'Grape', baseMultiplier: 4, rarity: 'rare' },
+  { id: 'watermelon', emoji: '🍉', name: 'Watermelon', baseMultiplier: 3, rarity: 'rare' },
+  { id: 'lemon', emoji: '🍋', name: 'Lemon', baseMultiplier: 2, rarity: 'common' },
+  { id: 'clover', emoji: '🍀', name: 'Clover', baseMultiplier: 1, rarity: 'common' },
 ];
 
 // 5轮，每轮3行
@@ -54,104 +55,131 @@ export interface WinLine {
   symbol: SymbolInfo;
   count: number;
   positions: [number, number][]; // [reel, row]
-  payout: number; // 基础分数
+  multiplier: number; // 该线的倍数
 }
 
-// 6级奖励系统
+// 6级奖励系统 - 基于倍数而非奖池比例
 export type PrizeType = 
   | 'mega_jackpot'  // 超级头奖: 5个7
   | 'jackpot'       // 头奖: 5个钻石 或 4个7
   | 'first'         // 一等奖: 5个相同 (其他符号)
   | 'second'        // 二等奖: 4个相同 (高级符号)
-  | 'third'         // 三等奖: 4个相同 (普通符号) 或 3+条中奖线
+  | 'third'         // 三等奖: 4个相同 (普通符号)
   | 'small'         // 小奖: 3个相同
   | 'none';
 
-// 奖励配置 - 与智能合约保持一致
+// RTP设计说明:
+// 目标 RTP: 92% (庄家优势 8%)
+// 
+// 符号出现概率 (VRF随机):
+// - 7️⃣: 2%  (传奇)
+// - 💎: 3%  (传奇)
+// - 👑: 5%  (史诗)
+// - 🔔: 8%  (史诗)
+// - ⭐: 10% (史诗)
+// - 🍒: 15% (稀有)
+// - 🍇: 15% (稀有)
+// - 🍉: 15% (稀有)
+// - 🍋: 15% (普通)
+// - 🍀: 12% (普通)
+//
+// 倍数计算: 基础倍数 × 连线数量奖励
+// 3连 = baseMultiplier × 1
+// 4连 = baseMultiplier × 5
+// 5连 = baseMultiplier × 20
+
+// 连线数量的倍数加成
+export const COUNT_MULTIPLIERS: Record<number, number> = {
+  3: 1,    // 3连: 基础倍数
+  4: 5,    // 4连: 5倍基础
+  5: 20,   // 5连: 20倍基础
+};
+
+// 奖励配置
 export interface PrizeConfig {
   type: PrizeType;
   name: string;
   emoji: string;
-  poolRate: number;      // 奖池比例
-  estimatedOdds: string; // 估计中奖概率 (用于显示)
+  description: string;
+  minMultiplier: number;  // 最低触发倍数
 }
 
 export const PRIZE_TIERS: PrizeConfig[] = [
-  { type: 'mega_jackpot', name: '超级头奖', emoji: '🎰', poolRate: 0.30, estimatedOdds: '1/500,000' },
-  { type: 'jackpot', name: '头奖', emoji: '💎', poolRate: 0.15, estimatedOdds: '1/50,000' },
-  { type: 'first', name: '一等奖', emoji: '👑', poolRate: 0.08, estimatedOdds: '1/10,000' },
-  { type: 'second', name: '二等奖', emoji: '🔔', poolRate: 0.04, estimatedOdds: '1/2,000' },
-  { type: 'third', name: '三等奖', emoji: '⭐', poolRate: 0.02, estimatedOdds: '1/500' },
-  { type: 'small', name: '小奖', emoji: '🍀', poolRate: 0.005, estimatedOdds: '1/50' },
+  { type: 'mega_jackpot', name: '超级头奖', emoji: '🎰', description: '5×7连线', minMultiplier: 1000 },
+  { type: 'jackpot', name: '头奖', emoji: '💎', description: '5×💎 或 4×7', minMultiplier: 250 },
+  { type: 'first', name: '一等奖', emoji: '👑', description: '5连其他符号', minMultiplier: 100 },
+  { type: 'second', name: '二等奖', emoji: '🔔', description: '4连高级符号', minMultiplier: 40 },
+  { type: 'third', name: '三等奖', emoji: '⭐', description: '4连普通符号', minMultiplier: 10 },
+  { type: 'small', name: '小奖', emoji: '🍀', description: '3连任意符号', minMultiplier: 1 },
 ];
+
+// RTP 赔付表 (供UI显示)
+export interface PayoutInfo {
+  symbol: SymbolInfo;
+  three: number;  // 3连倍数
+  four: number;   // 4连倍数
+  five: number;   // 5连倍数
+}
+
+export const PAYOUT_TABLE: PayoutInfo[] = SYMBOLS.map(symbol => ({
+  symbol,
+  three: symbol.baseMultiplier * COUNT_MULTIPLIERS[3],
+  four: symbol.baseMultiplier * COUNT_MULTIPLIERS[4],
+  five: symbol.baseMultiplier * COUNT_MULTIPLIERS[5],
+}));
 
 export interface SpinResult {
   grid: SlotSymbol[][];
   winLines: WinLine[];
-  totalWin: number;        // 总分数
-  bnbWin: number;          // 实际 BNB 奖励
-  prizeType: PrizeType;    // 奖励类型
-  prizeConfig: PrizeConfig | null; // 奖励配置
+  totalMultiplier: number;  // 总倍数
+  totalWin: number;         // 总赢取 (投注 × 倍数)
+  prizeType: PrizeType;
+  prizeConfig: PrizeConfig | null;
   isJackpot: boolean;
-  newProbability: number;
-  multiplier: number;
-  prizePoolAfter: number;  // 派奖后奖池
+  hitRate: number;          // 本次中奖率 (中奖线数/总线数)
 }
 
 export interface GameState {
   isSpinning: boolean;
   grid: SlotSymbol[][];
-  winProbability: number;
   totalSpins: number;
   totalWins: number;
+  totalBet: number;         // 累计投注
+  totalReturn: number;      // 累计返还
+  currentRTP: number;       // 当前RTP
   lastResult: SpinResult | null;
-  currentMultiplier: number;
   combo: number;
-  freeSpins: number;
-  wildPositions: [number, number][];
   reelStates: ('spinning' | 'stopping' | 'stopped')[];
 }
 
-const BASE_TOKENS_PER_SPIN = 20000;
-const BASE_PROBABILITY = 5;
-const PROBABILITY_INCREMENT = 2;
-const MAX_PROBABILITY = 50;
-const MIN_POOL_THRESHOLD = 0.5;      // 最低奖池阈值 (BNB)
-
 /**
- * 符号出现概率说明 (VRF 随机数决定):
+ * 符号出现概率 (VRF 随机数决定):
  * 
  * VRF 生成 0-99 的随机数，根据范围决定符号:
- * - 7️⃣ Lucky Seven:  0-1   (2%)   → 超级稀有
- * - 💎 Diamond:      2-4   (3%)   → 非常稀有
- * - 👑 Crown:        5-9   (5%)   → 稀有
- * - 🔔 Bell:         10-17 (8%)   → 较稀有
- * - ⭐ Star:         18-27 (10%)  → 中等
- * - 🍒 Cherry:       28-42 (15%)  → 常见
- * - 🍇 Grape:        43-57 (15%)  → 常见
- * - 🍉 Watermelon:   58-72 (15%)  → 常见
- * - 🍋 Lemon:        73-87 (15%)  → 常见
- * - 🍀 Clover:       88-99 (12%)  → 常见
- * 
- * 中奖概率计算 (5轮3行，15条赔付线):
- * - 5个7连线: (0.02)^5 ≈ 1/3,125,000 (实际更低因为需要特定赔付线)
- * - 5个相同:  各符号概率^5 × 赔付线数
- * - 3个相同:  概率较高，约 1/20 - 1/50
+ * - 7️⃣ Lucky Seven:  0-1   (2%)   → 传奇
+ * - 💎 Diamond:      2-4   (3%)   → 传奇
+ * - 👑 Crown:        5-9   (5%)   → 史诗
+ * - 🔔 Bell:         10-17 (8%)   → 史诗
+ * - ⭐ Star:         18-27 (10%)  → 史诗
+ * - 🍒 Cherry:       28-42 (15%)  → 稀有
+ * - 🍇 Grape:        43-57 (15%)  → 稀有
+ * - 🍉 Watermelon:   58-72 (15%)  → 稀有
+ * - 🍋 Lemon:        73-87 (15%)  → 普通
+ * - 🍀 Clover:       88-99 (12%)  → 普通
  */
 
 const getRandomSymbol = (rng: () => number): SlotSymbol => {
   const roll = rng() * 100;
-  // 稀有度控制
-  if (roll < 2) return SYMBOLS[0].id; // 2% legendary
-  if (roll < 5) return SYMBOLS[1].id; // 3% legendary
-  if (roll < 10) return SYMBOLS[2].id; // 5% epic
-  if (roll < 18) return SYMBOLS[3].id; // 8% epic
-  if (roll < 28) return SYMBOLS[4].id; // 10% epic
-  if (roll < 43) return SYMBOLS[5].id; // 15% rare
-  if (roll < 58) return SYMBOLS[6].id; // 15% rare
-  if (roll < 73) return SYMBOLS[7].id; // 15% rare
-  if (roll < 88) return SYMBOLS[8].id; // 15% common
-  return SYMBOLS[9].id; // 12% common
+  if (roll < 2) return SYMBOLS[0].id;  // 2% seven
+  if (roll < 5) return SYMBOLS[1].id;  // 3% diamond
+  if (roll < 10) return SYMBOLS[2].id; // 5% crown
+  if (roll < 18) return SYMBOLS[3].id; // 8% bell
+  if (roll < 28) return SYMBOLS[4].id; // 10% star
+  if (roll < 43) return SYMBOLS[5].id; // 15% cherry
+  if (roll < 58) return SYMBOLS[6].id; // 15% grape
+  if (roll < 73) return SYMBOLS[7].id; // 15% watermelon
+  if (roll < 88) return SYMBOLS[8].id; // 15% lemon
+  return SYMBOLS[9].id;                // 12% clover
 };
 
 const generateGrid = (rng: () => number): SlotSymbol[][] => {
@@ -170,12 +198,11 @@ const findSymbolInfo = (id: SlotSymbol): SymbolInfo => {
   return SYMBOLS.find(s => s.id === id) || SYMBOLS[0];
 };
 
-// 计算赔付线奖励 - 返回奖励类型和倍数
+// 计算单条赔付线奖励
 const checkPayline = (grid: SlotSymbol[][], payline: number[]): WinLine | null => {
   const positions: [number, number][] = payline.map((row, reel) => [reel, row]);
   const symbols = positions.map(([reel, row]) => grid[reel][row]);
   
-  // 检查连续相同符号
   const firstSymbol = symbols[0];
   let count = 1;
   
@@ -189,14 +216,15 @@ const checkPayline = (grid: SlotSymbol[][], payline: number[]): WinLine | null =
   
   if (count >= 3) {
     const symbolInfo = findSymbolInfo(firstSymbol);
-    // 基础分数 (用于计算相对权重，不是实际BNB奖励)
-    const baseScore = symbolInfo.multiplier * (count - 2);
+    const countMultiplier = COUNT_MULTIPLIERS[count] || 1;
+    const lineMultiplier = symbolInfo.baseMultiplier * countMultiplier;
+    
     return {
       lineIndex: 0,
       symbol: symbolInfo,
       count,
       positions: positions.slice(0, count),
-      payout: baseScore,
+      multiplier: lineMultiplier,
     };
   }
   
@@ -209,105 +237,50 @@ export interface SpinCallbacks {
   onSpinEnd?: (result: SpinResult) => void;
 }
 
-// 查找奖励配置
-const findPrizeConfig = (type: PrizeType): PrizeConfig | null => {
-  return PRIZE_TIERS.find(p => p.type === type) || null;
-};
-
-/**
- * 计算奖励类型和 BNB 数量
- * 基于中奖线和符号类型判断奖励等级
- */
-const calculatePrize = (
-  winLines: WinLine[], 
-  prizePool: number, 
-  betMultiplier: number
-): { prizeType: PrizeType; bnbWin: number; prizeConfig: PrizeConfig | null } => {
-  if (winLines.length === 0) {
-    return { prizeType: 'none', bnbWin: 0, prizeConfig: null };
-  }
-
-  // 检查奖池是否足够
-  if (prizePool < MIN_POOL_THRESHOLD) {
-    return { prizeType: 'none', bnbWin: 0, prizeConfig: null };
-  }
-
-  // 分析中奖线
+// 根据总倍数判断奖励等级
+const determinePrizeType = (totalMultiplier: number, winLines: WinLine[]): PrizeType => {
+  if (totalMultiplier <= 0) return 'none';
+  
+  // 检查特殊组合
   const hasFiveSevens = winLines.some(line => line.symbol.id === 'seven' && line.count === 5);
   const hasFiveDiamonds = winLines.some(line => line.symbol.id === 'diamond' && line.count === 5);
   const hasFourSevens = winLines.some(line => line.symbol.id === 'seven' && line.count === 4);
-  const hasFiveMatch = winLines.some(line => line.count === 5);
-  const hasFourLegendary = winLines.some(line => 
-    (line.symbol.id === 'seven' || line.symbol.id === 'diamond') && line.count === 4
-  );
-  const hasFourEpic = winLines.some(line => 
-    line.symbol.rarity === 'epic' && line.count === 4
-  );
-  const hasFourMatch = winLines.some(line => line.count === 4);
-  const multipleWinLines = winLines.length >= 3;
-
-  let prizeType: PrizeType = 'none';
-
-  // 超级头奖: 5个7
-  if (hasFiveSevens) {
-    prizeType = 'mega_jackpot';
-  }
-  // 头奖: 5个钻石 或 4个7
-  else if (hasFiveDiamonds || hasFourSevens) {
-    prizeType = 'jackpot';
-  }
-  // 一等奖: 5个相同 (其他符号)
-  else if (hasFiveMatch) {
-    prizeType = 'first';
-  }
-  // 二等奖: 4个传奇/史诗符号
-  else if (hasFourLegendary || hasFourEpic) {
-    prizeType = 'second';
-  }
-  // 三等奖: 4个相同 或 3+条中奖线
-  else if (hasFourMatch || multipleWinLines) {
-    prizeType = 'third';
-  }
-  // 小奖: 任意3连
-  else {
-    prizeType = 'small';
-  }
-
-  const prizeConfig = findPrizeConfig(prizeType);
-  if (!prizeConfig) {
-    return { prizeType: 'none', bnbWin: 0, prizeConfig: null };
-  }
-
-  // 计算 BNB 奖励 = 奖池 × 奖励比例 × 投注倍数
-  const bnbWin = prizePool * prizeConfig.poolRate * betMultiplier;
   
-  return { prizeType, bnbWin, prizeConfig };
+  if (hasFiveSevens) return 'mega_jackpot';
+  if (hasFiveDiamonds || hasFourSevens) return 'jackpot';
+  
+  // 按倍数判断
+  if (totalMultiplier >= 100) return 'first';
+  if (totalMultiplier >= 40) return 'second';
+  if (totalMultiplier >= 10) return 'third';
+  return 'small';
+};
+
+const findPrizeConfig = (type: PrizeType): PrizeConfig | null => {
+  return PRIZE_TIERS.find(p => p.type === type) || null;
 };
 
 export function useAdvancedSlotMachine() {
   const [gameState, setGameState] = useState<GameState>({
     isSpinning: false,
     grid: generateGrid(Math.random),
-    winProbability: BASE_PROBABILITY,
     totalSpins: 0,
     totalWins: 0,
+    totalBet: 0,
+    totalReturn: 0,
+    currentRTP: 0,
     lastResult: null,
-    currentMultiplier: 1,
     combo: 0,
-    freeSpins: 0,
-    wildPositions: [],
     reelStates: ['stopped', 'stopped', 'stopped', 'stopped', 'stopped'],
   });
 
-  // 模拟奖池 (实际应从链上读取)
-  const [prizePool, setPrizePool] = useState(10.5);
   const callbacksRef = useRef<SpinCallbacks>({});
 
   const setCallbacks = useCallback((callbacks: SpinCallbacks) => {
     callbacksRef.current = callbacks;
   }, []);
 
-  const spin = useCallback(async (betMultiplier: number = 1): Promise<SpinResult> => {
+  const spin = useCallback(async (betAmount: number = 0.01): Promise<SpinResult> => {
     return new Promise((resolve) => {
       setGameState(prev => ({ 
         ...prev, 
@@ -317,11 +290,9 @@ export function useAdvancedSlotMachine() {
       
       callbacksRef.current.onSpinStart?.();
 
-      // 加快停止时间 - 每个轮子间隔更短
       const stopTimes = [400, 600, 800, 1000, 1200];
       const finalGrid: SlotSymbol[][] = [];
       
-      // 更快的滚动动画
       const spinInterval = setInterval(() => {
         setGameState(prev => ({
           ...prev,
@@ -329,21 +300,18 @@ export function useAdvancedSlotMachine() {
         }));
       }, 40);
 
-      // 依次停止每个轮子
       stopTimes.forEach((time, reelIndex) => {
         setTimeout(() => {
           if (reelIndex === 0) {
             clearInterval(spinInterval);
           }
           
-          // 生成最终结果
           const column: SlotSymbol[] = [];
           for (let row = 0; row < ROWS; row++) {
             column.push(getRandomSymbol(Math.random));
           }
           finalGrid[reelIndex] = column;
           
-          // 更新状态
           setGameState(prev => {
             const newGrid = [...prev.grid];
             newGrid[reelIndex] = column;
@@ -352,12 +320,10 @@ export function useAdvancedSlotMachine() {
             return { ...prev, grid: newGrid, reelStates: newReelStates };
           });
           
-          // 触发轮子停止回调
           callbacksRef.current.onReelStop?.(reelIndex);
         }, time);
       });
 
-      // 计算结果 - 在最后一个轮子停止后
       setTimeout(() => {
         const winLines: WinLine[] = [];
         
@@ -369,72 +335,77 @@ export function useAdvancedSlotMachine() {
           }
         });
 
-        // 计算基础分数
-        const baseScore = winLines.reduce((sum, line) => sum + line.payout, 0);
-
-        // 计算连线倍数
-        let multiplier = 1;
-        if (winLines.length >= 3) multiplier = 1.5;
-        if (winLines.length >= 5) multiplier = 2;
-        if (winLines.length >= 7) multiplier = 3;
-
-        // 基于奖池计算实际 BNB 奖励
-        const { prizeType, bnbWin, prizeConfig } = calculatePrize(
-          winLines, 
-          prizePool, 
-          betMultiplier * multiplier
-        );
-
-        // 判断是否头奖类型
+        // 计算总倍数 (所有中奖线倍数之和)
+        const totalMultiplier = winLines.reduce((sum, line) => sum + line.multiplier, 0);
+        
+        // 计算实际赢取金额
+        const totalWin = betAmount * totalMultiplier;
+        
+        // 判断奖励等级
+        const prizeType = determinePrizeType(totalMultiplier, winLines);
+        const prizeConfig = findPrizeConfig(prizeType);
+        
         const isJackpotWin = prizeType === 'mega_jackpot' || prizeType === 'jackpot';
-
-        // 更新奖池 (扣除派奖)
-        const newPrizePool = prizePool - bnbWin;
+        const hitRate = winLines.length / PAYLINES.length;
 
         const result: SpinResult = {
           grid: finalGrid,
           winLines,
-          totalWin: baseScore * multiplier,
-          bnbWin,
+          totalMultiplier,
+          totalWin,
           prizeType,
           prizeConfig,
           isJackpot: isJackpotWin,
-          newProbability: winLines.length > 0 ? BASE_PROBABILITY : 
-            Math.min(gameState.winProbability + PROBABILITY_INCREMENT, MAX_PROBABILITY),
-          multiplier,
-          prizePoolAfter: newPrizePool,
+          hitRate,
         };
 
-        // 更新奖池
-        if (bnbWin > 0) {
-          setPrizePool(newPrizePool);
-        }
-
-        setGameState(prev => ({
-          ...prev,
-          isSpinning: false,
-          grid: finalGrid,
-          winProbability: result.newProbability,
-          totalSpins: prev.totalSpins + 1,
-          totalWins: winLines.length > 0 ? prev.totalWins + 1 : prev.totalWins,
-          lastResult: result,
-          currentMultiplier: multiplier,
-          combo: winLines.length > 0 ? prev.combo + 1 : 0,
-          reelStates: ['stopped', 'stopped', 'stopped', 'stopped', 'stopped'],
-        }));
+        setGameState(prev => {
+          const newTotalBet = prev.totalBet + betAmount;
+          const newTotalReturn = prev.totalReturn + totalWin;
+          const newRTP = newTotalBet > 0 ? (newTotalReturn / newTotalBet) * 100 : 0;
+          
+          return {
+            ...prev,
+            isSpinning: false,
+            grid: finalGrid,
+            totalSpins: prev.totalSpins + 1,
+            totalWins: winLines.length > 0 ? prev.totalWins + 1 : prev.totalWins,
+            totalBet: newTotalBet,
+            totalReturn: newTotalReturn,
+            currentRTP: newRTP,
+            lastResult: result,
+            combo: winLines.length > 0 ? prev.combo + 1 : 0,
+            reelStates: ['stopped', 'stopped', 'stopped', 'stopped', 'stopped'],
+          };
+        });
 
         callbacksRef.current.onSpinEnd?.(result);
         resolve(result);
-      }, 1400); // 比最后轮子停止时间稍晚
+      }, 1400);
     });
-  }, [gameState.winProbability, prizePool]);
+  }, []);
+
+  // 重置统计
+  const resetStats = useCallback(() => {
+    setGameState(prev => ({
+      ...prev,
+      totalSpins: 0,
+      totalWins: 0,
+      totalBet: 0,
+      totalReturn: 0,
+      currentRTP: 0,
+      combo: 0,
+    }));
+  }, []);
 
   return {
     gameState,
-    prizePool,
     symbols: SYMBOLS,
     paylines: PAYLINES,
+    payoutTable: PAYOUT_TABLE,
+    prizeTiers: PRIZE_TIERS,
     spin,
     setCallbacks,
+    resetStats,
   };
 }

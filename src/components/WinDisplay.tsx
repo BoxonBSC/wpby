@@ -4,7 +4,7 @@ import { Sparkles, Zap, Crown, Star, Gem, Trophy } from 'lucide-react';
 
 interface WinDisplayProps {
   result: SpinResult;
-  prizePool: number;
+  betAmount: number;
 }
 
 // 6级奖励显示配置
@@ -66,7 +66,7 @@ const PRIZE_DISPLAY: Record<PrizeType, {
   },
 };
 
-export function WinDisplay({ result }: WinDisplayProps) {
+export function WinDisplay({ result, betAmount }: WinDisplayProps) {
   const displayConfig = PRIZE_DISPLAY[result.prizeType];
   const isHighTier = ['mega_jackpot', 'jackpot', 'first'].includes(result.prizeType);
   
@@ -126,18 +126,23 @@ export function WinDisplay({ result }: WinDisplayProps) {
           {displayConfig.icon}
         </motion.div>
 
-        {/* 中奖金额 */}
+        {/* 中奖倍数和金额 */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.3, type: 'spring' }}
           className="mb-4"
         >
-          <div className="text-5xl md:text-7xl font-display text-neon-green
-            drop-shadow-[0_0_20px_hsl(150_100%_50%/0.6)]">
-            +{result.bnbWin.toFixed(4)}
+          <div className="text-4xl md:text-6xl font-display text-neon-yellow
+            drop-shadow-[0_0_20px_hsl(50_100%_50%/0.6)]">
+            {result.totalMultiplier}x
           </div>
-          <div className="text-xl text-neon-green/80 font-display">BNB</div>
+          <div className="text-2xl md:text-3xl text-neon-green font-display mt-2">
+            +{result.totalWin.toFixed(4)} BNB
+          </div>
+          <div className="text-sm text-muted-foreground mt-1">
+            投注 {betAmount.toFixed(4)} BNB × {result.totalMultiplier} 倍
+          </div>
         </motion.div>
 
         {/* 详细信息 */}
@@ -152,10 +157,10 @@ export function WinDisplay({ result }: WinDisplayProps) {
             <span>{result.winLines.length} 条赔付线中奖</span>
           </div>
           
-          {result.multiplier > 1 && (
+          {result.winLines.length >= 3 && (
             <div className="flex items-center justify-center gap-2 text-neon-orange">
               <Zap className="w-4 h-4" />
-              <span className="font-display">{result.multiplier}x 倍数奖励！</span>
+              <span className="font-display">多线连中奖励！</span>
             </div>
           )}
 
@@ -171,6 +176,7 @@ export function WinDisplay({ result }: WinDisplayProps) {
               >
                 <span className="mr-1">{line.symbol.emoji}</span>
                 <span className="text-muted-foreground">×{line.count}</span>
+                <span className="text-neon-green ml-1">({line.multiplier}x)</span>
               </motion.div>
             ))}
             {result.winLines.length > 5 && (

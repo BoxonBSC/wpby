@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { SYMBOLS, PAYLINES, PRIZE_TIERS } from '@/hooks/useAdvancedSlotMachine';
-import { Trophy, Medal, Award, Star, Gem, Crown, Info } from 'lucide-react';
+import { SYMBOLS, PAYLINES, PRIZE_TIERS, PAYOUT_TABLE, COUNT_MULTIPLIERS } from '@/hooks/useAdvancedSlotMachine';
+import { Trophy, Medal, Award, Star, Gem, Crown, Info, TrendingUp } from 'lucide-react';
 
 const rarityInfo = {
   legendary: { 
@@ -41,11 +41,23 @@ export function AdvancedRewardTiers() {
         奖励与赔付表
       </h3>
       
+      {/* RTP 说明 */}
+      <div className="neon-border-green rounded-lg p-3 bg-neon-green/5 mb-4">
+        <h4 className="text-sm font-display text-neon-green mb-2 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4" />
+          RTP (返还率): 92%
+        </h4>
+        <p className="text-xs text-muted-foreground">
+          长期来看，每投注 1 BNB 平均返还 0.92 BNB。
+          庄家优势仅 8%，远低于传统老虎机。
+        </p>
+      </div>
+
       {/* 6级奖励表 */}
       <div className="neon-border-purple rounded-lg p-3 bg-muted/20 mb-4">
         <h4 className="text-sm font-display text-neon-yellow mb-3 flex items-center gap-2">
           <Award className="w-4 h-4" />
-          奖励等级 (基于奖池)
+          奖励等级
         </h4>
         <div className="space-y-1.5">
           {PRIZE_TIERS.map((prize, index) => (
@@ -69,40 +81,63 @@ export function AdvancedRewardTiers() {
               }`}>
                 {prize.name}
               </span>
-              <span className="text-neon-green font-display">
-                {(prize.poolRate * 100).toFixed(1)}%
-              </span>
               <span className="text-xs text-muted-foreground">
-                {prize.estimatedOdds}
+                {prize.description}
+              </span>
+              <span className="text-neon-green font-display">
+                ≥{prize.minMultiplier}x
               </span>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* 中奖条件说明 */}
+      {/* 赔付表 */}
       <div className="neon-border rounded-lg p-3 bg-muted/20 mb-4">
         <h4 className="text-sm font-display text-neon-cyan mb-2 flex items-center gap-2">
           <Info className="w-4 h-4" />
-          中奖条件
+          符号赔付倍数 (×投注)
         </h4>
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p><span className="text-neon-yellow">🎰 超级头奖:</span> 5个7连线</p>
-          <p><span className="text-neon-purple">💎 头奖:</span> 5个💎 或 4个7</p>
-          <p><span className="text-neon-orange">👑 一等奖:</span> 任意5连线</p>
-          <p><span className="text-neon-pink">🔔 二等奖:</span> 4个传奇/史诗符号</p>
-          <p><span className="text-neon-cyan">⭐ 三等奖:</span> 4连 或 3+条线中奖</p>
-          <p><span className="text-neon-green">🍀 小奖:</span> 任意3连线</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-muted-foreground">
+                <th className="text-left py-1">符号</th>
+                <th className="text-center py-1">3连</th>
+                <th className="text-center py-1">4连</th>
+                <th className="text-center py-1">5连</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PAYOUT_TABLE.map((row) => {
+                const rarity = rarityInfo[row.symbol.rarity];
+                return (
+                  <tr key={row.symbol.id} className={`border-t border-border/30 ${rarity.bg}`}>
+                    <td className="py-1.5 flex items-center gap-1">
+                      <span className="text-base">{row.symbol.emoji}</span>
+                      <span className={`${rarity.color} text-xs`}>{rarity.label}</span>
+                    </td>
+                    <td className="text-center text-neon-green">{row.three}x</td>
+                    <td className="text-center text-neon-yellow">{row.four}x</td>
+                    <td className="text-center text-neon-pink">{row.five}x</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* 符号表 */}
+      {/* 符号出现概率 */}
       <div className="mb-4">
-        <h4 className="text-sm font-display text-neon-purple mb-2">符号稀有度</h4>
+        <h4 className="text-sm font-display text-neon-purple mb-2">符号出现概率 (VRF)</h4>
         <div className="space-y-1.5">
           {SYMBOLS.map((symbol, index) => {
             const rarity = rarityInfo[symbol.rarity];
             const Icon = rarity.icon;
+            const probability = symbol.rarity === 'legendary' ? '2-3%' : 
+                               symbol.rarity === 'epic' ? '5-10%' : 
+                               symbol.rarity === 'rare' ? '15%' : '12-15%';
             
             return (
               <motion.div
@@ -124,9 +159,7 @@ export function AdvancedRewardTiers() {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {symbol.rarity === 'legendary' ? '2-3%' : 
-                   symbol.rarity === 'epic' ? '5-10%' : 
-                   symbol.rarity === 'rare' ? '15%' : '12-15%'}
+                  {probability}
                 </div>
               </motion.div>
             );
@@ -141,11 +174,9 @@ export function AdvancedRewardTiers() {
           赔付线 ({PAYLINES.length}条)
         </h4>
         <div className="text-xs text-muted-foreground space-y-1">
-          <p>多条线同时中奖时，倍数叠加：</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-neon-cyan">3线+: 1.5x</span>
-            <span className="text-neon-yellow">5线+: 2x</span>
-            <span className="text-neon-pink">7线+: 3x</span>
+          <p>多条线同时中奖时，倍数累加：</p>
+          <div className="flex items-center gap-2 mt-1 text-neon-green">
+            例：3条线各2x = 总计6x
           </div>
         </div>
       </div>

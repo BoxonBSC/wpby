@@ -8,11 +8,11 @@ import { useAdvancedSlotMachine } from '@/hooks/useAdvancedSlotMachine';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAudioContext } from '@/contexts/AudioContext';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { Zap, TrendingUp, Coins, Sparkles, Flame, Trophy } from 'lucide-react';
+import { Zap, TrendingUp, Coins, Sparkles, Flame, Trophy, RotateCcw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export function AdvancedSlotMachine() {
-  const { gameState, prizePool, spin, setCallbacks } = useAdvancedSlotMachine();
+  const { gameState, spin, setCallbacks, resetStats } = useAdvancedSlotMachine();
   const { isConnected, tokenBalance, connect } = useWallet();
   const { 
     playSpinSound, 
@@ -24,8 +24,9 @@ export function AdvancedSlotMachine() {
   } = useAudioContext();
   const [showPaylines, setShowPaylines] = useState(false);
   
-  // 投注金额状态
-  const [currentBet, setCurrentBet] = useState(BET_AMOUNTS[2]); // 默认 20K
+  // 投注金额状态 (BNB)
+  const [currentBetTokens, setCurrentBetTokens] = useState(BET_AMOUNTS[2]); // 默认 20K tokens
+  const currentBetBNB = currentBetTokens / 2000000; // 20K tokens = 0.01 BNB
   
   // 自动旋转状态
   const [isAutoSpinning, setIsAutoSpinning] = useState(false);
@@ -83,28 +84,27 @@ export function AdvancedSlotMachine() {
       return null;
     }
 
-    if (Number(tokenBalance) < currentBet) {
+    if (Number(tokenBalance) < currentBetTokens) {
       toast({
         title: "代币不足",
-        description: `需要 ${currentBet.toLocaleString()} 代币才能游戏`,
+        description: `需要 ${currentBetTokens.toLocaleString()} 代币才能游戏`,
         variant: "destructive",
       });
       return null;
     }
 
-    // 传入当前投注金额计算倍数
-    const betMultiplier = currentBet / 20000; // 基准是 20K
-    const result = await spin(betMultiplier);
+    // 传入 BNB 投注金额
+    const result = await spin(currentBetBNB);
     
-    if (result.bnbWin > 0 && result.prizeConfig) {
+    if (result.totalWin > 0 && result.prizeConfig) {
       toast({
         title: `${result.prizeConfig.emoji} ${result.prizeConfig.name}！`,
-        description: `${result.winLines.length} 条赔付线中奖！${result.multiplier > 1 ? `${result.multiplier}x 倍数！` : ''} 赢得 ${result.bnbWin.toFixed(4)} BNB！`,
+        description: `${result.winLines.length} 条赔付线中奖！${result.totalMultiplier}x 倍数！赢得 ${result.totalWin.toFixed(4)} BNB！`,
       });
     }
     
     return result;
-  }, [isConnected, tokenBalance, currentBet, spin]);
+  }, [isConnected, tokenBalance, currentBetTokens, currentBetBNB, spin]);
 
   // 手动旋转
   const handleSpin = async () => {
@@ -185,6 +185,15 @@ export function AdvancedSlotMachine() {
     setShowPaylines(!showPaylines);
   };
 
+  const handleResetStats = () => {
+    playClickSound();
+    resetStats();
+    toast({
+      title: "统计已重置",
+      description: "RTP 统计数据已清零",
+    });
+  };
+
   return (
     <div className="relative">
       {/* 背景装饰 */}
@@ -213,17 +222,21 @@ export function AdvancedSlotMachine() {
             <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
           </motion.h2>
           <p className="text-sm text-muted-foreground mt-1">
-            5轮 × 3行 × 15条赔付线
+            5轮 × 3行 × 15条赔付线 | RTP 92%
           </p>
         </div>
 
         {/* 顶部信息栏 */}
         <div className="flex justify-between items-center mb-4 gap-2">
           <div className="neon-border-pink rounded-lg px-4 py-2 bg-muted/50 flex items-center gap-2">
-            <Coins className="w-4 h-4 text-neon-yellow" />
-            <span className="text-xs text-muted-foreground">奖池</span>
-            <span className="text-lg font-display neon-text-pink">{prizePool.toFixed(2)}</span>
-            <span className="text-xs text-neon-pink">BNB</span>
+            <TrendingUp className="w-4 h-4 text-neon-green" />
+            <span className="text-xs text-muted-foreground">实时RTP</span>
+            <span className={`text-lg font-display ${
+              gameState.currentRTP >= 90 ? 'text-neon-green' : 
+              gameState.currentRTP >= 80 ? 'text-neon-yellow' : 'text-neon-pink'
+            }`}>
+              {gameState.currentRTP.toFixed(1)}%
+            </span>
           </div>
           
           {gameState.combo > 0 && (
@@ -238,16 +251,25 @@ export function AdvancedSlotMachine() {
             </motion.div>
           )}
           
-          <button
-            onClick={handlePaylineToggle}
-            className={`px-3 py-2 rounded-lg text-xs font-display transition-colors ${
-              showPaylines 
-                ? 'bg-neon-cyan/20 text-neon-cyan neon-border' 
-                : 'bg-muted/50 text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            赔付线
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleResetStats}
+              className="px-3 py-2 rounded-lg text-xs font-display transition-colors bg-muted/50 text-muted-foreground hover:text-foreground"
+              title="重置统计"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handlePaylineToggle}
+              className={`px-3 py-2 rounded-lg text-xs font-display transition-colors ${
+                showPaylines 
+                  ? 'bg-neon-cyan/20 text-neon-cyan neon-border' 
+                  : 'bg-muted/50 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              赔付线
+            </button>
+          </div>
         </div>
 
         {/* 老虎机主体 */}
@@ -277,8 +299,8 @@ export function AdvancedSlotMachine() {
 
           {/* 中奖显示 */}
           <AnimatePresence>
-            {gameState.lastResult && gameState.lastResult.bnbWin > 0 && !gameState.isSpinning && (
-              <WinDisplay result={gameState.lastResult} prizePool={prizePool} />
+            {gameState.lastResult && gameState.lastResult.totalWin > 0 && !gameState.isSpinning && (
+              <WinDisplay result={gameState.lastResult} betAmount={currentBetBNB} />
             )}
           </AnimatePresence>
         </div>
@@ -287,10 +309,11 @@ export function AdvancedSlotMachine() {
         <div className="mt-4 neon-border rounded-xl p-4 bg-muted/20">
           <div className="text-center text-sm text-muted-foreground mb-3">
             <span className="text-neon-purple">💰 投注金额</span>
+            <span className="ml-2 text-neon-green">≈ {currentBetBNB.toFixed(4)} BNB</span>
           </div>
           <BetSelector
-            currentBet={currentBet}
-            onBetChange={setCurrentBet}
+            currentBet={currentBetTokens}
+            onBetChange={setCurrentBetTokens}
             disabled={gameState.isSpinning || isAutoSpinning}
             playClickSound={playClickSound}
           />
@@ -300,28 +323,30 @@ export function AdvancedSlotMachine() {
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-1">
-              <TrendingUp className="w-3 h-3 text-neon-green" />
-              当前概率
+              <Coins className="w-3 h-3 text-neon-yellow" />
+              累计投注
             </div>
-            <div className="text-xl font-display text-neon-green">
-              {gameState.winProbability}%
+            <div className="text-lg font-display text-neon-yellow">
+              {gameState.totalBet.toFixed(3)}
             </div>
+            <div className="text-xs text-muted-foreground">BNB</div>
           </div>
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-1">
               <Zap className="w-3 h-3 text-neon-cyan" />
-              消耗代币
+              累计返还
             </div>
-            <div className="text-xl font-display text-neon-cyan">
-              {(currentBet / 1000).toFixed(0)}K
+            <div className="text-lg font-display text-neon-cyan">
+              {gameState.totalReturn.toFixed(3)}
             </div>
+            <div className="text-xs text-muted-foreground">BNB</div>
           </div>
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-1">
-              <Trophy className="w-3 h-3 text-neon-yellow" />
+              <Trophy className="w-3 h-3 text-neon-pink" />
               胜率
             </div>
-            <div className="text-xl font-display text-neon-yellow">
+            <div className="text-lg font-display text-neon-pink">
               {gameState.totalSpins > 0 
                 ? ((gameState.totalWins / gameState.totalSpins) * 100).toFixed(1) 
                 : '0'}%
@@ -408,7 +433,7 @@ export function AdvancedSlotMachine() {
             <>
               <span className="mx-3">|</span>
               <span className="text-neon-green">
-                上次: {gameState.lastResult.winLines.length} 线中奖
+                上次: {gameState.lastResult.totalMultiplier}x 倍
               </span>
             </>
           )}
