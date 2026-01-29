@@ -605,6 +605,45 @@ const Rules = () => {
                 这段代码写在智能合约里，部署后永远无法修改。任何尝试提高门槛的交易都会被自动拒绝。
               </p>
             </div>
+
+            {/* 合约开源与资金安全 */}
+            <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
+              <h3 className="font-display text-neon-pink mb-3">🔐 合约开源 + 资金不可提取</h3>
+              <div className="text-sm text-muted-foreground space-y-3">
+                <p className="text-foreground">
+                  我们的智能合约采用<span className="text-neon-green">完全去中心化设计</span>，代码完全开源，任何人都可以审计验证。
+                </p>
+                
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div className="p-3 rounded bg-neon-green/10 border border-neon-green/30">
+                    <div className="text-neon-green font-display mb-1">📖 代码开源</div>
+                    <p className="text-xs">合约代码在 BSCScan 上完全公开</p>
+                    <p className="text-xs">任何人都可以查看、审计代码逻辑</p>
+                    <p className="text-xs text-neon-cyan mt-1">没有任何隐藏后门</p>
+                  </div>
+                  <div className="p-3 rounded bg-neon-purple/10 border border-neon-purple/30">
+                    <div className="text-neon-purple font-display mb-1">🚫 无提款权限</div>
+                    <p className="text-xs">管理员没有任何函数可以提取奖池资金</p>
+                    <p className="text-xs">合约内的 BNB 只能通过中奖发放</p>
+                    <p className="text-xs text-neon-yellow mt-1">资金只出不进（对管理员）</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded bg-neon-yellow/10 border border-neon-yellow/30">
+                  <p className="text-neon-yellow font-display text-sm mb-1">💰 这意味着什么？</p>
+                  <ul className="text-xs space-y-1">
+                    <li>• 奖池里的钱<span className="text-neon-green">只能被玩家赢走</span>，管理员拿不到一分</li>
+                    <li>• 不存在"跑路"风险 —— 因为根本没有跑路的代码入口</li>
+                    <li>• 即使项目方消失，合约依然正常运行，奖池依然可以被赢取</li>
+                  </ul>
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  💡 这是真正的<span className="text-neon-cyan">去中心化游戏</span>：规则由代码执行，不由人控制。
+                  你可以在区块浏览器上亲自查看合约代码，验证我们说的每一句话。
+                </p>
+              </div>
+            </div>
           </div>
         </motion.div>
 
