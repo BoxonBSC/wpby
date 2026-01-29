@@ -1,21 +1,74 @@
 import { motion } from 'framer-motion';
-import { SpinResult } from '@/hooks/useAdvancedSlotMachine';
-import { Trophy, Sparkles, Zap, Crown, Star } from 'lucide-react';
+import { SpinResult, PrizeType } from '@/hooks/useAdvancedSlotMachine';
+import { Sparkles, Zap, Crown, Star, Gem, Trophy } from 'lucide-react';
 
 interface WinDisplayProps {
   result: SpinResult;
   prizePool: number;
 }
 
+// 6级奖励显示配置
+const PRIZE_DISPLAY: Record<PrizeType, { 
+  title: string; 
+  icon: React.ReactNode;
+  colorClass: string;
+  glowClass: string;
+  animate: boolean;
+}> = {
+  mega_jackpot: {
+    title: '🎰 MEGA JACKPOT 🎰',
+    icon: <Trophy className="w-10 h-10 text-neon-yellow" />,
+    colorClass: 'text-neon-yellow',
+    glowClass: 'drop-shadow-[0_0_40px_hsl(50_100%_50%/0.9)]',
+    animate: true,
+  },
+  jackpot: {
+    title: '💎 JACKPOT 💎',
+    icon: <Gem className="w-8 h-8 text-neon-purple" />,
+    colorClass: 'text-neon-purple',
+    glowClass: 'drop-shadow-[0_0_30px_hsl(280_100%_50%/0.8)]',
+    animate: true,
+  },
+  first: {
+    title: '👑 一等奖 👑',
+    icon: <Crown className="w-7 h-7 text-neon-orange" />,
+    colorClass: 'text-neon-orange',
+    glowClass: 'drop-shadow-[0_0_20px_hsl(30_100%_50%/0.7)]',
+    animate: true,
+  },
+  second: {
+    title: '🔔 二等奖 🔔',
+    icon: <Star className="w-6 h-6 text-neon-pink" />,
+    colorClass: 'text-neon-pink',
+    glowClass: 'drop-shadow-[0_0_15px_hsl(330_100%_50%/0.6)]',
+    animate: false,
+  },
+  third: {
+    title: '⭐ 三等奖 ⭐',
+    icon: <Star className="w-5 h-5 text-neon-cyan" />,
+    colorClass: 'text-neon-cyan',
+    glowClass: 'drop-shadow-[0_0_10px_hsl(195_100%_50%/0.5)]',
+    animate: false,
+  },
+  small: {
+    title: '🍀 小奖 🍀',
+    icon: <Sparkles className="w-4 h-4 text-neon-green" />,
+    colorClass: 'text-neon-green',
+    glowClass: '',
+    animate: false,
+  },
+  none: {
+    title: '',
+    icon: null,
+    colorClass: '',
+    glowClass: '',
+    animate: false,
+  },
+};
+
 export function WinDisplay({ result }: WinDisplayProps) {
-  const prizeLabels = {
-    jackpot: { title: '🎰 JACKPOT 🎰', subtitle: '超级大奖', color: 'text-neon-yellow' },
-    second: { title: '👑 二等奖 👑', subtitle: '大奖', color: 'text-neon-purple' },
-    small: { title: '⭐ 中奖 ⭐', subtitle: '小奖', color: 'text-neon-cyan' },
-    none: { title: '', subtitle: '', color: '' },
-  };
-  
-  const prizeInfo = prizeLabels[result.prizeType];
+  const displayConfig = PRIZE_DISPLAY[result.prizeType];
+  const isHighTier = ['mega_jackpot', 'jackpot', 'first'].includes(result.prizeType);
   
   return (
     <motion.div
@@ -27,16 +80,11 @@ export function WinDisplay({ result }: WinDisplayProps) {
       {/* 背景模糊 */}
       <div className="absolute inset-0 bg-background/60 backdrop-blur-sm rounded-2xl" />
       
-      {/* 粒子效果 */}
-      {Array.from({ length: 20 }).map((_, i) => (
+      {/* 粒子效果 - 高等级奖励才显示 */}
+      {isHighTier && Array.from({ length: 20 }).map((_, i) => (
         <motion.div
           key={i}
-          initial={{ 
-            x: 0, 
-            y: 0, 
-            scale: 0,
-            opacity: 1 
-          }}
+          initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
           animate={{ 
             x: (Math.random() - 0.5) * 300,
             y: (Math.random() - 0.5) * 200,
@@ -63,45 +111,20 @@ export function WinDisplay({ result }: WinDisplayProps) {
         className="relative z-10 text-center"
       >
         {/* 奖励标题 */}
-        {result.prizeType === 'jackpot' ? (
-          <motion.div
-            animate={{ 
-              scale: [1, 1.1, 1],
-              rotate: [0, -2, 2, 0],
-            }}
-            transition={{ duration: 0.5, repeat: Infinity }}
-            className="mb-4"
-          >
-            <h3 className="text-4xl md:text-6xl font-display text-neon-yellow 
-              drop-shadow-[0_0_30px_hsl(50_100%_50%/0.8)]">
-              {prizeInfo.title}
-            </h3>
-          </motion.div>
-        ) : result.prizeType === 'second' ? (
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 0.5, repeat: Infinity }}
-            className="mb-4 flex items-center justify-center gap-2"
-          >
-            <Crown className="w-8 h-8 text-neon-purple" />
-            <h3 className="text-2xl md:text-4xl font-display neon-text-purple">
-              {prizeInfo.title}
-            </h3>
-            <Crown className="w-8 h-8 text-neon-purple" />
-          </motion.div>
-        ) : (
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 0.5, repeat: Infinity }}
-            className="mb-4 flex items-center justify-center gap-2"
-          >
-            <Star className="w-6 h-6 text-neon-cyan" />
-            <h3 className="text-2xl md:text-3xl font-display neon-text-cyan">
-              {prizeInfo.title}
-            </h3>
-            <Star className="w-6 h-6 text-neon-cyan" />
-          </motion.div>
-        )}
+        <motion.div
+          animate={displayConfig.animate ? { 
+            scale: [1, 1.1, 1],
+            rotate: [0, -2, 2, 0],
+          } : { scale: [1, 1.03, 1] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+          className="mb-4 flex items-center justify-center gap-3"
+        >
+          {displayConfig.icon}
+          <h3 className={`text-2xl md:text-4xl font-display ${displayConfig.colorClass} ${displayConfig.glowClass}`}>
+            {displayConfig.title}
+          </h3>
+          {displayConfig.icon}
+        </motion.div>
 
         {/* 中奖金额 */}
         <motion.div

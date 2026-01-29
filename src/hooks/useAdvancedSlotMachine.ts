@@ -57,7 +57,33 @@ export interface WinLine {
   payout: number; // 基础分数
 }
 
-export type PrizeType = 'jackpot' | 'second' | 'small' | 'none';
+// 6级奖励系统
+export type PrizeType = 
+  | 'mega_jackpot'  // 超级头奖: 5个7
+  | 'jackpot'       // 头奖: 5个钻石 或 4个7
+  | 'first'         // 一等奖: 5个相同 (其他符号)
+  | 'second'        // 二等奖: 4个相同 (高级符号)
+  | 'third'         // 三等奖: 4个相同 (普通符号) 或 3+条中奖线
+  | 'small'         // 小奖: 3个相同
+  | 'none';
+
+// 奖励配置 - 与智能合约保持一致
+export interface PrizeConfig {
+  type: PrizeType;
+  name: string;
+  emoji: string;
+  poolRate: number;      // 奖池比例
+  estimatedOdds: string; // 估计中奖概率 (用于显示)
+}
+
+export const PRIZE_TIERS: PrizeConfig[] = [
+  { type: 'mega_jackpot', name: '超级头奖', emoji: '🎰', poolRate: 0.30, estimatedOdds: '1/500,000' },
+  { type: 'jackpot', name: '头奖', emoji: '💎', poolRate: 0.15, estimatedOdds: '1/50,000' },
+  { type: 'first', name: '一等奖', emoji: '👑', poolRate: 0.08, estimatedOdds: '1/10,000' },
+  { type: 'second', name: '二等奖', emoji: '🔔', poolRate: 0.04, estimatedOdds: '1/2,000' },
+  { type: 'third', name: '三等奖', emoji: '⭐', poolRate: 0.02, estimatedOdds: '1/500' },
+  { type: 'small', name: '小奖', emoji: '🍀', poolRate: 0.005, estimatedOdds: '1/50' },
+];
 
 export interface SpinResult {
   grid: SlotSymbol[][];
@@ -65,6 +91,7 @@ export interface SpinResult {
   totalWin: number;        // 总分数
   bnbWin: number;          // 实际 BNB 奖励
   prizeType: PrizeType;    // 奖励类型
+  prizeConfig: PrizeConfig | null; // 奖励配置
   isJackpot: boolean;
   newProbability: number;
   multiplier: number;
@@ -89,12 +116,28 @@ const BASE_TOKENS_PER_SPIN = 20000;
 const BASE_PROBABILITY = 5;
 const PROBABILITY_INCREMENT = 2;
 const MAX_PROBABILITY = 50;
-
-// 奖金比例 (基于奖池) - 与智能合约一致
-const JACKPOT_REWARD_RATE = 0.20;    // 头奖: 奖池的 20%
-const SECOND_PRIZE_RATE = 0.05;      // 二等奖: 奖池的 5%
-const SMALL_PRIZE_RATE = 0.01;       // 小奖: 奖池的 1%
 const MIN_POOL_THRESHOLD = 0.5;      // 最低奖池阈值 (BNB)
+
+/**
+ * 符号出现概率说明 (VRF 随机数决定):
+ * 
+ * VRF 生成 0-99 的随机数，根据范围决定符号:
+ * - 7️⃣ Lucky Seven:  0-1   (2%)   → 超级稀有
+ * - 💎 Diamond:      2-4   (3%)   → 非常稀有
+ * - 👑 Crown:        5-9   (5%)   → 稀有
+ * - 🔔 Bell:         10-17 (8%)   → 较稀有
+ * - ⭐ Star:         18-27 (10%)  → 中等
+ * - 🍒 Cherry:       28-42 (15%)  → 常见
+ * - 🍇 Grape:        43-57 (15%)  → 常见
+ * - 🍉 Watermelon:   58-72 (15%)  → 常见
+ * - 🍋 Lemon:        73-87 (15%)  → 常见
+ * - 🍀 Clover:       88-99 (12%)  → 常见
+ * 
+ * 中奖概率计算 (5轮3行，15条赔付线):
+ * - 5个7连线: (0.02)^5 ≈ 1/3,125,000 (实际更低因为需要特定赔付线)
+ * - 5个相同:  各符号概率^5 × 赔付线数
+ * - 3个相同:  概率较高，约 1/20 - 1/50
+ */
 
 const getRandomSymbol = (rng: () => number): SlotSymbol => {
   const roll = rng() * 100;
@@ -166,45 +209,79 @@ export interface SpinCallbacks {
   onSpinEnd?: (result: SpinResult) => void;
 }
 
-// 计算奖励类型和 BNB 数量
+// 查找奖励配置
+const findPrizeConfig = (type: PrizeType): PrizeConfig | null => {
+  return PRIZE_TIERS.find(p => p.type === type) || null;
+};
+
+/**
+ * 计算奖励类型和 BNB 数量
+ * 基于中奖线和符号类型判断奖励等级
+ */
 const calculatePrize = (
   winLines: WinLine[], 
   prizePool: number, 
   betMultiplier: number
-): { prizeType: PrizeType; bnbWin: number } => {
+): { prizeType: PrizeType; bnbWin: number; prizeConfig: PrizeConfig | null } => {
   if (winLines.length === 0) {
-    return { prizeType: 'none', bnbWin: 0 };
+    return { prizeType: 'none', bnbWin: 0, prizeConfig: null };
   }
 
   // 检查奖池是否足够
   if (prizePool < MIN_POOL_THRESHOLD) {
-    return { prizeType: 'none', bnbWin: 0 };
+    return { prizeType: 'none', bnbWin: 0, prizeConfig: null };
   }
 
-  // 检查头奖: 5个7连线
-  const hasJackpot = winLines.some(line => 
-    line.symbol.id === 'seven' && line.count === 5
-  );
-  
-  if (hasJackpot) {
-    // 头奖: 奖池的 20%
-    const bnbWin = prizePool * JACKPOT_REWARD_RATE * betMultiplier;
-    return { prizeType: 'jackpot', bnbWin };
-  }
-
-  // 检查二等奖: 5个相同 (非7) 或 多条5连线
+  // 分析中奖线
+  const hasFiveSevens = winLines.some(line => line.symbol.id === 'seven' && line.count === 5);
+  const hasFiveDiamonds = winLines.some(line => line.symbol.id === 'diamond' && line.count === 5);
+  const hasFourSevens = winLines.some(line => line.symbol.id === 'seven' && line.count === 4);
   const hasFiveMatch = winLines.some(line => line.count === 5);
+  const hasFourLegendary = winLines.some(line => 
+    (line.symbol.id === 'seven' || line.symbol.id === 'diamond') && line.count === 4
+  );
+  const hasFourEpic = winLines.some(line => 
+    line.symbol.rarity === 'epic' && line.count === 4
+  );
+  const hasFourMatch = winLines.some(line => line.count === 4);
   const multipleWinLines = winLines.length >= 3;
-  
-  if (hasFiveMatch || multipleWinLines) {
-    // 二等奖: 奖池的 5%
-    const bnbWin = prizePool * SECOND_PRIZE_RATE * betMultiplier;
-    return { prizeType: 'second', bnbWin };
+
+  let prizeType: PrizeType = 'none';
+
+  // 超级头奖: 5个7
+  if (hasFiveSevens) {
+    prizeType = 'mega_jackpot';
+  }
+  // 头奖: 5个钻石 或 4个7
+  else if (hasFiveDiamonds || hasFourSevens) {
+    prizeType = 'jackpot';
+  }
+  // 一等奖: 5个相同 (其他符号)
+  else if (hasFiveMatch) {
+    prizeType = 'first';
+  }
+  // 二等奖: 4个传奇/史诗符号
+  else if (hasFourLegendary || hasFourEpic) {
+    prizeType = 'second';
+  }
+  // 三等奖: 4个相同 或 3+条中奖线
+  else if (hasFourMatch || multipleWinLines) {
+    prizeType = 'third';
+  }
+  // 小奖: 任意3连
+  else {
+    prizeType = 'small';
   }
 
-  // 小奖: 任意中奖线
-  const bnbWin = prizePool * SMALL_PRIZE_RATE * betMultiplier;
-  return { prizeType: 'small', bnbWin };
+  const prizeConfig = findPrizeConfig(prizeType);
+  if (!prizeConfig) {
+    return { prizeType: 'none', bnbWin: 0, prizeConfig: null };
+  }
+
+  // 计算 BNB 奖励 = 奖池 × 奖励比例 × 投注倍数
+  const bnbWin = prizePool * prizeConfig.poolRate * betMultiplier;
+  
+  return { prizeType, bnbWin, prizeConfig };
 };
 
 export function useAdvancedSlotMachine() {
@@ -294,24 +371,22 @@ export function useAdvancedSlotMachine() {
 
         // 计算基础分数
         const baseScore = winLines.reduce((sum, line) => sum + line.payout, 0);
-        
-        // 检查是否头奖
-        const isJackpot = winLines.some(line => 
-          line.symbol.id === 'seven' && line.count === 5
-        );
 
         // 计算连线倍数
         let multiplier = 1;
-        if (winLines.length >= 3) multiplier = 2;
-        if (winLines.length >= 5) multiplier = 3;
-        if (isJackpot) multiplier = 10;
+        if (winLines.length >= 3) multiplier = 1.5;
+        if (winLines.length >= 5) multiplier = 2;
+        if (winLines.length >= 7) multiplier = 3;
 
         // 基于奖池计算实际 BNB 奖励
-        const { prizeType, bnbWin } = calculatePrize(
+        const { prizeType, bnbWin, prizeConfig } = calculatePrize(
           winLines, 
           prizePool, 
           betMultiplier * multiplier
         );
+
+        // 判断是否头奖类型
+        const isJackpotWin = prizeType === 'mega_jackpot' || prizeType === 'jackpot';
 
         // 更新奖池 (扣除派奖)
         const newPrizePool = prizePool - bnbWin;
@@ -322,7 +397,8 @@ export function useAdvancedSlotMachine() {
           totalWin: baseScore * multiplier,
           bnbWin,
           prizeType,
-          isJackpot,
+          prizeConfig,
+          isJackpot: isJackpotWin,
           newProbability: winLines.length > 0 ? BASE_PROBABILITY : 
             Math.min(gameState.winProbability + PROBABILITY_INCREMENT, MAX_PROBABILITY),
           multiplier,
