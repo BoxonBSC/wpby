@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { Clock, Trophy, User } from 'lucide-react';
+import { useCyberSlots, formatSymbols, shortenAddress } from '@/hooks/useCyberSlots';
+import { formatEther } from 'ethers';
 
 interface HistoryItem {
   id: string;
@@ -10,11 +12,10 @@ interface HistoryItem {
   isWin: boolean;
 }
 
-// Mock data for demo
 const mockHistory: HistoryItem[] = [
-  { id: '1', address: '0x1234...5678', result: '7️⃣ 7️⃣ 7️⃣', winAmount: 2.1, timestamp: new Date(Date.now() - 60000), isWin: true },
-  { id: '2', address: '0xabcd...ef01', result: '🍒 🍒 🍋', winAmount: 0.105, timestamp: new Date(Date.now() - 120000), isWin: true },
-  { id: '3', address: '0x9876...5432', result: '💎 💎 💎', winAmount: 0.525, timestamp: new Date(Date.now() - 180000), isWin: true },
+  { id: '1', address: '0x1234...5678', result: '7️⃣ 7️⃣ 7️⃣ 7️⃣ 7️⃣', winAmount: 2.1, timestamp: new Date(Date.now() - 60000), isWin: true },
+  { id: '2', address: '0xabcd...ef01', result: '🍒 🍒 🍒 🍋 🍇', winAmount: 0.105, timestamp: new Date(Date.now() - 120000), isWin: true },
+  { id: '3', address: '0x9876...5432', result: '💎 💎 💎 💎 💎', winAmount: 0.525, timestamp: new Date(Date.now() - 180000), isWin: true },
 ];
 
 const formatTime = (date: Date) => {
@@ -28,6 +29,22 @@ const formatTime = (date: Date) => {
 };
 
 export function CompactGameHistory() {
+  const { recentWins } = useCyberSlots();
+
+  const displayHistory: HistoryItem[] = recentWins.length > 0
+    ? recentWins
+        .filter(win => win.winAmount > 0n)
+        .slice(0, 5)
+        .map((win, index) => ({
+          id: `${win.requestId}-${index}`,
+          address: shortenAddress(win.player),
+          result: formatSymbols(win.symbols).join(' '),
+          winAmount: parseFloat(formatEther(win.winAmount)),
+          timestamp: new Date(win.timestamp),
+          isWin: true,
+        }))
+    : mockHistory;
+
   return (
     <div className="cyber-card h-full flex flex-col">
       <div className="flex items-center justify-between mb-3">
@@ -35,10 +52,13 @@ export function CompactGameHistory() {
           <Clock className="w-4 h-4" />
           最近中奖
         </h3>
+        {recentWins.length > 0 && (
+          <span className="text-xs text-neon-green">🔗 实时</span>
+        )}
       </div>
 
       <div className="space-y-1.5 flex-1">
-        {mockHistory.map((item, index) => (
+        {displayHistory.map((item, index) => (
           <motion.div
             key={item.id}
             initial={{ opacity: 0, y: 5 }}
@@ -62,12 +82,18 @@ export function CompactGameHistory() {
               {item.isWin && (
                 <div className="flex items-center gap-1 text-neon-yellow">
                   <Trophy className="w-3 h-3" />
-                  <span className="font-display">+{item.winAmount.toFixed(2)}</span>
+                  <span className="font-display">+{item.winAmount.toFixed(4)}</span>
                 </div>
               )}
             </div>
           </motion.div>
         ))}
+        
+        {displayHistory.length === 0 && (
+          <div className="text-center text-muted-foreground text-xs py-4">
+            暂无中奖记录
+          </div>
+        )}
       </div>
       
       <a 
