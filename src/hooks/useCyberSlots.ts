@@ -25,6 +25,7 @@ export interface SpinResultEvent {
   winAmount: bigint;
   prizeType: string;
   timestamp: number;
+  txHash?: string;
 }
 
 export interface ContractState {
@@ -736,7 +737,8 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       requestId: bigint,
       symbols: number[],
       winAmount: bigint,
-      prizeType: string
+      prizeType: string,
+      txHash?: string
     ) => {
       const event: SpinResultEvent = {
         player,
@@ -745,6 +747,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         winAmount,
         prizeType,
         timestamp: Date.now(),
+        txHash,
       };
 
       setRecentWins(prev => [event, ...prev].slice(0, 20));
@@ -773,18 +776,21 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         if (cancelled) return;
 
         for (const ev of events) {
-          const args = (ev as unknown as { args?: unknown }).args as
-            | {
-                player: string;
-                requestId: bigint;
-                symbols: number[];
-                winAmount: bigint;
-                prizeType: string;
-              }
-            | undefined;
+          const logEvent = ev as unknown as { 
+            args?: {
+              player: string;
+              requestId: bigint;
+              symbols: number[];
+              winAmount: bigint;
+              prizeType: string;
+            };
+            transactionHash?: string;
+          };
+          const args = logEvent.args;
+          const txHash = logEvent.transactionHash;
 
           if (!args) continue;
-          handleSpinResult(args.player, args.requestId, args.symbols, args.winAmount, args.prizeType);
+          handleSpinResult(args.player, args.requestId, args.symbols, args.winAmount, args.prizeType, txHash);
         }
 
         // 下一次从最新区块的下一块开始拉取，减少重复
