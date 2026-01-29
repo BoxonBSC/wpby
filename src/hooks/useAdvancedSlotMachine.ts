@@ -185,17 +185,17 @@ export function useAdvancedSlotMachine() {
       
       callbacksRef.current.onSpinStart?.();
 
-      // 每个轮子依次停止
-      const stopTimes = [800, 1200, 1600, 2000, 2400];
+      // 加快停止时间 - 每个轮子间隔更短
+      const stopTimes = [400, 600, 800, 1000, 1200];
       const finalGrid: SlotSymbol[][] = [];
       
-      // 快速滚动动画
+      // 更快的滚动动画
       const spinInterval = setInterval(() => {
         setGameState(prev => ({
           ...prev,
           grid: generateGrid(Math.random),
         }));
-      }, 50);
+      }, 40);
 
       // 依次停止每个轮子
       stopTimes.forEach((time, reelIndex) => {
@@ -225,7 +225,7 @@ export function useAdvancedSlotMachine() {
         }, time);
       });
 
-      // 计算结果
+      // 计算结果 - 在最后一个轮子停止后
       setTimeout(() => {
         const winLines: WinLine[] = [];
         
@@ -275,7 +275,7 @@ export function useAdvancedSlotMachine() {
 
         callbacksRef.current.onSpinEnd?.(result);
         resolve(result);
-      }, 2600);
+      }, 1400); // 比最后轮子停止时间稍晚
     });
   }, [gameState.winProbability]);
 
