@@ -143,13 +143,15 @@ export function CompactRewardTiers() {
         </div>
       </div>
 
-      {/* 投注概率加成 */}
+      {/* 投注概率加成 - 移动端精简为2列网格 */}
       <div className="rounded-xl p-2.5 lg:p-3 bg-gradient-to-b from-neon-cyan/10 to-transparent border border-neon-cyan/20 mb-2 lg:mb-3">
         <h4 className="text-xs font-display text-neon-cyan mb-2 flex items-center gap-1.5">
           <TrendingUp className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
           投注概率加成
         </h4>
-        <div className="space-y-1">
+        
+        {/* 移动端: 2列网格显示 */}
+        <div className="grid grid-cols-2 gap-1.5 lg:hidden">
           {BET_AMOUNTS.map((bet) => {
             const multiplier = BET_MULTIPLIERS[bet] || 1;
             const isHighTier = multiplier >= 10;
@@ -159,7 +161,44 @@ export function CompactRewardTiers() {
               <div
                 key={bet}
                 className={`
-                  flex items-center gap-2 p-1.5 lg:p-2 rounded-lg text-xs transition-colors
+                  flex flex-col items-center justify-center p-2 rounded-lg text-xs
+                  ${isHighTier 
+                    ? 'bg-gradient-to-b from-neon-yellow/20 to-neon-orange/10 border border-neon-yellow/40' 
+                    : isMidTier 
+                    ? 'bg-gradient-to-b from-neon-purple/20 to-neon-pink/10 border border-neon-purple/40' 
+                    : multiplier > 1
+                    ? 'bg-gradient-to-b from-neon-cyan/15 to-transparent border border-neon-cyan/30'
+                    : 'bg-muted/30 border border-border/40'}
+                `}
+              >
+                <span className={`font-display text-base ${
+                  isHighTier ? 'text-neon-yellow' : 
+                  isMidTier ? 'text-neon-purple' : 
+                  multiplier > 1 ? 'text-neon-cyan' :
+                  'text-foreground'
+                }`}>
+                  {multiplier}x
+                </span>
+                <span className="text-muted-foreground text-[10px]">
+                  {(bet / 1000).toFixed(0)}K
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 桌面端: 列表显示 */}
+        <div className="hidden lg:block space-y-1">
+          {BET_AMOUNTS.map((bet) => {
+            const multiplier = BET_MULTIPLIERS[bet] || 1;
+            const isHighTier = multiplier >= 10;
+            const isMidTier = multiplier >= 5 && multiplier < 10;
+            
+            return (
+              <div
+                key={bet}
+                className={`
+                  flex items-center gap-2 p-2 rounded-lg text-xs transition-colors
                   ${isHighTier 
                     ? 'bg-gradient-to-r from-neon-yellow/15 to-neon-orange/10 border border-neon-yellow/25' 
                     : isMidTier 
@@ -169,7 +208,7 @@ export function CompactRewardTiers() {
                     : 'bg-muted/20 border border-border/30'}
                 `}
               >
-                <span className="text-muted-foreground w-16 lg:w-20">
+                <span className="text-muted-foreground w-20">
                   {bet.toLocaleString()}
                 </span>
                 <span className={`flex-1 font-display ${
