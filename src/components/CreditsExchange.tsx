@@ -9,7 +9,7 @@ const EXCHANGE_AMOUNTS = [100000, 500000, 1000000, 5000000];
 
 export function CreditsExchange() {
   const { isConnected } = useWallet();
-  const { tokenBalance, gameCredits, depositCredits, approveToken, refreshData } = useCyberSlots();
+  const { tokenBalance, gameCredits, depositCredits, error: contractError, refreshData } = useCyberSlots();
   const [selectedAmount, setSelectedAmount] = useState(EXCHANGE_AMOUNTS[1]);
   const [isExchanging, setIsExchanging] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -51,7 +51,7 @@ export function CreditsExchange() {
       } else {
         toast({
           title: "兑换失败",
-          description: "请检查授权和余额",
+          description: contractError || "请检查授权和余额",
           variant: "destructive",
         });
       }
@@ -59,6 +59,7 @@ export function CreditsExchange() {
       console.error('Exchange failed:', err);
       toast({
         title: "兑换失败",
+        description: contractError || "交易失败，请稍后重试",
         variant: "destructive",
       });
     }

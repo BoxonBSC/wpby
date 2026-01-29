@@ -437,6 +437,17 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         const approveTx = await token.approve(spender, amountWei);
         console.log('[CyberSlots] approve tx:', approveTx.hash);
         await approveTx.wait();
+
+        // 二次校验：部分钱包/代币在“无限授权”或失败时 allowance 不会如预期更新
+        const allowanceAfter = await token.allowance(address, spender);
+        console.log('[CyberSlots] allowance after:', allowanceAfter.toString());
+        if (allowanceAfter < amountWei) {
+          setState(prev => ({
+            ...prev,
+            error: '授权未生效：请确认授权对象是“游戏合约地址”，并重试（可尝试先取消授权/设为0再授权）',
+          }));
+          return false;
+        }
       }
 
       console.log('[CyberSlots] calling slots.depositCredits...');
@@ -446,9 +457,29 @@ export function useCyberSlots(): UseCyberSlotsReturn {
 
       await refreshData();
       return true;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('[CyberSlots] Deposit credits failed:', err);
-      setState(prev => ({ ...prev, error: '兑换失败：交易被合约回滚（请确认授权/网络/合约地址）' }));
+
+      const e = err as {
+        code?: string;
+        shortMessage?: string;
+        message?: string;
+        info?: { error?: { message?: string } };
+      };
+
+      let msg = '兑换失败：交易被合约回滚';
+      if (e?.code === 'ACTION_REJECTED') msg = '你在钱包里取消了授权/交易';
+      else if (typeof e?.message === 'string' && e.message.toLowerCase().includes('insufficient funds')) {
+        msg = 'BNB Gas 不足：请确保钱包有足够 BNB 支付手续费';
+      } else if (typeof e?.shortMessage === 'string' && e.shortMessage.trim()) {
+        msg = e.shortMessage;
+      } else if (typeof e?.info?.error?.message === 'string' && e.info.error.message.trim()) {
+        msg = e.info.error.message;
+      } else if (typeof e?.message === 'string' && e.message.trim()) {
+        msg = e.message;
+      }
+
+      setState(prev => ({ ...prev, error: msg }));
       return false;
     }
   }, [
