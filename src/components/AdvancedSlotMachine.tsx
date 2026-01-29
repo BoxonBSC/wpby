@@ -4,14 +4,44 @@ import { PaylineLines } from './PaylineLines';
 import { WinDisplay } from './WinDisplay';
 import { useAdvancedSlotMachine } from '@/hooks/useAdvancedSlotMachine';
 import { useWallet } from '@/contexts/WalletContext';
-import { useState, useMemo } from 'react';
+import { useAudioContext } from '@/contexts/AudioContext';
+import { useState, useMemo, useEffect } from 'react';
 import { Zap, TrendingUp, Coins, Sparkles, Flame, Trophy } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export function AdvancedSlotMachine() {
-  const { gameState, prizePool, tokensPerSpin, spin, paylines } = useAdvancedSlotMachine();
+  const { gameState, prizePool, tokensPerSpin, spin, setCallbacks } = useAdvancedSlotMachine();
   const { isConnected, tokenBalance, connect } = useWallet();
+  const { 
+    playSpinSound, 
+    playReelStopSound, 
+    playSmallWinSound, 
+    playMediumWinSound, 
+    playJackpotSound,
+    playClickSound,
+  } = useAudioContext();
   const [showPaylines, setShowPaylines] = useState(false);
+
+  // 设置音效回调
+  useEffect(() => {
+    setCallbacks({
+      onSpinStart: () => {
+        playSpinSound();
+      },
+      onReelStop: (reelIndex) => {
+        playReelStopSound(reelIndex);
+      },
+      onSpinEnd: (result) => {
+        if (result.isJackpot) {
+          playJackpotSound();
+        } else if (result.winLines.length >= 3) {
+          playMediumWinSound();
+        } else if (result.winLines.length > 0) {
+          playSmallWinSound();
+        }
+      },
+    });
+  }, [setCallbacks, playSpinSound, playReelStopSound, playSmallWinSound, playMediumWinSound, playJackpotSound]);
 
   // 计算中奖位置
   const winningPositions = useMemo(() => {
@@ -33,6 +63,8 @@ export function AdvancedSlotMachine() {
   }, [gameState.lastResult, gameState.isSpinning]);
 
   const handleSpin = async () => {
+    playClickSound();
+    
     if (!isConnected) {
       toast({
         title: "请先连接钱包",
@@ -60,6 +92,11 @@ export function AdvancedSlotMachine() {
         description: `${result.winLines.length} 条赔付线中奖！${result.multiplier > 1 ? `${result.multiplier}x 倍数！` : ''} 赢得 ${bnbWin} BNB！`,
       });
     }
+  };
+
+  const handlePaylineToggle = () => {
+    playClickSound();
+    setShowPaylines(!showPaylines);
   };
 
   return (
@@ -116,7 +153,7 @@ export function AdvancedSlotMachine() {
           )}
           
           <button
-            onClick={() => setShowPaylines(!showPaylines)}
+            onClick={handlePaylineToggle}
             className={`px-3 py-2 rounded-lg text-xs font-display transition-colors ${
               showPaylines 
                 ? 'bg-neon-cyan/20 text-neon-cyan neon-border' 
@@ -236,7 +273,7 @@ export function AdvancedSlotMachine() {
             </motion.button>
           ) : (
             <motion.button
-              onClick={connect}
+              onClick={() => { playClickSound(); connect(); }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="cyber-button w-full text-lg rounded-xl py-5"
