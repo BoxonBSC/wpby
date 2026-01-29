@@ -8,6 +8,7 @@ import { JackpotTicker } from '@/components/JackpotTicker';
 import { CreditsExchange } from '@/components/CreditsExchange';
 import { PoolFlowChart } from '@/components/PoolFlowChart';
 import { Navbar } from '@/components/Navbar';
+import { ContractAddresses } from '@/components/ContractAddresses';
 import { Sparkles, Zap, Trophy } from 'lucide-react';
 
 const Index = () => {
@@ -105,6 +106,9 @@ const Index = () => {
               <Trophy className="w-3 h-3" /> 100% 返还
             </motion.span>
           </div>
+
+          {/* 智能合约地址 */}
+          <ContractAddresses />
 
           {/* 中奖播报 */}
           <motion.div
