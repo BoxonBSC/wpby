@@ -1,9 +1,9 @@
 import { useState, useCallback, useRef } from 'react';
 
-// 符号类型
+// 符号类型 - 按合约顺序定义
 export type SlotSymbol = 
-  | 'seven' | 'diamond' | 'crown' | 'bell' | 'cherry' 
-  | 'lemon' | 'grape' | 'watermelon' | 'star' | 'clover';
+  | 'seven' | 'diamond' | 'crown' | 'bell' | 'star'
+  | 'cherry' | 'lemon' | 'orange' | 'grape' | 'clover';
 
 export interface SymbolInfo {
   id: SlotSymbol;
@@ -12,18 +12,19 @@ export interface SymbolInfo {
   rarity: 'legendary' | 'epic' | 'rare' | 'common';
 }
 
-// 符号配置
+// 符号配置 - 顺序必须与合约 SYMBOL_MAP 完全一致
+// 合约: 0=7️⃣, 1=💎, 2=👑, 3=🔔, 4=⭐, 5=🍒, 6=🍋, 7=🍊, 8=🍇, 9=🍀
 export const SYMBOLS: SymbolInfo[] = [
-  { id: 'seven', emoji: '7️⃣', name: 'Lucky Seven', rarity: 'legendary' },
-  { id: 'diamond', emoji: '💎', name: 'Diamond', rarity: 'legendary' },
-  { id: 'crown', emoji: '👑', name: 'Crown', rarity: 'epic' },
-  { id: 'bell', emoji: '🔔', name: 'Bell', rarity: 'epic' },
-  { id: 'star', emoji: '⭐', name: 'Star', rarity: 'epic' },
-  { id: 'cherry', emoji: '🍒', name: 'Cherry', rarity: 'rare' },
-  { id: 'grape', emoji: '🍇', name: 'Grape', rarity: 'rare' },
-  { id: 'watermelon', emoji: '🍉', name: 'Watermelon', rarity: 'rare' },
-  { id: 'lemon', emoji: '🍋', name: 'Lemon', rarity: 'common' },
-  { id: 'clover', emoji: '🍀', name: 'Clover', rarity: 'common' },
+  { id: 'seven', emoji: '7️⃣', name: 'Lucky Seven', rarity: 'legendary' },   // 0
+  { id: 'diamond', emoji: '💎', name: 'Diamond', rarity: 'legendary' },      // 1
+  { id: 'crown', emoji: '👑', name: 'Crown', rarity: 'epic' },               // 2
+  { id: 'bell', emoji: '🔔', name: 'Bell', rarity: 'epic' },                 // 3
+  { id: 'star', emoji: '⭐', name: 'Star', rarity: 'epic' },                 // 4
+  { id: 'cherry', emoji: '🍒', name: 'Cherry', rarity: 'rare' },             // 5
+  { id: 'lemon', emoji: '🍋', name: 'Lemon', rarity: 'rare' },               // 6
+  { id: 'orange', emoji: '🍊', name: 'Orange', rarity: 'rare' },             // 7
+  { id: 'grape', emoji: '🍇', name: 'Grape', rarity: 'common' },             // 8
+  { id: 'clover', emoji: '🍀', name: 'Clover', rarity: 'common' },           // 9
 ];
 
 // 5轮，每轮3行
