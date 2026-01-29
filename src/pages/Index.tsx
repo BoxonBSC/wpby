@@ -166,7 +166,7 @@ const Index = () => {
           className="mt-8 text-center text-sm text-muted-foreground"
         >
           <div className="neon-border-purple inline-block px-4 py-2 rounded-lg bg-muted/20">
-            <p>⚠️ 演示版本 | 智能合约需单独部署</p>
+            <p>链上版本 | 智能合约已连接</p>
             <p className="mt-0.5 text-xs">Powered by BNB Chain & Chainlink VRF</p>
           </div>
         </motion.footer>

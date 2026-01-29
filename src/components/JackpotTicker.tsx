@@ -16,6 +16,18 @@ export function JackpotTicker() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayWins, setDisplayWins] = useState<WinDisplay[]>([]);
 
+  const formatBnbDisplay = (value: string) => {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return '0';
+
+    // 小额奖池不要被 toFixed(2) 四舍五入成 0.00
+    const decimals = n >= 1 ? 2 : n >= 0.01 ? 4 : 6;
+    const fixed = n.toFixed(decimals);
+
+    // 去掉末尾多余的 0
+    return fixed.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+  };
+
   useEffect(() => {
     if (recentWins.length > 0) {
       const realWins: WinDisplay[] = recentWins
@@ -42,7 +54,7 @@ export function JackpotTicker() {
     return () => clearInterval(interval);
   }, [displayWins.length]);
 
-  const poolDisplay = parseFloat(prizePool).toFixed(2);
+  const poolDisplay = formatBnbDisplay(prizePool);
   const hasWins = displayWins.length > 0;
   const winner = hasWins ? displayWins[currentIndex] : null;
 
