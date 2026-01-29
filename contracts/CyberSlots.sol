@@ -10,11 +10,11 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 
 contract CyberSlots is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable {
     
-    uint256 public constant BET_LEVEL_1 = 20000 * 10**18;
-    uint256 public constant BET_LEVEL_2 = 50000 * 10**18;
-    uint256 public constant BET_LEVEL_3 = 100000 * 10**18;
-    uint256 public constant BET_LEVEL_4 = 200000 * 10**18;
-    uint256 public constant BET_LEVEL_5 = 500000 * 10**18;
+    uint256 public betLevel1 = 10000 * 10**18;
+    uint256 public betLevel2 = 25000 * 10**18;
+    uint256 public betLevel3 = 50000 * 10**18;
+    uint256 public betLevel4 = 100000 * 10**18;
+    uint256 public betLevel5 = 250000 * 10**18;
     
     uint256 public constant SUPER_JACKPOT_PERCENT = 5000;
     uint256 public constant JACKPOT_PERCENT = 2500;
@@ -333,20 +333,48 @@ contract CyberSlots is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable
         return false;
     }
     
-    function isValidBetAmount(uint256 amount) public pure returns (bool) {
-        return amount == BET_LEVEL_1 ||
-               amount == BET_LEVEL_2 ||
-               amount == BET_LEVEL_3 ||
-               amount == BET_LEVEL_4 ||
-               amount == BET_LEVEL_5;
+    function isValidBetAmount(uint256 amount) public view returns (bool) {
+        return amount == betLevel1 ||
+               amount == betLevel2 ||
+               amount == betLevel3 ||
+               amount == betLevel4 ||
+               amount == betLevel5;
     }
     
-    function getBetMultiplier(uint256 betAmount) public pure returns (uint256) {
-        if (betAmount >= BET_LEVEL_5) return 2000;
-        if (betAmount >= BET_LEVEL_4) return 1000;
-        if (betAmount >= BET_LEVEL_3) return 500;
-        if (betAmount >= BET_LEVEL_2) return 250;
+    function getBetMultiplier(uint256 betAmount) public view returns (uint256) {
+        if (betAmount >= betLevel5) return 2000;
+        if (betAmount >= betLevel4) return 1000;
+        if (betAmount >= betLevel3) return 500;
+        if (betAmount >= betLevel2) return 250;
         return 100;
+    }
+    
+    function setBetLevels(
+        uint256 _level1,
+        uint256 _level2,
+        uint256 _level3,
+        uint256 _level4,
+        uint256 _level5
+    ) external onlyOwner {
+        require(_level1 <= betLevel1, "Can only lower level 1");
+        require(_level2 <= betLevel2, "Can only lower level 2");
+        require(_level3 <= betLevel3, "Can only lower level 3");
+        require(_level4 <= betLevel4, "Can only lower level 4");
+        require(_level5 <= betLevel5, "Can only lower level 5");
+        require(_level1 < _level2 && _level2 < _level3 && _level3 < _level4 && _level4 < _level5, "Levels must be ascending");
+        require(_level1 >= 1000 * 10**18, "Min level 1 is 1000 tokens");
+        
+        betLevel1 = _level1;
+        betLevel2 = _level2;
+        betLevel3 = _level3;
+        betLevel4 = _level4;
+        betLevel5 = _level5;
+        
+        emit ConfigUpdated("betLevels");
+    }
+    
+    function getBetLevels() external view returns (uint256[5] memory) {
+        return [betLevel1, betLevel2, betLevel3, betLevel4, betLevel5];
     }
     
     function getAvailablePool() public view returns (uint256) {
