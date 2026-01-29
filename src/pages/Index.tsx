@@ -6,6 +6,7 @@ import { CompactGameHistory } from '@/components/CompactGameHistory';
 import { FloatingElements } from '@/components/FloatingElements';
 import { JackpotTicker } from '@/components/JackpotTicker';
 import { CreditsExchange } from '@/components/CreditsExchange';
+import { PoolFlowChart } from '@/components/PoolFlowChart';
 import { Navbar } from '@/components/Navbar';
 import { Sparkles, Zap, Trophy } from 'lucide-react';
 
@@ -151,6 +152,16 @@ const Index = () => {
             <CompactRewardTiers />
           </motion.div>
         </div>
+
+        {/* 奖池资金流向图表 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-6"
+        >
+          <PoolFlowChart />
+        </motion.div>
 
         {/* Footer */}
         <motion.footer
