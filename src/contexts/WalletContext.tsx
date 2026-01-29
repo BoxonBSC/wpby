@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { BrowserProvider, formatEther } from 'ethers';
+import { useWeb3Modal, useWeb3ModalAccount, useWeb3ModalProvider, useDisconnect } from '@web3modal/ethers/react';
 
 // 钱包类型定义
-export type WalletType = 'metamask' | 'okx' | 'binance' | 'tokenpocket' | 'unknown';
+export type WalletType = 'metamask' | 'okx' | 'binance' | 'tokenpocket' | 'walletconnect' | 'unknown';
 
 export interface WalletInfo {
   id: WalletType;
@@ -13,14 +14,8 @@ export interface WalletInfo {
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-      on: (event: string, callback: (...args: unknown[]) => void) => void;
-      removeListener: (event: string, callback: (...args: unknown[]) => void) => void;
-      isMetaMask?: boolean;
-      isTrust?: boolean;
-    };
     okxwallet?: {
       request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
       on: (event: string, callback: (...args: unknown[]) => void) => void;
@@ -51,6 +46,7 @@ interface WalletState {
 
 interface WalletContextType extends WalletState {
   connect: (walletType?: WalletType) => Promise<void>;
+  connectWalletConnect: () => void;
   disconnect: () => void;
   isConnecting: boolean;
   error: string | null;
@@ -169,6 +165,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         okx: 'OKX Wallet',
         binance: 'Binance Wallet',
         tokenpocket: 'TokenPocket',
+        walletconnect: 'WalletConnect',
         unknown: '钱包',
       };
       setError(`请先安装 ${walletNames[walletType]} 钱包`);
@@ -296,12 +293,55 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     };
   }, [disconnect, state.connectedWallet]);
 
+  // Web3Modal hooks for WalletConnect
+  const { open: openWeb3Modal } = useWeb3Modal();
+  const { address: wcAddress, isConnected: wcIsConnected, chainId: wcChainId } = useWeb3ModalAccount();
+  const { walletProvider: wcProvider } = useWeb3ModalProvider();
+  const { disconnect: wcDisconnect } = useDisconnect();
+
+  // 同步 WalletConnect 状态
+  useEffect(() => {
+    if (wcIsConnected && wcAddress && !state.isConnected) {
+      setState(prev => ({
+        ...prev,
+        address: wcAddress,
+        isConnected: true,
+        chainId: wcChainId || 56,
+        tokenBalance: '1000000',
+        gameCredits: 500000,
+        connectedWallet: 'walletconnect',
+      }));
+
+      // 获取余额
+      if (wcProvider) {
+        const provider = new BrowserProvider(wcProvider);
+        provider.getBalance(wcAddress).then(balance => {
+          setState(prev => ({ ...prev, balance: formatEther(balance) }));
+        }).catch(console.error);
+      }
+    } else if (!wcIsConnected && state.connectedWallet === 'walletconnect') {
+      disconnect();
+    }
+  }, [wcIsConnected, wcAddress, wcChainId, wcProvider, state.isConnected, state.connectedWallet]);
+
+  const connectWalletConnect = useCallback(() => {
+    openWeb3Modal();
+  }, [openWeb3Modal]);
+
+  const fullDisconnect = useCallback(() => {
+    if (state.connectedWallet === 'walletconnect') {
+      wcDisconnect();
+    }
+    disconnect();
+  }, [state.connectedWallet, wcDisconnect, disconnect]);
+
   return (
     <WalletContext.Provider
       value={{
         ...state,
         connect,
-        disconnect,
+        connectWalletConnect,
+        disconnect: fullDisconnect,
         isConnecting,
         error,
         availableWallets,

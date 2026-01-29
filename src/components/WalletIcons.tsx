@@ -74,6 +74,16 @@ export function TokenPocketIcon({ size = 24 }: { size?: number }) {
   );
 }
 
+// WalletConnect 图标
+export function WalletConnectIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="16" fill="#3B99FC"/>
+      <path d="M10.5 12.5C13.5376 9.46243 18.4624 9.46243 21.5 12.5L21.9 12.9C22.0657 13.0657 22.0657 13.3343 21.9 13.5L20.7 14.7C20.6172 14.7828 20.4828 14.7828 20.4 14.7L19.9 14.2C17.7909 12.0909 14.2091 12.0909 12.1 14.2L11.6 14.7C11.5172 14.7828 11.3828 14.7828 11.3 14.7L10.1 13.5C9.93431 13.3343 9.93431 13.0657 10.1 12.9L10.5 12.5ZM24 14.9L25.1 16C25.2657 16.1657 25.2657 16.4343 25.1 16.6L19.6 22.1C19.4343 22.2657 19.1657 22.2657 19 22.1L15.1 18.2C15.0586 18.1586 14.9914 18.1586 14.95 18.2L11.05 22.1C10.8843 22.2657 10.6157 22.2657 10.45 22.1L4.9 16.6C4.73431 16.4343 4.73431 16.1657 4.9 16L6 14.9C6.16569 14.7343 6.43431 14.7343 6.6 14.9L10.5 18.8C10.5414 18.8414 10.6086 18.8414 10.65 18.8L14.55 14.9C14.7157 14.7343 14.9843 14.7343 15.15 14.9L19.05 18.8C19.0914 18.8414 19.1586 18.8414 19.2 18.8L23.1 14.9C23.2657 14.7343 23.5343 14.7343 23.7 14.9L24 14.9Z" fill="white"/>
+    </svg>
+  );
+}
+
 // 钱包品牌配置
 export interface WalletBrand {
   icon: (props: { size?: number }) => JSX.Element;
@@ -116,6 +126,14 @@ export const WALLET_BRANDS: Record<WalletType, WalletBrand> = {
     borderClass: 'border-[#2980FE]/60',
     textClass: 'text-[#2980FE]',
     glowClass: 'shadow-[0_0_12px_rgba(41,128,254,0.3)]',
+  },
+  walletconnect: {
+    icon: WalletConnectIcon,
+    primaryColor: '#3B99FC',
+    bgClass: 'bg-[#3B99FC]/10',
+    borderClass: 'border-[#3B99FC]/60',
+    textClass: 'text-[#3B99FC]',
+    glowClass: 'shadow-[0_0_12px_rgba(59,153,252,0.3)]',
   },
   unknown: {
     icon: MetaMaskIcon,

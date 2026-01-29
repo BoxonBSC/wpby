@@ -10,6 +10,9 @@ import History from "./pages/History";
 import Rules from "./pages/Rules";
 import NotFound from "./pages/NotFound";
 
+// 初始化 Web3Modal
+import "@/config/web3modal";
+
 const queryClient = new QueryClient();
 
 const App = () => (

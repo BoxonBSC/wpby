@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet, WalletType, WalletInfo } from '@/contexts/WalletContext';
-import { Wallet, LogOut, Copy, ExternalLink, Ticket, ChevronDown, X } from 'lucide-react';
+import { Wallet, LogOut, Copy, ExternalLink, Ticket, ChevronDown, X, Smartphone, QrCode } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { getWalletBrand, WALLET_BRANDS } from './WalletIcons';
+import { getWalletBrand, WalletConnectIcon } from './WalletIcons';
 
 // 钱包图标组件 - 使用官方品牌图标
 function WalletIcon({ wallet, size = 'md' }: { wallet: WalletInfo; size?: 'sm' | 'md' | 'lg' }) {
@@ -27,6 +27,7 @@ export function WalletConnect() {
     tokenBalance, 
     gameCredits, 
     connect, 
+    connectWalletConnect,
     disconnect, 
     isConnecting, 
     error,
@@ -133,8 +134,38 @@ export function WalletConnect() {
               })}
             </div>
             
+            {/* WalletConnect 扫码连接 */}
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <motion.button
+                onClick={() => {
+                  setShowWalletSelector(false);
+                  connectWalletConnect();
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl transition-all border bg-[#3B99FC]/10 border-[#3B99FC]/60 shadow-[0_0_12px_rgba(59,153,252,0.3)] hover:opacity-90 cursor-pointer"
+              >
+                <div className="flex-shrink-0">
+                  <WalletConnectIcon size={28} />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-display text-[#3B99FC] flex items-center gap-2">
+                    WalletConnect
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#3B99FC]/20 text-[#3B99FC]">
+                      扫码
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Smartphone className="w-3 h-3" />
+                    手机钱包扫码连接
+                  </div>
+                </div>
+                <QrCode className="w-5 h-5 text-[#3B99FC]" />
+              </motion.button>
+            </div>
+            
             <p className="text-xs text-muted-foreground text-center mt-4">
-              选择您的钱包进行连接，需要切换到 BNB Smart Chain 网络
+              选择浏览器钱包或扫码连接手机钱包
             </p>
           </motion.div>
         </motion.div>
