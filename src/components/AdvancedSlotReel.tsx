@@ -49,34 +49,50 @@ const SymbolCell = memo(function SymbolCell({
   isBlurred,
   isWinning,
   showLanding,
+  isMiddleRow,
 }: { 
   symbolId: SlotSymbol; 
   isBlurred: boolean;
   isWinning: boolean;
   showLanding: boolean;
+  isMiddleRow: boolean;
 }) {
   const symbolInfo = getSymbolInfo(symbolId);
   
   return (
     <div
-      className="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center flex-shrink-0"
+      className={`
+        relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center flex-shrink-0
+        ${isMiddleRow && !isBlurred ? 'z-10' : 'z-0'}
+      `}
     >
+      {/* 中间行指示器 - 左右两侧的小箭头 */}
+      {isMiddleRow && !isBlurred && (
+        <>
+          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-neon-cyan/60 rounded-r" />
+          <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-neon-cyan/60 rounded-l" />
+        </>
+      )}
+      
       <div className={`
         absolute inset-1 rounded-lg
         bg-gradient-to-br from-muted/60 to-muted/30
         border ${rarityBorder[symbolInfo.rarity]}
+        ${isMiddleRow && !isBlurred ? 'border-neon-cyan/70 shadow-[0_0_15px_hsl(195_100%_50%/0.3)]' : ''}
+        ${!isMiddleRow && !isBlurred ? 'opacity-60' : ''}
         ${rarityGlow[symbolInfo.rarity]}
         ${isWinning ? 'animate-pulse border-neon-yellow shadow-[0_0_25px_hsl(50_100%_50%/0.7)]' : ''}
-        ${showLanding ? 'border-neon-cyan shadow-[0_0_20px_hsl(195_100%_50%/0.5)]' : ''}
-        transition-shadow duration-150
+        ${showLanding && isMiddleRow ? 'border-neon-yellow shadow-[0_0_25px_hsl(50_100%_50%/0.6)]' : ''}
+        transition-all duration-150
       `} />
       
       <span 
         className={`
           relative z-10 text-3xl md:text-4xl select-none
           ${isBlurred ? 'blur-[1px] opacity-70' : ''}
+          ${!isMiddleRow && !isBlurred ? 'opacity-50 scale-90' : ''}
           ${isWinning ? 'drop-shadow-[0_0_15px_rgba(255,255,255,0.9)] animate-bounce' : ''}
-          ${showLanding ? 'scale-110' : ''}
+          ${showLanding && isMiddleRow ? 'scale-115' : ''}
           transition-all duration-100
         `}
       >
@@ -291,6 +307,7 @@ function AdvancedSlotReelInner({
           {visibleSymbols.map((symbolId, rowIndex) => {
             const posKey = `${reelIndex}-${rowIndex}`;
             const isWinning = winningPositions.has(posKey) && !isAnimating;
+            const isMiddleRow = rowIndex === 1; // 中间行索引是1
             
             return (
               <SymbolCell
@@ -299,6 +316,7 @@ function AdvancedSlotReelInner({
                 isBlurred={isAnimating && phase === 'spinning'}
                 isWinning={isWinning}
                 showLanding={showLandingEffect}
+                isMiddleRow={isMiddleRow}
               />
             );
           })}

@@ -123,9 +123,15 @@ export function AdvancedSlotMachine() {
         setIsWaitingForResult(false);
         
         // 收到结果，开始揭示动画
+        // 生成网格：中间行是实际中奖符号，上下行是随机不同符号
+        const ALL_SYMBOLS: SlotSymbol[] = ['seven', 'diamond', 'crown', 'bell', 'star', 'cherry', 'lemon', 'orange', 'grape', 'clover'];
         const newGrid: SlotSymbol[][] = myResult.symbols.map(s => {
-          const symbol = CHAIN_SYMBOL_MAP[s] || 'seven';
-          return [symbol, symbol, symbol];
+          const winningSymbol = CHAIN_SYMBOL_MAP[s] || 'seven';
+          // 为上下行生成与中奖符号不同的随机符号
+          const otherSymbols = ALL_SYMBOLS.filter(sym => sym !== winningSymbol);
+          const topSymbol = otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
+          const bottomSymbol = otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
+          return [topSymbol, winningSymbol, bottomSymbol]; // 中间行(索引1)是中奖符号
         });
         
         // 保存结果，准备揭示
