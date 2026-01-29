@@ -3,16 +3,20 @@ import { useWallet, WalletType, WalletInfo } from '@/contexts/WalletContext';
 import { Wallet, LogOut, Copy, ExternalLink, Ticket, ChevronDown, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { getWalletBrand, WALLET_BRANDS } from './WalletIcons';
 
-// 钱包图标组件
+// 钱包图标组件 - 使用官方品牌图标
 function WalletIcon({ wallet, size = 'md' }: { wallet: WalletInfo; size?: 'sm' | 'md' | 'lg' }) {
-  const sizeClasses = {
-    sm: 'text-lg',
-    md: 'text-2xl',
-    lg: 'text-3xl',
+  const sizeMap = {
+    sm: 20,
+    md: 28,
+    lg: 36,
   };
   
-  return <span className={sizeClasses[size]}>{wallet.icon}</span>;
+  const brand = getWalletBrand(wallet.id);
+  const IconComponent = brand.icon;
+  
+  return <IconComponent size={sizeMap[size]} />;
 }
 
 export function WalletConnect() {
@@ -92,35 +96,41 @@ export function WalletConnect() {
             </h3>
             
             <div className="space-y-2">
-              {availableWallets.map(wallet => (
-                <motion.button
-                  key={wallet.id}
-                  onClick={() => handleWalletSelect(wallet.id)}
-                  disabled={!wallet.detected && wallet.id !== 'metamask'}
-                  whileHover={{ scale: wallet.detected ? 1.02 : 1 }}
-                  whileTap={{ scale: wallet.detected ? 0.98 : 1 }}
-                  className={`
-                    w-full flex items-center gap-3 p-3 rounded-xl transition-all
-                    ${wallet.detected 
-                      ? 'neon-border hover:bg-muted/30 cursor-pointer' 
-                      : 'border border-border/30 bg-muted/10 opacity-50 cursor-not-allowed'
-                    }
-                  `}
-                >
-                  <WalletIcon wallet={wallet} />
-                  <div className="flex-1 text-left">
-                    <div className={`font-display ${wallet.detected ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      {wallet.name}
+              {availableWallets.map(wallet => {
+                const brand = getWalletBrand(wallet.id);
+                
+                return (
+                  <motion.button
+                    key={wallet.id}
+                    onClick={() => handleWalletSelect(wallet.id)}
+                    disabled={!wallet.detected && wallet.id !== 'metamask'}
+                    whileHover={{ scale: wallet.detected ? 1.02 : 1 }}
+                    whileTap={{ scale: wallet.detected ? 0.98 : 1 }}
+                    className={`
+                      w-full flex items-center gap-3 p-3 rounded-xl transition-all border
+                      ${wallet.detected 
+                        ? `${brand.bgClass} ${brand.borderClass} ${brand.glowClass} hover:opacity-90 cursor-pointer` 
+                        : 'border-border/30 bg-muted/10 opacity-50 cursor-not-allowed'
+                      }
+                    `}
+                  >
+                    <div className="flex-shrink-0">
+                      <WalletIcon wallet={wallet} />
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {wallet.detected ? '已检测到' : '未安装'}
+                    <div className="flex-1 text-left">
+                      <div className={`font-display ${wallet.detected ? brand.textClass : 'text-muted-foreground'}`}>
+                        {wallet.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {wallet.detected ? '✓ 已检测到' : '未安装'}
+                      </div>
                     </div>
-                  </div>
-                  {wallet.detected && (
-                    <div className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
-                  )}
-                </motion.button>
-              ))}
+                    {wallet.detected && (
+                      <div className={`w-2.5 h-2.5 rounded-full animate-pulse`} style={{ backgroundColor: brand.primaryColor }} />
+                    )}
+                  </motion.button>
+                );
+              })}
             </div>
             
             <p className="text-xs text-muted-foreground text-center mt-4">
