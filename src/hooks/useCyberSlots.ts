@@ -390,7 +390,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     setState(prev => ({ ...prev, error: null }));
 
     try {
-      // 额外网络校验（避免用户连接到错误链导致“能点但必失败”）
+      // 额外网络校验
       const provider = providerRef.current;
       if (provider) {
         const network = await provider.getNetwork();
@@ -405,7 +405,57 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       }
 
       const betAmountWei = parseUnits(betAmount.toString(), 18);
-      const tx = await signerContractRef.current.spin(betAmountWei);
+      const slots = signerContractRef.current;
+      
+      // === 预检查：在调用 spin 前验证所有条件 ===
+      console.log('[CyberSlots] Pre-spin checks starting...');
+      
+      // 1. 检查投注金额是否有效
+      const isValidBet = await slots.isValidBetAmount(betAmountWei);
+      console.log('[CyberSlots] isValidBetAmount:', isValidBet, 'betAmount:', betAmount);
+      if (!isValidBet) {
+        const msg = `无效投注金额：${betAmount}，只能选择 20K/50K/100K/200K/500K`;
+        setState(prev => ({ ...prev, error: msg }));
+        setIsSpinning(false);
+        return null;
+      }
+      
+      // 2. 检查是否有挂起请求
+      const pendingReq = await slots.pendingRequest(address);
+      console.log('[CyberSlots] pendingRequest on-chain:', pendingReq.toString());
+      if (pendingReq > 0n) {
+        const msg = '你有未完成的游戏请求，请等待 VRF 回调或手动取消';
+        setState(prev => ({ ...prev, error: msg }));
+        setIsSpinning(false);
+        return null;
+      }
+      
+      // 3. 检查游戏凭证余额
+      const credits = await slots.gameCredits(address);
+      const creditsNum = parseFloat(formatEther(credits));
+      console.log('[CyberSlots] gameCredits on-chain:', creditsNum, 'need:', betAmount);
+      if (credits < betAmountWei) {
+        const msg = `游戏凭证不足：当前 ${creditsNum.toLocaleString()}，需要 ${betAmount.toLocaleString()}`;
+        setState(prev => ({ ...prev, error: msg }));
+        setIsSpinning(false);
+        return null;
+      }
+      
+      // 4. 检查奖池
+      const availablePool = await slots.getAvailablePool();
+      const minPrizePool = parseUnits('0.001', 18);
+      console.log('[CyberSlots] availablePool:', formatEther(availablePool), 'BNB');
+      if (availablePool < minPrizePool) {
+        const msg = `奖池不足：当前 ${formatEther(availablePool)} BNB，需要至少 0.001 BNB`;
+        setState(prev => ({ ...prev, error: msg }));
+        setIsSpinning(false);
+        return null;
+      }
+      
+      console.log('[CyberSlots] All pre-checks passed! Calling spin...');
+      
+      const tx = await slots.spin(betAmountWei);
+      console.log('[CyberSlots] spin tx hash:', tx.hash);
       const receipt = await tx.wait();
       
       const spinEvent = receipt.logs.find((log: { topics: string[] }) => 
@@ -424,7 +474,23 @@ export function useCyberSlots(): UseCyberSlotsReturn {
 
       return tx.hash;
     } catch (err: unknown) {
-      console.error('Spin failed:', err);
+      console.error('[CyberSlots] Spin failed:', err);
+      console.error('[CyberSlots] Full error:', JSON.stringify(err, Object.getOwnPropertyNames(err as object), 2));
+      
+      const e = err as {
+        code?: string;
+        shortMessage?: string;
+        message?: string;
+        reason?: string;
+        info?: { error?: { message?: string } };
+      };
+      console.error('[CyberSlots] Error details:', {
+        code: e?.code,
+        shortMessage: e?.shortMessage,
+        reason: e?.reason,
+        infoError: e?.info?.error,
+      });
+      
       const msg = toFriendlyTxError(err, '开始游戏失败');
       setState(prev => ({ ...prev, error: msg }));
       setIsSpinning(false);
