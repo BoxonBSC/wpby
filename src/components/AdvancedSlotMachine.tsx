@@ -3,6 +3,7 @@ import { AdvancedSlotReel } from './AdvancedSlotReel';
 import { PaylineLines } from './PaylineLines';
 import { AutoSpinControls } from './AutoSpinControls';
 import { BetSelector, BET_AMOUNTS } from './BetSelector';
+import { WinRevealOverlay } from './WinRevealOverlay';
 import { useCyberSlots, formatPrizeType } from '@/hooks/useCyberSlots';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAudioContext } from '@/contexts/AudioContext';
@@ -64,6 +65,27 @@ export function AdvancedSlotMachine() {
   const autoSpinRef = useRef(false);
   const [displayGrid, setDisplayGrid] = useState<SlotSymbol[][]>(DEFAULT_GRID);
   const lastActionRef = useRef<'spin' | null>(null);
+  
+  // 揭示动画状态
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [shouldStopReels, setShouldStopReels] = useState(false);
+  const [stoppedReelCount, setStoppedReelCount] = useState(0);
+  
+  // 中奖弹窗状态
+  const [showWinOverlay, setShowWinOverlay] = useState(false);
+  const [winOverlayData, setWinOverlayData] = useState<{
+    winAmount: string;
+    prizeType: string;
+    prizeEmoji: string;
+    symbols: SlotSymbol[];
+  } | null>(null);
+  
+  // 待处理的结果（等待揭示动画完成后显示）
+  const pendingResultRef = useRef<{
+    symbols: SlotSymbol[];
+    winAmount: bigint;
+    prizeType: string;
+  } | null>(null);
 
   // 直接使用合约奖池数据
   const prizePool = parseFloat(contractPrizePool);
@@ -77,32 +99,79 @@ export function AdvancedSlotMachine() {
       const myResult = recentWins.find(
         w => w.player.toLowerCase() === address.toLowerCase() && w.timestamp > Date.now() - 60000
       );
-      if (myResult && !isSpinning) {
-        // 更新转轮显示 - 将链上符号ID转换为本地符号ID
+      if (myResult && isSpinning) {
+        // 收到结果，开始揭示动画
         const newGrid: SlotSymbol[][] = myResult.symbols.map(s => {
           const symbol = CHAIN_SYMBOL_MAP[s] || 'seven';
           return [symbol, symbol, symbol];
         });
+        
+        // 保存结果，准备揭示
+        const symbolsForOverlay = myResult.symbols.map(s => CHAIN_SYMBOL_MAP[s] || 'seven');
+        pendingResultRef.current = {
+          symbols: symbolsForOverlay,
+          winAmount: myResult.winAmount,
+          prizeType: myResult.prizeType,
+        };
+        
+        // 设置显示网格
         setDisplayGrid(newGrid);
         
-        const prizeInfo = formatPrizeType(myResult.prizeType);
-        if (myResult.winAmount > 0n) {
-          if (myResult.prizeType === 'super_jackpot' || myResult.prizeType === 'jackpot') {
+        // 开始揭示动画
+        setIsRevealing(true);
+        setShouldStopReels(true);
+        setStoppedReelCount(0);
+      }
+    }
+  }, [recentWins, address, isSpinning]);
+  
+  // 处理轮子停止完成
+  const handleReelStopped = useCallback(() => {
+    setStoppedReelCount(prev => prev + 1);
+  }, []);
+  
+  // 当所有轮子停止后，显示结果
+  useEffect(() => {
+    if (stoppedReelCount >= 5 && isRevealing) {
+      // 所有轮子都停止了
+      setIsRevealing(false);
+      setShouldStopReels(false);
+      setStoppedReelCount(0);
+      
+      const result = pendingResultRef.current;
+      if (result) {
+        const prizeInfo = formatPrizeType(result.prizeType);
+        
+        if (result.winAmount > 0n) {
+          // 播放音效
+          if (result.prizeType === 'super_jackpot' || result.prizeType === 'jackpot') {
             playJackpotSound();
-          } else if (myResult.prizeType === 'first' || myResult.prizeType === 'second') {
+          } else if (result.prizeType === 'first' || result.prizeType === 'second') {
             playMediumWinSound();
           } else {
             playSmallWinSound();
           }
           
+          // 显示中奖弹窗
+          setWinOverlayData({
+            winAmount: parseFloat(formatEther(result.winAmount)).toFixed(4),
+            prizeType: prizeInfo.name,
+            prizeEmoji: prizeInfo.emoji,
+            symbols: result.symbols,
+          });
+          setShowWinOverlay(true);
+        } else {
+          // 未中奖，显示简单提示
           toast({
-            title: `${prizeInfo.emoji} ${prizeInfo.name}！`,
-            description: `恭喜获得 ${formatEther(myResult.winAmount)} BNB！`,
+            title: "未中奖",
+            description: "再接再厉！下次好运！",
           });
         }
+        
+        pendingResultRef.current = null;
       }
     }
-  }, [recentWins, address, isSpinning, playJackpotSound, playMediumWinSound, playSmallWinSound]);
+  }, [stoppedReelCount, isRevealing, playJackpotSound, playMediumWinSound, playSmallWinSound]);
 
   const executeSpin = useCallback(async () => {
     if (!isConnected) {
@@ -353,22 +422,27 @@ export function AdvancedSlotMachine() {
                 <AdvancedSlotReel
                   key={reelIndex}
                   symbols={column}
-                  isSpinning={isSpinning}
+                  isSpinning={isSpinning || isRevealing}
                   reelIndex={reelIndex}
                   winningPositions={new Set()}
+                  isRevealing={isRevealing}
+                  shouldStop={shouldStopReels}
+                  onSpinComplete={handleReelStopped}
                 />
               ))}
             </div>
           </div>
           
-          {isSpinning && (
+          {(isSpinning || isRevealing) && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-background/95 border border-neon-cyan/50 shadow-[0_0_20px_hsl(195_100%_50%/0.3)]"
             >
               <Loader2 className="w-4 h-4 text-neon-cyan animate-spin" />
-              <span className="text-sm text-neon-cyan font-display whitespace-nowrap">等待随机数...</span>
+              <span className="text-sm text-neon-cyan font-display whitespace-nowrap">
+                {isRevealing ? '开奖中...' : '等待随机数...'}
+              </span>
             </motion.div>
           )}
         </div>
@@ -425,17 +499,17 @@ export function AdvancedSlotMachine() {
               <div className="flex gap-3">
                 <motion.button
                   onClick={handleSpin}
-                  disabled={isSpinning || isAutoSpinning}
-                  whileHover={{ scale: (isSpinning || isAutoSpinning) ? 1 : 1.02 }}
-                  whileTap={{ scale: (isSpinning || isAutoSpinning) ? 1 : 0.98 }}
+                  disabled={isSpinning || isAutoSpinning || isRevealing}
+                  whileHover={{ scale: (isSpinning || isAutoSpinning || isRevealing) ? 1 : 1.02 }}
+                  whileTap={{ scale: (isSpinning || isAutoSpinning || isRevealing) ? 1 : 0.98 }}
                   className={`
                     cyber-button flex-1 text-lg rounded-xl py-5
-                    ${(isSpinning || isAutoSpinning)
+                    ${(isSpinning || isAutoSpinning || isRevealing)
                       ? 'opacity-50 cursor-not-allowed' 
                       : 'hover:shadow-[0_0_40px_hsl(195_100%_50%/0.5)]'}
                   `}
                 >
-                  {isSpinning ? (
+                  {(isSpinning || isRevealing) ? (
                     <span className="flex items-center justify-center gap-3">
                       <motion.span
                         animate={{ rotate: 360 }}
@@ -444,7 +518,7 @@ export function AdvancedSlotMachine() {
                       >
                         🎰
                       </motion.span>
-                      <span>等待结果...</span>
+                      <span>{isRevealing ? '开奖中...' : '等待结果...'}</span>
                       <motion.span
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
@@ -469,7 +543,7 @@ export function AdvancedSlotMachine() {
                   remainingSpins={autoSpinCount}
                   onStartAutoSpin={handleStartAutoSpin}
                   onStopAutoSpin={handleStopAutoSpin}
-                  disabled={isSpinning}
+                  disabled={isSpinning || isRevealing}
                   playClickSound={playClickSound}
                 />
               </div>
@@ -498,6 +572,18 @@ export function AdvancedSlotMachine() {
           </div>
         )}
       </motion.div>
+      
+      {/* 中奖弹窗 */}
+      {winOverlayData && (
+        <WinRevealOverlay
+          isVisible={showWinOverlay}
+          winAmount={winOverlayData.winAmount}
+          prizeType={winOverlayData.prizeType}
+          prizeEmoji={winOverlayData.prizeEmoji}
+          symbols={winOverlayData.symbols}
+          onClose={() => setShowWinOverlay(false)}
+        />
+      )}
     </div>
   );
 }
