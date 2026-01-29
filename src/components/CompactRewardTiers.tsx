@@ -1,5 +1,5 @@
 import { SYMBOLS, PAYLINES, PRIZE_TIERS, POOL_PROTECTION } from '@/hooks/useAdvancedSlotMachine';
-import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import {
   Collapsible,
@@ -8,7 +8,16 @@ import {
 } from "@/components/ui/collapsible";
 
 import { useIsMobile } from '@/hooks/use-mobile';
+import { BET_AMOUNTS } from './BetSelector';
 
+// 投注对应的概率加成倍数
+const BET_MULTIPLIERS: Record<number, number> = {
+  20000: 1,
+  50000: 2.5,
+  100000: 5,
+  200000: 10,
+  500000: 20,
+};
 const rarityInfo = {
   legendary: { 
     label: '传说', 
@@ -132,6 +141,57 @@ export function CompactRewardTiers() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* 投注概率加成 */}
+      <div className="rounded-xl p-2.5 lg:p-3 bg-gradient-to-b from-neon-cyan/10 to-transparent border border-neon-cyan/20 mb-2 lg:mb-3">
+        <h4 className="text-xs font-display text-neon-cyan mb-2 flex items-center gap-1.5">
+          <TrendingUp className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+          投注概率加成
+        </h4>
+        <div className="space-y-1">
+          {BET_AMOUNTS.map((bet) => {
+            const multiplier = BET_MULTIPLIERS[bet] || 1;
+            const isHighTier = multiplier >= 10;
+            const isMidTier = multiplier >= 5 && multiplier < 10;
+            
+            return (
+              <div
+                key={bet}
+                className={`
+                  flex items-center gap-2 p-1.5 lg:p-2 rounded-lg text-xs transition-colors
+                  ${isHighTier 
+                    ? 'bg-gradient-to-r from-neon-yellow/15 to-neon-orange/10 border border-neon-yellow/25' 
+                    : isMidTier 
+                    ? 'bg-gradient-to-r from-neon-purple/15 to-neon-pink/10 border border-neon-purple/25' 
+                    : multiplier > 1
+                    ? 'bg-gradient-to-r from-neon-cyan/10 to-transparent border border-neon-cyan/20'
+                    : 'bg-muted/20 border border-border/30'}
+                `}
+              >
+                <span className="text-muted-foreground w-16 lg:w-20">
+                  {bet.toLocaleString()}
+                </span>
+                <span className={`flex-1 font-display ${
+                  isHighTier ? 'text-neon-yellow' : 
+                  isMidTier ? 'text-neon-purple' : 
+                  multiplier > 1 ? 'text-neon-cyan' :
+                  'text-foreground/80'
+                }`}>
+                  {multiplier}x
+                </span>
+                {multiplier > 1 && (
+                  <span className="text-neon-green text-xs">
+                    ↑{((multiplier - 1) * 100).toFixed(0)}%
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-xs text-muted-foreground mt-1.5 text-center hidden lg:block">
+          投注越高，稀有符号出现概率越大
+        </p>
       </div>
 
       {/* 可折叠：符号概率 */}
