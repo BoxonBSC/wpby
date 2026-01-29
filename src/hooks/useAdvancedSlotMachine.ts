@@ -75,10 +75,10 @@ export interface PrizeConfig {
   poolPercent: number;  // 奖池百分比
 }
 
-// 奖池保护配置
+// 奖池保护配置（已移除储备金，100% 可用）
 export const POOL_PROTECTION = {
   maxSinglePayout: 0.5,    // 单次最大派奖 = 奖池的 50%
-  reservePercent: 0.1,     // 保留 10% 奖池作为储备
+  reservePercent: 0,       // 无储备金
 };
 
 export const PRIZE_TIERS: PrizeConfig[] = [

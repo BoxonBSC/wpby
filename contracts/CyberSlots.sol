@@ -12,7 +12,7 @@ pragma solidity ^0.8.19;
  * - 95% 奖金发放给玩家
  * - unclaimed prizes 失败安全机制
  * - 每用户只能有一个待处理请求
- * - 奖池保护：单次最大派奖 50%，保留 10% 储备金
+ * - 奖池保护：单次最大派奖 50%（无储备金，100% 可用）
  * - 完全去中心化：无管理员提款权限
  * 
  * 部署步骤：
@@ -72,7 +72,7 @@ contract CyberSlots is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable
     
     // ============ 奖池保护常量 ============
     uint256 public constant MAX_SINGLE_PAYOUT_PERCENT = 5000;  // 单次最大派奖：奖池的 50%
-    uint256 public constant RESERVE_PERCENT = 1000;            // 储备金保留：10%
+    // 已移除 RESERVE_PERCENT：100% 奖池可用于派奖
     uint256 public constant OPERATION_FEE_PERCENT = 500;       // 运营费：5%（从奖金中扣除）
     uint256 public constant PLAYER_PRIZE_PERCENT = 9500;       // 玩家实得：95%
     
@@ -484,12 +484,10 @@ contract CyberSlots is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable
     }
     
     /**
-     * @notice 获取可用奖池（扣除储备金）
+     * @notice 获取可用奖池（无储备金，100% 可用）
      */
     function getAvailablePool() public view returns (uint256) {
-        uint256 balance = address(this).balance;
-        uint256 reserve = (balance * RESERVE_PERCENT) / 10000;
-        return balance > reserve ? balance - reserve : 0;
+        return address(this).balance;
     }
     
     /**
