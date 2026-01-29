@@ -9,8 +9,15 @@ export const CYBER_TOKEN_ADDRESS = {
 };
 
 export const CYBER_SLOTS_ABI = [
+  // 游戏凭证函数
+  "function depositCredits(uint256 amount) external",
+  "function getCredits(address player) external view returns (uint256)",
+  "function gameCredits(address player) external view returns (uint256)",
+  // 游戏核心函数
   "function spin(uint256 betAmount) external returns (uint256 requestId)",
   "function claimPrize() external",
+  "function cancelStuckRequest() external",
+  // 查询函数
   "function getPrizePool() external view returns (uint256)",
   "function getAvailablePool() external view returns (uint256)",
   "function getPlayerStats(address player) external view returns (tuple(uint256 totalSpins, uint256 totalWins, uint256 totalWinnings, uint256 totalBet))",
@@ -19,19 +26,29 @@ export const CYBER_SLOTS_ABI = [
   "function totalSpins() external view returns (uint256)",
   "function totalPaidOut() external view returns (uint256)",
   "function totalOperationFees() external view returns (uint256)",
+  "function totalCreditsDeposited() external view returns (uint256)",
   "function isValidBetAmount(uint256 amount) external pure returns (bool)",
   "function getBetMultiplier(uint256 betAmount) external pure returns (uint256)",
+  // 常量
   "function BET_LEVEL_1() external pure returns (uint256)",
   "function BET_LEVEL_2() external pure returns (uint256)",
   "function BET_LEVEL_3() external pure returns (uint256)",
   "function BET_LEVEL_4() external pure returns (uint256)",
   "function BET_LEVEL_5() external pure returns (uint256)",
+  "function BURN_ADDRESS() external pure returns (address)",
+  "function REQUEST_TIMEOUT() external pure returns (uint256)",
+  // 事件
   "event SpinRequested(address indexed player, uint256 indexed requestId, uint256 betAmount)",
   "event SpinResult(address indexed player, uint256 indexed requestId, uint8[5] symbols, uint256 winAmount, string prizeType)",
   "event PrizeClaimed(address indexed player, uint256 amount)",
   "event PrizeTransferFailed(address indexed player, uint256 amount)",
   "event OperationFeeSent(uint256 amount)",
   "event PrizePoolFunded(address indexed funder, uint256 amount)",
+  "event ConfigUpdated(string configName)",
+  "event TokensBurned(address indexed player, uint256 amount)",
+  "event SpinCancelled(address indexed player, uint256 indexed requestId, uint256 refundAmount)",
+  "event CreditsDeposited(address indexed player, uint256 amount)",
+  "event CreditsUsed(address indexed player, uint256 amount)",
 ] as const;
 
 export const CYBER_TOKEN_ABI = [

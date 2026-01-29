@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@/contexts/WalletContext';
+import { useCyberSlots } from '@/hooks/useCyberSlots';
 import { Flame, ArrowRight, Ticket, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const EXCHANGE_AMOUNTS = [100000, 500000, 1000000, 5000000];
 
 export function CreditsExchange() {
-  const { tokenBalance, gameCredits, burnTokensForCredits, isConnected } = useWallet();
+  const { isConnected } = useWallet();
+  const { tokenBalance, gameCredits, depositCredits, approveToken, refreshData } = useCyberSlots();
   const [selectedAmount, setSelectedAmount] = useState(EXCHANGE_AMOUNTS[1]);
   const [isExchanging, setIsExchanging] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const tokenBalanceNum = Number(tokenBalance);
+  const gameCreditsNum = Number(gameCredits);
 
   const handleExchange = async () => {
     if (!isConnected) {
@@ -21,7 +26,7 @@ export function CreditsExchange() {
       return;
     }
 
-    if (Number(tokenBalance) < selectedAmount) {
+    if (tokenBalanceNum < selectedAmount) {
       toast({
         title: "代币不足",
         description: `需要 ${selectedAmount.toLocaleString()} 代币`,
@@ -32,18 +37,30 @@ export function CreditsExchange() {
 
     setIsExchanging(true);
     
-    // 模拟链上交易延迟
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const success = await burnTokensForCredits(selectedAmount);
-    
-    if (success) {
-      setShowSuccess(true);
+    try {
+      const success = await depositCredits(selectedAmount);
+      
+      if (success) {
+        setShowSuccess(true);
+        toast({
+          title: "兑换成功！🎉",
+          description: `销毁 ${selectedAmount.toLocaleString()} 代币，获得 ${selectedAmount.toLocaleString()} 游戏凭证`,
+        });
+        setTimeout(() => setShowSuccess(false), 2000);
+        await refreshData();
+      } else {
+        toast({
+          title: "兑换失败",
+          description: "请检查授权和余额",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error('Exchange failed:', err);
       toast({
-        title: "兑换成功！🎉",
-        description: `销毁 ${selectedAmount.toLocaleString()} 代币，获得 ${selectedAmount.toLocaleString()} 游戏凭证`,
+        title: "兑换失败",
+        variant: "destructive",
       });
-      setTimeout(() => setShowSuccess(false), 2000);
     }
     
     setIsExchanging(false);
@@ -78,14 +95,14 @@ export function CreditsExchange() {
         <div className="p-2.5 rounded-xl bg-gradient-to-b from-neon-purple/10 to-transparent border border-neon-purple/20 text-center">
           <div className="text-xs text-muted-foreground mb-1">代币余额</div>
           <div className="text-neon-purple font-display">
-            {formatNumber(Number(tokenBalance))}
+            {formatNumber(tokenBalanceNum)}
           </div>
         </div>
         <div className="p-2.5 rounded-xl bg-gradient-to-b from-neon-cyan/10 to-transparent border border-neon-cyan/20 text-center">
           <div className="text-xs text-muted-foreground mb-1">游戏凭证</div>
           <div className="text-neon-cyan font-display flex items-center justify-center gap-1">
             <Ticket className="w-3 h-3" />
-            {formatNumber(gameCredits)}
+            {formatNumber(gameCreditsNum)}
           </div>
         </div>
       </div>
@@ -98,12 +115,12 @@ export function CreditsExchange() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setSelectedAmount(amount)}
-            disabled={Number(tokenBalance) < amount}
+            disabled={tokenBalanceNum < amount}
             className={`
               py-2 px-1 rounded-lg text-xs font-display transition-all
               ${selectedAmount === amount
                 ? 'bg-neon-orange/20 text-neon-orange border-2 border-neon-orange/50'
-                : Number(tokenBalance) >= amount
+                : tokenBalanceNum >= amount
                 ? 'bg-muted/30 text-foreground/80 border border-border/30 hover:bg-muted/50'
                 : 'bg-muted/10 text-muted-foreground/50 border border-border/20 cursor-not-allowed'
               }
@@ -146,10 +163,10 @@ export function CreditsExchange() {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleExchange}
-        disabled={isExchanging || Number(tokenBalance) < selectedAmount || !isConnected}
+        disabled={isExchanging || tokenBalanceNum < selectedAmount || !isConnected}
         className={`
           w-full py-3 rounded-xl font-display text-sm transition-all relative overflow-hidden
-          ${isExchanging || Number(tokenBalance) < selectedAmount || !isConnected
+          ${isExchanging || tokenBalanceNum < selectedAmount || !isConnected
             ? 'bg-muted/30 text-muted-foreground cursor-not-allowed'
             : 'bg-gradient-to-r from-neon-orange/20 to-neon-red/20 text-neon-orange border border-neon-orange/50 hover:shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
           }

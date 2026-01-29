@@ -34,6 +34,7 @@ export interface ContractState {
   playerStats: PlayerStats | null;
   tokenBalance: string;
   tokenAllowance: string;
+  gameCredits: string;
   pendingRequest: bigint;
   unclaimedPrize: string;
   isLoading: boolean;
@@ -44,6 +45,8 @@ export interface UseCyberSlotsReturn extends ContractState {
   spin: (betAmount: number) => Promise<string | null>;
   claimPrize: () => Promise<boolean>;
   approveToken: (amount: number) => Promise<boolean>;
+  depositCredits: (amount: number) => Promise<boolean>;
+  cancelStuckRequest: () => Promise<boolean>;
   refreshData: () => Promise<void>;
   recentWins: SpinResultEvent[];
   isSpinning: boolean;
@@ -64,6 +67,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     playerStats: null,
     tokenBalance: '0',
     tokenAllowance: '0',
+    gameCredits: '0',
     pendingRequest: 0n,
     unclaimedPrize: '0',
     isLoading: false,
@@ -130,6 +134,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         totalSpins,
         totalPaidOut,
         playerStats,
+        gameCredits,
         pendingRequest,
         unclaimedPrize,
       ] = await Promise.all([
@@ -138,6 +143,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         contract.totalSpins(),
         contract.totalPaidOut(),
         contract.getPlayerStats(address),
+        contract.getCredits(address),
         contract.pendingRequest(address),
         contract.unclaimedPrizes(address),
       ]);
@@ -168,6 +174,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         },
         tokenBalance,
         tokenAllowance,
+        gameCredits: formatEther(gameCredits),
         pendingRequest,
         unclaimedPrize: formatEther(unclaimedPrize),
         isLoading: false,
@@ -254,6 +261,44 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     }
   }, [getContractAddress, refreshData]);
 
+  const depositCredits = useCallback(async (amount: number): Promise<boolean> => {
+    if (!contractRef.current || !tokenContractRef.current) return false;
+
+    try {
+      const amountWei = parseUnits(amount.toString(), 18);
+      
+      // 先检查授权
+      const allowance = await tokenContractRef.current.allowance(address, getContractAddress());
+      if (allowance < amountWei) {
+        const approveTx = await tokenContractRef.current.approve(getContractAddress(), amountWei);
+        await approveTx.wait();
+      }
+      
+      // 调用 depositCredits
+      const tx = await contractRef.current.depositCredits(amountWei);
+      await tx.wait();
+      await refreshData();
+      return true;
+    } catch (err) {
+      console.error('Deposit credits failed:', err);
+      return false;
+    }
+  }, [address, getContractAddress, refreshData]);
+
+  const cancelStuckRequest = useCallback(async (): Promise<boolean> => {
+    if (!contractRef.current) return false;
+
+    try {
+      const tx = await contractRef.current.cancelStuckRequest();
+      await tx.wait();
+      await refreshData();
+      return true;
+    } catch (err) {
+      console.error('Cancel request failed:', err);
+      return false;
+    }
+  }, [refreshData]);
+
   useEffect(() => {
     initContracts();
   }, [initContracts]);
@@ -317,6 +362,8 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     spin,
     claimPrize,
     approveToken,
+    depositCredits,
+    cancelStuckRequest,
     refreshData,
     recentWins,
     isSpinning,
