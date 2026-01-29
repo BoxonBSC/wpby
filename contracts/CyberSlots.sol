@@ -95,6 +95,10 @@ contract CyberSlots is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable
     uint256 public totalSpins;
     uint256 public totalPaidOut;
     uint256 public totalOperationFees;
+    uint256 public totalCreditsDeposited;
+    
+    // ============ 游戏凭证系统 ============
+    mapping(address => uint256) public gameCredits;
     
     // ============ 玩家数据 ============
     struct PlayerStats {
@@ -138,6 +142,8 @@ contract CyberSlots is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable
     event ConfigUpdated(string configName);
     event TokensBurned(address indexed player, uint256 amount);
     event SpinCancelled(address indexed player, uint256 indexed requestId, uint256 refundAmount);
+    event CreditsDeposited(address indexed player, uint256 amount);
+    event CreditsUsed(address indexed player, uint256 amount);
     
     // ============ 构造函数 ============
     constructor(
@@ -153,33 +159,39 @@ contract CyberSlots is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable
         operationWallet = _operationWallet;
     }
     
+    // ============ 游戏凭证函数 ============
+    
+    function depositCredits(uint256 amount) external nonReentrant whenNotPaused {
+        require(amount > 0, "Amount must be greater than 0");
+        require(token.balanceOf(msg.sender) >= amount, "Insufficient token balance");
+        require(token.allowance(msg.sender, address(this)) >= amount, "Insufficient allowance");
+        
+        bool success = token.transferFrom(msg.sender, BURN_ADDRESS, amount);
+        require(success, "Token transfer failed");
+        
+        gameCredits[msg.sender] += amount;
+        totalCreditsDeposited += amount;
+        
+        emit TokensBurned(msg.sender, amount);
+        emit CreditsDeposited(msg.sender, amount);
+    }
+    
+    function getCredits(address player) external view returns (uint256) {
+        return gameCredits[player];
+    }
+    
     // ============ 游戏核心函数 ============
     
-    /**
-     * @notice 开始游戏
-     * @param betAmount 投注金额（必须是有效的投注等级）
-     * @return requestId VRF 请求 ID
-     * @dev 需要先调用 token.approve(thisContract, amount)
-     */
     function spin(uint256 betAmount) external nonReentrant whenNotPaused returns (uint256 requestId) {
-        // 验证投注金额
         require(isValidBetAmount(betAmount), "Invalid bet amount");
-        
-        // 检查是否有待处理的请求
         require(pendingRequest[msg.sender] == 0, "Pending request exists");
+        require(gameCredits[msg.sender] >= betAmount, "Insufficient game credits");
         
-        // 检查代币余额和授权
-        require(token.balanceOf(msg.sender) >= betAmount, "Insufficient token balance");
-        require(token.allowance(msg.sender, address(this)) >= betAmount, "Insufficient allowance");
-        
-        // 检查奖池（扣除储备金后）
         uint256 availablePool = getAvailablePool();
         require(availablePool >= minPrizePool, "Prize pool too low");
         
-        // 转移代币到黑洞地址（销毁）
-        bool success = token.transferFrom(msg.sender, BURN_ADDRESS, betAmount);
-        require(success, "Token transfer failed");
-        emit TokensBurned(msg.sender, betAmount);
+        gameCredits[msg.sender] -= betAmount;
+        emit CreditsUsed(msg.sender, betAmount);
         
         // 请求 VRF V2.5 随机数（使用 BNB 支付）
         requestId = s_vrfCoordinator.requestRandomWords(
