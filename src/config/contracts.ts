@@ -4,7 +4,7 @@ export const CYBER_SLOTS_ADDRESS = {
 };
 
 export const CYBER_TOKEN_ADDRESS = {
-  mainnet: '0x95c028d1ab4d1af9014c94e277fb9a79b6757777',
+  mainnet: '0x42ca3cc17e9c1a4fc72a4170f748ea2e69137777',
   testnet: '0x0000000000000000000000000000000000000000',
 };
 
