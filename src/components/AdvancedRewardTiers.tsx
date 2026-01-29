@@ -1,6 +1,16 @@
 import { motion } from 'framer-motion';
 import { SYMBOLS, PAYLINES, PRIZE_TIERS, POOL_PROTECTION } from '@/hooks/useAdvancedSlotMachine';
-import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield } from 'lucide-react';
+import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield, TrendingUp } from 'lucide-react';
+import { BET_AMOUNTS } from './BetSelector';
+
+// 投注对应的概率加成倍数
+const BET_MULTIPLIERS: Record<number, number> = {
+  20000: 1,
+  50000: 2.5,
+  100000: 5,
+  200000: 10,
+  500000: 20,
+};
 
 const rarityInfo = {
   legendary: { 
@@ -111,16 +121,66 @@ export function AdvancedRewardTiers() {
         </p>
       </div>
 
+      {/* 投注概率加成表 */}
+      <div className="neon-border-cyan rounded-lg p-3 bg-neon-cyan/5 mb-4">
+        <h4 className="text-sm font-display text-neon-cyan mb-3 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4" />
+          投注概率加成
+        </h4>
+        <div className="space-y-1.5">
+          {BET_AMOUNTS.map((bet, index) => {
+            const multiplier = BET_MULTIPLIERS[bet] || 1;
+            const isHighTier = multiplier >= 10;
+            const isMidTier = multiplier >= 5 && multiplier < 10;
+            
+            return (
+              <motion.div
+                key={bet}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`
+                  flex items-center gap-2 p-2 rounded-lg text-sm
+                  ${isHighTier ? 'bg-neon-yellow/10 border border-neon-yellow/30' : 
+                    isMidTier ? 'bg-neon-purple/10 border border-neon-purple/30' :
+                    multiplier > 1 ? 'bg-neon-cyan/10 border border-neon-cyan/30' :
+                    'bg-muted/30 border border-border/50'}
+                `}
+              >
+                <span className="text-xs text-muted-foreground w-20">
+                  {bet.toLocaleString()}
+                </span>
+                <div className="flex-1">
+                  <div className={`font-display ${
+                    isHighTier ? 'text-neon-yellow' : 
+                    isMidTier ? 'text-neon-purple' : 
+                    multiplier > 1 ? 'text-neon-cyan' :
+                    'text-foreground'
+                  }`}>
+                    {multiplier}x 中奖概率
+                  </div>
+                </div>
+                {multiplier > 1 && (
+                  <span className="text-xs text-neon-green">
+                    ↑{((multiplier - 1) * 100).toFixed(0)}%
+                  </span>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          投注越高，稀有符号出现概率越大
+        </p>
+      </div>
+
       {/* 符号出现概率 */}
       <div className="mb-4">
-        <h4 className="text-sm font-display text-neon-purple mb-2">符号出现概率 (VRF)</h4>
+        <h4 className="text-sm font-display text-neon-purple mb-2">符号稀有度</h4>
         <div className="space-y-1.5">
           {SYMBOLS.map((symbol, index) => {
             const rarity = rarityInfo[symbol.rarity];
             const Icon = rarity.icon;
-            const probability = symbol.rarity === 'legendary' ? '2-3%' : 
-                               symbol.rarity === 'epic' ? '5-10%' : 
-                               symbol.rarity === 'rare' ? '15%' : '12-15%';
             
             return (
               <motion.div
@@ -140,9 +200,6 @@ export function AdvancedRewardTiers() {
                     <Icon className="w-3 h-3" />
                     {rarity.label}
                   </div>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {probability}
                 </div>
               </motion.div>
             );

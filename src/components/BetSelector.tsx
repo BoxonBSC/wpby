@@ -175,4 +175,4 @@ export function BetSelector({
   );
 }
 
-export { BET_AMOUNTS };
+export { BET_AMOUNTS, BET_MULTIPLIERS };
