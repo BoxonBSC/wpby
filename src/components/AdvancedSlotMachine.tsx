@@ -3,6 +3,7 @@ import { AdvancedSlotReel } from './AdvancedSlotReel';
 import { PaylineLines } from './PaylineLines';
 import { WinDisplay } from './WinDisplay';
 import { AutoSpinControls } from './AutoSpinControls';
+import { BetSelector, BET_AMOUNTS } from './BetSelector';
 import { useAdvancedSlotMachine } from '@/hooks/useAdvancedSlotMachine';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAudioContext } from '@/contexts/AudioContext';
@@ -11,7 +12,7 @@ import { Zap, TrendingUp, Coins, Sparkles, Flame, Trophy } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export function AdvancedSlotMachine() {
-  const { gameState, prizePool, tokensPerSpin, spin, setCallbacks } = useAdvancedSlotMachine();
+  const { gameState, prizePool, spin, setCallbacks } = useAdvancedSlotMachine();
   const { isConnected, tokenBalance, connect } = useWallet();
   const { 
     playSpinSound, 
@@ -22,6 +23,9 @@ export function AdvancedSlotMachine() {
     playClickSound,
   } = useAudioContext();
   const [showPaylines, setShowPaylines] = useState(false);
+  
+  // 投注金额状态
+  const [currentBet, setCurrentBet] = useState(BET_AMOUNTS[2]); // 默认 20K
   
   // 自动旋转状态
   const [isAutoSpinning, setIsAutoSpinning] = useState(false);
@@ -79,16 +83,18 @@ export function AdvancedSlotMachine() {
       return null;
     }
 
-    if (Number(tokenBalance) < tokensPerSpin) {
+    if (Number(tokenBalance) < currentBet) {
       toast({
         title: "代币不足",
-        description: `需要 ${tokensPerSpin.toLocaleString()} 代币才能游戏`,
+        description: `需要 ${currentBet.toLocaleString()} 代币才能游戏`,
         variant: "destructive",
       });
       return null;
     }
 
-    const result = await spin();
+    // 传入当前投注金额计算倍数
+    const betMultiplier = currentBet / 20000; // 基准是 20K
+    const result = await spin(betMultiplier);
     
     if (result.totalWin > 0) {
       const bnbWin = (result.totalWin / 1000 * prizePool).toFixed(4);
@@ -99,7 +105,7 @@ export function AdvancedSlotMachine() {
     }
     
     return result;
-  }, [isConnected, tokenBalance, tokensPerSpin, spin, prizePool]);
+  }, [isConnected, tokenBalance, currentBet, spin, prizePool]);
 
   // 手动旋转
   const handleSpin = async () => {
@@ -278,6 +284,19 @@ export function AdvancedSlotMachine() {
           </AnimatePresence>
         </div>
 
+        {/* 投注选择器 */}
+        <div className="mt-4 neon-border rounded-xl p-4 bg-muted/20">
+          <div className="text-center text-sm text-muted-foreground mb-3">
+            <span className="text-neon-purple">💰 投注金额</span>
+          </div>
+          <BetSelector
+            currentBet={currentBet}
+            onBetChange={setCurrentBet}
+            disabled={gameState.isSpinning || isAutoSpinning}
+            playClickSound={playClickSound}
+          />
+        </div>
+
         {/* 统计信息 */}
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">
@@ -295,7 +314,7 @@ export function AdvancedSlotMachine() {
               消耗代币
             </div>
             <div className="text-xl font-display text-neon-cyan">
-              {(tokensPerSpin / 1000).toFixed(0)}K
+              {(currentBet / 1000).toFixed(0)}K
             </div>
           </div>
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">

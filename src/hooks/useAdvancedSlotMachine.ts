@@ -175,7 +175,7 @@ export function useAdvancedSlotMachine() {
     callbacksRef.current = callbacks;
   }, []);
 
-  const spin = useCallback(async (): Promise<SpinResult> => {
+  const spin = useCallback(async (betMultiplier: number = 1): Promise<SpinResult> => {
     return new Promise((resolve) => {
       setGameState(prev => ({ 
         ...prev, 
@@ -237,7 +237,9 @@ export function useAdvancedSlotMachine() {
           }
         });
 
-        const totalWin = winLines.reduce((sum, line) => sum + line.payout, 0);
+        // 基础奖金乘以投注倍数
+        const baseWin = winLines.reduce((sum, line) => sum + line.payout, 0);
+        const totalWin = baseWin * betMultiplier;
         const isJackpot = winLines.some(line => 
           line.symbol.id === 'seven' && line.count === 5
         );
@@ -280,7 +282,6 @@ export function useAdvancedSlotMachine() {
   return {
     gameState,
     prizePool,
-    tokensPerSpin: TOKENS_PER_SPIN,
     symbols: SYMBOLS,
     paylines: PAYLINES,
     spin,
