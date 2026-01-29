@@ -76,6 +76,110 @@ const Rules = () => {
           </div>
         </motion.div>
 
+        {/* 通缩机制的好处 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="cyber-card mb-6"
+        >
+          <h2 className="text-xl font-display neon-text-green flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5" />
+            🔥 通缩机制：玩游戏 = 销毁代币
+          </h2>
+          
+          <div className="space-y-4">
+            {/* 核心机制解释 */}
+            <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5">
+              <h3 className="font-display text-neon-yellow mb-3">💡 这是怎么运作的？</h3>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-neon-purple/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">1️⃣</span>
+                  </div>
+                  <div>
+                    <p className="text-foreground font-display">代币换凭证 = 代币销毁</p>
+                    <p>当你用代币兑换游戏凭证时，代币会被发送到<span className="text-neon-pink">黑洞地址</span>永久销毁，不是转给平台！</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-neon-cyan/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">2️⃣</span>
+                  </div>
+                  <div>
+                    <p className="text-foreground font-display">凭证用于游戏</p>
+                    <p>你获得的凭证只能用于老虎机游戏，<span className="text-neon-cyan">1:1比例</span>，永久有效，无需每次授权</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-neon-green/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">3️⃣</span>
+                  </div>
+                  <div>
+                    <p className="text-foreground font-display">中奖直接发 BNB</p>
+                    <p>奖池是真实的 BNB，中奖后<span className="text-neon-green">直接打到你钱包</span>，不是代币！</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 好处列表 */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="neon-border-green rounded-lg p-4 bg-neon-green/5">
+                <h3 className="font-display text-neon-green mb-2">✅ 对持币者的好处</h3>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
+                    <span><span className="text-neon-yellow">持续通缩</span>：每次游戏都在销毁代币，流通量持续减少</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
+                    <span><span className="text-neon-yellow">价值支撑</span>：销毁减少供应，理论上有助于代币升值</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
+                    <span><span className="text-neon-yellow">真实用途</span>：代币有了实际应用场景，不只是炒作</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="neon-border-cyan rounded-lg p-4 bg-neon-cyan/5">
+                <h3 className="font-display text-neon-cyan mb-2">🎮 对玩家的好处</h3>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-neon-cyan mt-0.5 flex-shrink-0" />
+                    <span><span className="text-neon-green">BNB奖励</span>：中奖得到的是真金白银（BNB），不是空气币</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-neon-cyan mt-0.5 flex-shrink-0" />
+                    <span><span className="text-neon-green">公平透明</span>：Chainlink VRF 保证随机，没人能作弊</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-neon-cyan mt-0.5 flex-shrink-0" />
+                    <span><span className="text-neon-green">高概率中奖</span>：约60%概率至少匹配2个符号拿安慰奖</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* 通俗总结 */}
+            <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
+              <h3 className="font-display text-neon-pink mb-2">🎯 一句话总结</h3>
+              <p className="text-foreground">
+                <span className="text-neon-yellow">玩家玩游戏</span> → 
+                <span className="text-neon-pink"> 代币被销毁</span> → 
+                <span className="text-neon-green"> 流通量减少</span> → 
+                <span className="text-neon-cyan"> 币价有支撑</span> → 
+                <span className="text-neon-purple"> 同时还有机会赢BNB</span>
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                这不是"消费"，而是一种<span className="text-neon-green">有机会获得回报的通缩行为</span>。
+                你每玩一次，就为所有持币者做了贡献！
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         <div className="grid lg:grid-cols-2 gap-6">
           {/* 详细步骤 */}
           <motion.div
@@ -154,30 +258,30 @@ const Rules = () => {
                 <div>
                   <div className="font-display text-foreground mb-1">3. 选择投注金额</div>
                   <div className="text-sm text-muted-foreground space-y-2">
-                    <p>最低 <span className="text-neon-yellow font-display">20,000 凭证</span> 起投，可选择更高金额：</p>
+                    <p>最低 <span className="text-neon-yellow font-display">10,000 凭证</span> 起投，可选择更高金额：</p>
                     <div className="grid grid-cols-5 gap-1 text-xs">
                       <div className="p-2 rounded bg-muted/30 text-center">
-                        <div className="text-foreground">20K</div>
+                        <div className="text-foreground">10K</div>
                         <div className="text-muted-foreground">1x</div>
                       </div>
                       <div className="p-2 rounded bg-neon-cyan/10 border border-neon-cyan/30 text-center">
-                        <div className="text-neon-cyan">50K</div>
+                        <div className="text-neon-cyan">25K</div>
                         <div className="text-neon-green">2.5x</div>
                       </div>
                       <div className="p-2 rounded bg-neon-purple/10 border border-neon-purple/30 text-center">
-                        <div className="text-neon-purple">100K</div>
+                        <div className="text-neon-purple">50K</div>
                         <div className="text-neon-green">5x</div>
                       </div>
                       <div className="p-2 rounded bg-neon-yellow/10 border border-neon-yellow/30 text-center">
-                        <div className="text-neon-yellow">200K</div>
+                        <div className="text-neon-yellow">100K</div>
                         <div className="text-neon-green">10x</div>
                       </div>
                       <div className="p-2 rounded bg-neon-yellow/20 border border-neon-yellow/50 text-center">
-                        <div className="text-neon-yellow">500K</div>
+                        <div className="text-neon-yellow">250K</div>
                         <div className="text-neon-green">20x</div>
                       </div>
                     </div>
-                    <p className="text-neon-green">💡 投注越高，中奖概率越大！500K投注有20倍概率加成！</p>
+                    <p className="text-neon-green">💡 投注越高，中奖概率越大！250K投注有20倍概率加成！</p>
                   </div>
                 </div>
               </div>
