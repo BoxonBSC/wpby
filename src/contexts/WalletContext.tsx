@@ -17,6 +17,7 @@ interface WalletState {
   chainId: number | null;
   balance: string;
   tokenBalance: string;
+  gameCredits: number; // 游戏凭证 - 不可转让，绑定钱包
 }
 
 interface WalletContextType extends WalletState {
@@ -24,6 +25,9 @@ interface WalletContextType extends WalletState {
   disconnect: () => void;
   isConnecting: boolean;
   error: string | null;
+  // 凭证相关
+  burnTokensForCredits: (amount: number) => Promise<boolean>;
+  useCredits: (amount: number) => boolean;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -38,6 +42,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     chainId: null,
     balance: '0',
     tokenBalance: '0',
+    gameCredits: 0,
   });
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +106,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         chainId,
         balance: '0',
         tokenBalance: '1000000', // Mock token balance for demo
+        gameCredits: 500000, // 初始赠送50万凭证供测试
       });
 
       await updateBalance(address, provider);
@@ -119,8 +125,42 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       chainId: null,
       balance: '0',
       tokenBalance: '0',
+      gameCredits: 0,
     });
   }, []);
+
+  // 销毁代币换取游戏凭证 (1:1兑换，永久有效，不可转让)
+  const burnTokensForCredits = useCallback(async (amount: number): Promise<boolean> => {
+    if (Number(state.tokenBalance) < amount) {
+      setError('代币余额不足');
+      return false;
+    }
+
+    // 模拟链上销毁交易 (实际需要调用智能合约)
+    // await contract.burnForCredits(amount);
+    
+    setState(prev => ({
+      ...prev,
+      tokenBalance: String(Number(prev.tokenBalance) - amount),
+      gameCredits: prev.gameCredits + amount,
+    }));
+    
+    return true;
+  }, [state.tokenBalance]);
+
+  // 使用凭证进行游戏
+  const useCredits = useCallback((amount: number): boolean => {
+    if (state.gameCredits < amount) {
+      return false;
+    }
+    
+    setState(prev => ({
+      ...prev,
+      gameCredits: prev.gameCredits - amount,
+    }));
+    
+    return true;
+  }, [state.gameCredits]);
 
   // Listen for account changes
   useEffect(() => {
@@ -156,6 +196,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         disconnect,
         isConnecting,
         error,
+        burnTokensForCredits,
+        useCredits,
       }}
     >
       {children}

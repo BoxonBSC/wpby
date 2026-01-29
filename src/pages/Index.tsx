@@ -5,6 +5,7 @@ import { CompactRewardTiers } from '@/components/CompactRewardTiers';
 import { CompactGameHistory } from '@/components/CompactGameHistory';
 import { FloatingElements } from '@/components/FloatingElements';
 import { JackpotTicker } from '@/components/JackpotTicker';
+import { CreditsExchange } from '@/components/CreditsExchange';
 import { Navbar } from '@/components/Navbar';
 import { Sparkles, Zap, Trophy } from 'lucide-react';
 
@@ -116,7 +117,7 @@ const Index = () => {
 
         {/* 主游戏区域 - 三栏等高布局 */}
         <div className="grid xl:grid-cols-[280px_1fr_300px] lg:grid-cols-[240px_1fr_260px] gap-4 items-stretch">
-          {/* 左侧 - 钱包 + 历史记录 */}
+          {/* 左侧 - 钱包 + 凭证兑换 + 历史记录 */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -124,7 +125,8 @@ const Index = () => {
             className="flex flex-col gap-4 order-2 lg:order-1"
           >
             <WalletConnect />
-            <div className="flex-1">
+            <CreditsExchange />
+            <div className="flex-1 hidden lg:block">
               <CompactGameHistory />
             </div>
           </motion.div>

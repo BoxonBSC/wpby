@@ -114,7 +114,7 @@ export interface GameState {
 /**
  * 符号出现概率 (VRF 随机数决定):
  * 
- * VRF 生成 0-99 的随机数，根据范围决定符号:
+ * 基础概率 (5K投注):
  * - 7️⃣ Lucky Seven:  0-1   (2%)   → 传奇
  * - 💎 Diamond:      2-4   (3%)   → 传奇
  * - 👑 Crown:        5-9   (5%)   → 史诗
@@ -125,28 +125,66 @@ export interface GameState {
  * - 🍉 Watermelon:   58-72 (15%)  → 稀有
  * - 🍋 Lemon:        73-87 (15%)  → 普通
  * - 🍀 Clover:       88-99 (12%)  → 普通
+ * 
+ * 投注倍率影响:
+ * - 5K:   1x (基础概率)
+ * - 10K:  2x (高级符号概率翻倍)
+ * - 20K:  4x
+ * - 50K:  10x
+ * - 100K: 20x
  */
 
-const getRandomSymbol = (rng: () => number): SlotSymbol => {
-  const roll = rng() * 100;
-  if (roll < 2) return SYMBOLS[0].id;  // 2% seven
-  if (roll < 5) return SYMBOLS[1].id;  // 3% diamond
-  if (roll < 10) return SYMBOLS[2].id; // 5% crown
-  if (roll < 18) return SYMBOLS[3].id; // 8% bell
-  if (roll < 28) return SYMBOLS[4].id; // 10% star
-  if (roll < 43) return SYMBOLS[5].id; // 15% cherry
-  if (roll < 58) return SYMBOLS[6].id; // 15% grape
-  if (roll < 73) return SYMBOLS[7].id; // 15% watermelon
-  if (roll < 88) return SYMBOLS[8].id; // 15% lemon
-  return SYMBOLS[9].id;                // 12% clover
+// 投注金额对应的概率倍数
+const BET_MULTIPLIERS: Record<number, number> = {
+  5000: 1,
+  10000: 2,
+  20000: 4,
+  50000: 10,
+  100000: 20,
 };
 
-const generateGrid = (rng: () => number): SlotSymbol[][] => {
+// 根据投注金额获取加成后的符号概率
+const getRandomSymbol = (rng: () => number, betAmount: number = 5000): SlotSymbol => {
+  const multiplier = BET_MULTIPLIERS[betAmount] || 1;
+  const roll = rng() * 100;
+  
+  // 高级符号的概率随投注增加而提升
+  // 投注越高，高级符号概率越大
+  const sevenChance = Math.min(2 * multiplier, 15);     // 7最高15%
+  const diamondChance = Math.min(3 * multiplier, 18);   // 钻石最高18%
+  const crownChance = Math.min(5 * multiplier, 20);     // 皇冠最高20%
+  const bellChance = 8 + (multiplier - 1) * 2;          // 铃铛逐步增加
+  const starChance = 10 + (multiplier - 1) * 1;         // 星星逐步增加
+  
+  // 累积概率阈值
+  const threshold1 = sevenChance;
+  const threshold2 = threshold1 + diamondChance;
+  const threshold3 = threshold2 + crownChance;
+  const threshold4 = threshold3 + bellChance;
+  const threshold5 = threshold4 + starChance;
+  
+  // 剩余概率分配给普通符号
+  const remaining = 100 - threshold5;
+  const commonEach = remaining / 5;
+  
+  if (roll < threshold1) return SYMBOLS[0].id;  // seven
+  if (roll < threshold2) return SYMBOLS[1].id;  // diamond
+  if (roll < threshold3) return SYMBOLS[2].id;  // crown
+  if (roll < threshold4) return SYMBOLS[3].id;  // bell
+  if (roll < threshold5) return SYMBOLS[4].id;  // star
+  if (roll < threshold5 + commonEach) return SYMBOLS[5].id;      // cherry
+  if (roll < threshold5 + commonEach * 2) return SYMBOLS[6].id;  // grape
+  if (roll < threshold5 + commonEach * 3) return SYMBOLS[7].id;  // watermelon
+  if (roll < threshold5 + commonEach * 4) return SYMBOLS[8].id;  // lemon
+  return SYMBOLS[9].id;  // clover
+};
+
+const generateGrid = (rng: () => number, betAmount: number = 5000): SlotSymbol[][] => {
   const grid: SlotSymbol[][] = [];
   for (let reel = 0; reel < REELS; reel++) {
     const column: SlotSymbol[] = [];
     for (let row = 0; row < ROWS; row++) {
-      column.push(getRandomSymbol(rng));
+      column.push(getRandomSymbol(rng, betAmount));
     }
     grid.push(column);
   }
@@ -290,7 +328,7 @@ export function useAdvancedSlotMachine() {
       const spinInterval = setInterval(() => {
         setGameState(prev => ({
           ...prev,
-          grid: generateGrid(Math.random),
+          grid: generateGrid(Math.random, betTokens),
         }));
       }, 40);
 
@@ -302,7 +340,7 @@ export function useAdvancedSlotMachine() {
           
           const column: SlotSymbol[] = [];
           for (let row = 0; row < ROWS; row++) {
-            column.push(getRandomSymbol(Math.random));
+            column.push(getRandomSymbol(Math.random, betTokens));
           }
           finalGrid[reelIndex] = column;
           

@@ -8,12 +8,12 @@ import { useAdvancedSlotMachine } from '@/hooks/useAdvancedSlotMachine';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAudioContext } from '@/contexts/AudioContext';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { Zap, TrendingUp, Coins, Sparkles, Flame, Trophy } from 'lucide-react';
+import { Zap, TrendingUp, Coins, Sparkles, Flame, Trophy, Ticket } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export function AdvancedSlotMachine() {
   const { gameState, prizePool, spin, setCallbacks } = useAdvancedSlotMachine();
-  const { isConnected, tokenBalance, connect } = useWallet();
+  const { isConnected, gameCredits, useCredits, connect } = useWallet();
   const { 
     playSpinSound, 
     playReelStopSound, 
@@ -24,8 +24,8 @@ export function AdvancedSlotMachine() {
   } = useAudioContext();
   const [showPaylines, setShowPaylines] = useState(false);
   
-  // 投注金额状态 (代币)
-  const [currentBetTokens, setCurrentBetTokens] = useState(BET_AMOUNTS[2]); // 默认 20K tokens
+  // 投注金额状态 (游戏凭证)
+  const [currentBetCredits, setCurrentBetCredits] = useState(BET_AMOUNTS[2]); // 默认 20K 凭证
   
   // 自动旋转状态
   const [isAutoSpinning, setIsAutoSpinning] = useState(false);
@@ -83,16 +83,26 @@ export function AdvancedSlotMachine() {
       return null;
     }
 
-    if (Number(tokenBalance) < currentBetTokens) {
+    if (gameCredits < currentBetCredits) {
       toast({
-        title: "代币不足",
-        description: `需要 ${currentBetTokens.toLocaleString()} 代币才能游戏`,
+        title: "凭证不足",
+        description: `需要 ${currentBetCredits.toLocaleString()} 游戏凭证。请先销毁代币兑换凭证。`,
         variant: "destructive",
       });
       return null;
     }
 
-    const result = await spin(currentBetTokens);
+    // 消耗凭证
+    const success = useCredits(currentBetCredits);
+    if (!success) {
+      toast({
+        title: "凭证扣除失败",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    const result = await spin(currentBetCredits);
     
     if (result.poolPayout > 0 && result.prizeConfig) {
       toast({
@@ -102,7 +112,7 @@ export function AdvancedSlotMachine() {
     }
     
     return result;
-  }, [isConnected, tokenBalance, currentBetTokens, spin]);
+  }, [isConnected, gameCredits, currentBetCredits, spin, useCredits]);
 
   // 手动旋转
   const handleSpin = async () => {
@@ -281,12 +291,14 @@ export function AdvancedSlotMachine() {
 
         {/* 投注选择器 */}
         <div className="mt-4 neon-border rounded-xl p-4 bg-muted/20">
-          <div className="text-center text-sm text-muted-foreground mb-3">
-            <span className="text-neon-purple">💰 投注代币</span>
+          <div className="text-center text-sm text-muted-foreground mb-3 flex items-center justify-center gap-2">
+            <Ticket className="w-4 h-4 text-neon-cyan" />
+            <span className="text-neon-cyan">投注凭证</span>
+            <span className="text-xs text-muted-foreground">(凭证越多，中奖率越高)</span>
           </div>
           <BetSelector
-            currentBet={currentBetTokens}
-            onBetChange={setCurrentBetTokens}
+            currentBet={currentBetCredits}
+            onBetChange={setCurrentBetCredits}
             disabled={gameState.isSpinning || isAutoSpinning}
             playClickSound={playClickSound}
           />

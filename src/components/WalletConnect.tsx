@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 import { useWallet } from '@/contexts/WalletContext';
-import { Wallet, LogOut, Copy, ExternalLink } from 'lucide-react';
+import { Wallet, LogOut, Copy, ExternalLink, Ticket } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export function WalletConnect() {
-  const { address, isConnected, balance, tokenBalance, connect, disconnect, isConnecting, error } = useWallet();
+  const { address, isConnected, balance, tokenBalance, gameCredits, connect, disconnect, isConnecting, error } = useWallet();
 
   const shortenAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -88,17 +88,46 @@ export function WalletConnect() {
           </div>
 
           {/* Balances */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="neon-border rounded-lg p-3 bg-muted/30">
-              <div className="text-xs text-muted-foreground mb-1">BNB 余额</div>
-              <div className="font-display text-neon-yellow">
-                {Number(balance).toFixed(4)}
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="neon-border rounded-lg p-2.5 bg-muted/30">
+                <div className="text-xs text-muted-foreground mb-1">BNB 余额</div>
+                <div className="font-display text-neon-yellow text-sm">
+                  {Number(balance).toFixed(4)}
+                </div>
+              </div>
+              <div className="neon-border-purple rounded-lg p-2.5 bg-muted/30">
+                <div className="text-xs text-muted-foreground mb-1">代币余额</div>
+                <div className="font-display text-neon-purple text-sm">
+                  {Number(tokenBalance) >= 1000000 
+                    ? `${(Number(tokenBalance) / 1000000).toFixed(1)}M`
+                    : Number(tokenBalance) >= 1000
+                    ? `${(Number(tokenBalance) / 1000).toFixed(0)}K`
+                    : Number(tokenBalance).toLocaleString()
+                  }
+                </div>
               </div>
             </div>
-            <div className="neon-border-purple rounded-lg p-3 bg-muted/30">
-              <div className="text-xs text-muted-foreground mb-1">代币余额</div>
-              <div className="font-display text-neon-purple">
-                {Number(tokenBalance).toLocaleString()}
+            
+            {/* 游戏凭证 - 突出显示 */}
+            <div className="neon-border rounded-lg p-3 bg-gradient-to-r from-neon-cyan/10 to-neon-green/5 border-neon-cyan/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Ticket className="w-3.5 h-3.5 text-neon-cyan" />
+                  游戏凭证
+                </div>
+                <div className="text-xs text-neon-green">永久有效</div>
+              </div>
+              <div className="font-display text-neon-cyan text-xl mt-1">
+                {gameCredits >= 1000000 
+                  ? `${(gameCredits / 1000000).toFixed(2)}M`
+                  : gameCredits >= 1000
+                  ? `${(gameCredits / 1000).toFixed(1)}K`
+                  : gameCredits.toLocaleString()
+                }
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                不可转让 · 绑定当前钱包
               </div>
             </div>
           </div>
