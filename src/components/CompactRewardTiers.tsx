@@ -77,28 +77,28 @@ export function CompactRewardTiers() {
       <div className="rounded-xl p-2.5 lg:p-3 bg-gradient-to-r from-neon-green/10 to-neon-cyan/5 border border-neon-green/20 mb-2 lg:mb-3">
         <div className="flex items-center gap-2 mb-1.5">
           <Shield className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-green flex-shrink-0" />
-          <span className="text-neon-green font-display text-xs lg:text-sm">100% 返还玩家</span>
+          <span className="text-neon-green font-display text-xs lg:text-sm">100% 通缩销毁</span>
           <span className="text-neon-yellow text-xs px-1.5 py-0.5 rounded bg-neon-yellow/10">零抽成</span>
         </div>
         <p className="text-xs text-muted-foreground mb-1.5">
-          平台不抽取任何费用，所有资金100%服务于玩家：
+          代币 100% 销毁，中奖奖金分配：
         </p>
         <div className="text-xs text-muted-foreground space-y-1">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1">
-              <span className="text-neon-green">●</span> 进入奖池（玩家中奖分配）
+              <span className="text-neon-green">●</span> 玩家获得（直发钱包）
             </span>
             <span className="text-neon-green font-display">95%</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1">
-              <span className="text-neon-cyan">●</span> VRF预言机Gas费
+              <span className="text-neon-cyan">●</span> VRF 运营费用
             </span>
             <span className="text-neon-cyan font-display">5%</span>
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-          💡 5%用于Chainlink VRF预言机，保障每次游戏随机数公平生成
+          💡 5%用于 Chainlink VRF 预言机 Gas 费
         </p>
       </div>
 
@@ -324,7 +324,7 @@ export function CompactRewardTiers() {
             <p className="flex items-center gap-2">
               <span className="text-neon-pink">🔔</span>
               <span className="text-muted-foreground">二等奖:</span>
-              <span className="text-foreground/80 ml-auto">4×传奇/史诗</span>
+              <span className="text-foreground/80 ml-auto">4×稀有符号</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-cyan">⭐</span>
