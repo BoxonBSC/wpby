@@ -309,17 +309,17 @@ export function CompactRewardTiers() {
             <p className="flex items-center gap-2">
               <span className="text-neon-yellow">🎰</span>
               <span className="text-muted-foreground">超级头奖:</span>
-              <span className="text-foreground/80 ml-auto">5个7连线</span>
+              <span className="text-foreground/80 ml-auto">5×7️⃣</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-purple">💎</span>
               <span className="text-muted-foreground">头奖:</span>
-              <span className="text-foreground/80 ml-auto">5×💎 或 4×7</span>
+              <span className="text-foreground/80 ml-auto">5×💎 或 4×7️⃣</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-orange">👑</span>
               <span className="text-muted-foreground">一等奖:</span>
-              <span className="text-foreground/80 ml-auto">任意5连线</span>
+              <span className="text-foreground/80 ml-auto">5个相同符号</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-pink">🔔</span>
@@ -329,12 +329,15 @@ export function CompactRewardTiers() {
             <p className="flex items-center gap-2">
               <span className="text-neon-cyan">⭐</span>
               <span className="text-muted-foreground">三等奖:</span>
-              <span className="text-foreground/80 ml-auto">4连普通符号</span>
+              <span className="text-foreground/80 ml-auto">4个普通符号</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-green">🍀</span>
               <span className="text-muted-foreground">小奖:</span>
-              <span className="text-foreground/80 ml-auto">任意3连线</span>
+              <span className="text-foreground/80 ml-auto">3个相同符号</span>
+            </p>
+            <p className="text-muted-foreground/70 text-center pt-1 border-t border-border/20 mt-1">
+              仅中间行有效
             </p>
           </div>
         </CollapsibleContent>
@@ -346,9 +349,9 @@ export function CompactRewardTiers() {
         <div className="flex items-center justify-between text-xs p-2 lg:p-2.5 rounded-xl bg-muted/15 border border-border/20">
           <span className="flex items-center gap-1.5 text-neon-purple">
             <Medal className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
-            赔付线
+            有效赔付
           </span>
-          <span className="text-foreground font-display">{PAYLINES.length}条</span>
+          <span className="text-foreground font-display">中间行</span>
         </div>
         
         <div className="p-2 lg:p-2.5 rounded-xl bg-gradient-to-r from-neon-green/10 to-neon-cyan/5 border border-neon-green/20">
