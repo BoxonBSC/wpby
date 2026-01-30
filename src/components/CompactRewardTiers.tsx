@@ -1,6 +1,6 @@
 import { SYMBOLS, PAYLINES, PRIZE_TIERS, POOL_PROTECTION } from '@/hooks/useAdvancedSlotMachine';
 import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield, ChevronDown, ChevronUp, TrendingUp, Copy, ExternalLink } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -51,7 +51,7 @@ const rarityInfo = {
   },
 };
 
-export function CompactRewardTiers() {
+export const CompactRewardTiers = forwardRef<HTMLDivElement>((_, ref) => {
   const isMobile = useIsMobile();
   // 移动端默认折叠，桌面端默认展开
   const [showSymbols, setShowSymbols] = useState(false);
@@ -66,7 +66,7 @@ export function CompactRewardTiers() {
   }, [isMobile]);
 
   return (
-    <div className="h-full flex flex-col rounded-2xl bg-gradient-to-b from-muted/40 to-muted/20 border border-border/50 p-3 lg:p-4 backdrop-blur-sm">
+    <div ref={ref} className="h-full flex flex-col rounded-2xl bg-gradient-to-b from-muted/40 to-muted/20 border border-border/50 p-3 lg:p-4 backdrop-blur-sm">
       {/* 标题 */}
       <h3 className="text-base lg:text-lg font-display text-neon-cyan mb-3 flex items-center gap-2">
         <Trophy className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -363,4 +363,4 @@ export function CompactRewardTiers() {
       </div>
     </div>
   );
-}
+});
