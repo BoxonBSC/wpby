@@ -5,6 +5,7 @@ import { Wallet, LogOut, Copy, ExternalLink, Ticket, ChevronDown, X, Smartphone,
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { getWalletBrand, WalletConnectIcon } from './WalletIcons';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // 钱包图标组件 - 使用官方品牌图标
 function WalletIcon({ wallet, size = 'md' }: { wallet: WalletInfo; size?: 'sm' | 'md' | 'lg' }) {
@@ -21,6 +22,7 @@ function WalletIcon({ wallet, size = 'md' }: { wallet: WalletInfo; size?: 'sm' |
 }
 
 export function WalletConnect() {
+  const { t } = useLanguage();
   const { 
     address, 
     isConnected, 
@@ -51,8 +53,8 @@ export function WalletConnect() {
     if (address) {
       navigator.clipboard.writeText(address);
       toast({
-        title: "已复制",
-        description: "钱包地址已复制到剪贴板",
+        title: t('walletUI.copied'),
+        description: t('walletUI.copiedDesc'),
       });
     }
   };
@@ -99,7 +101,7 @@ export function WalletConnect() {
             
             <h3 className="text-lg font-display neon-text-cyan mb-4 flex items-center gap-2">
               <Wallet className="w-5 h-5" />
-              选择钱包
+              {t('walletUI.selectWallet')}
             </h3>
             
             <div className="space-y-2">
@@ -129,7 +131,7 @@ export function WalletConnect() {
                         {wallet.name}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {wallet.detected ? '✓ 已检测到' : '未安装'}
+                        {wallet.detected ? t('walletUI.detected') : t('walletUI.notInstalled')}
                       </div>
                     </div>
                     {wallet.detected && (
@@ -158,12 +160,12 @@ export function WalletConnect() {
                   <div className="font-display text-[#3B99FC] flex items-center gap-2">
                     WalletConnect
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#3B99FC]/20 text-[#3B99FC]">
-                      扫码
+                      {t('walletUI.scan')}
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
                     <Smartphone className="w-3 h-3" />
-                    手机钱包扫码连接
+                    {t('walletUI.mobileWallet')}
                   </div>
                 </div>
                 <QrCode className="w-5 h-5 text-[#3B99FC]" />
@@ -171,7 +173,7 @@ export function WalletConnect() {
             </div>
             
             <p className="text-xs text-muted-foreground text-center mt-4">
-              选择浏览器钱包或扫码连接手机钱包
+              {t('walletUI.selectHint')}
             </p>
           </motion.div>
         </motion.div>
@@ -192,7 +194,7 @@ export function WalletConnect() {
             onClick={() => setShowWalletSelector(true)}
             className="mt-2 text-sm text-neon-blue hover:underline"
           >
-            重新选择钱包
+            {t('walletUI.reselectWallet')}
           </button>
         </motion.div>
         <WalletSelectorModal />
@@ -212,7 +214,7 @@ export function WalletConnect() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-neon-green animate-pulse" />
-            <span className="text-sm text-neon-green">已连接</span>
+            <span className="text-sm text-neon-green">{t('wallet.connected')}</span>
             {walletInfo && (
               <span className="text-sm text-muted-foreground flex items-center gap-1">
                 <WalletIcon wallet={walletInfo} size="sm" />
@@ -229,14 +231,14 @@ export function WalletConnect() {
               className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-muted/50 text-muted-foreground hover:text-neon-cyan hover:bg-muted transition-colors"
             >
               <Wallet className="w-3 h-3" />
-              切换
+              {t('walletUI.switch')}
             </button>
             <button
               onClick={disconnect}
               className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-muted/50 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
             >
               <LogOut className="w-3 h-3" />
-              断开
+              {t('wallet.disconnect')}
             </button>
           </div>
         </div>
@@ -267,13 +269,13 @@ export function WalletConnect() {
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <div className="neon-border rounded-lg p-2.5 bg-muted/30">
-                <div className="text-xs text-muted-foreground mb-1">BNB 余额</div>
+                <div className="text-xs text-muted-foreground mb-1">{t('walletUI.bnbBalance')}</div>
                 <div className="font-display text-neon-yellow text-sm">
                   {Number(balance).toFixed(4)}
                 </div>
               </div>
               <div className="neon-border-purple rounded-lg p-2.5 bg-muted/30">
-                <div className="text-xs text-muted-foreground mb-1">代币余额</div>
+                <div className="text-xs text-muted-foreground mb-1">{t('walletUI.tokenBalance')}</div>
                 <div className="font-display text-neon-purple text-sm">
                   {tokenBalance >= 1000000 
                     ? `${(tokenBalance / 1000000).toFixed(1)}M`
@@ -290,9 +292,9 @@ export function WalletConnect() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Ticket className="w-3.5 h-3.5 text-neon-cyan" />
-                  游戏凭证
+                  {t('walletUI.gameCredits')}
                 </div>
-                <div className="text-xs text-neon-green">永久有效</div>
+                <div className="text-xs text-neon-green">{t('walletUI.permanent')}</div>
               </div>
               <div className="font-display text-neon-cyan text-xl mt-1">
                 {gameCredits >= 1000000 
@@ -303,7 +305,7 @@ export function WalletConnect() {
                 }
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                不可转让 · 绑定当前钱包
+                {t('walletUI.nonTransferable')}
               </div>
             </div>
           </div>
@@ -331,7 +333,7 @@ export function WalletConnect() {
         ) : (
           <Wallet className="w-5 h-5" />
         )}
-        {isConnecting ? '连接中...' : '连接钱包'}
+        {isConnecting ? t('wallet.connecting') : t('wallet.connect')}
         <ChevronDown className="w-4 h-4" />
       </motion.button>
       <WalletSelectorModal />
