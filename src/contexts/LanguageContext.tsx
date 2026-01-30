@@ -76,6 +76,7 @@ const translations: Record<Language, Record<string, string>> = {
     // 统计
     'stats.totalSpins': '总游戏',
     'stats.totalWins': '总中奖',
+    'stats.totalBurned': '总销毁',
     
     // 自动旋转
     'auto.title': '自动旋转',
@@ -518,6 +519,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Stats
     'stats.totalSpins': 'Total Spins',
     'stats.totalWins': 'Total Wins',
+    'stats.totalBurned': 'Total Burned',
     
     // Auto spin
     'auto.title': 'Auto Spin',

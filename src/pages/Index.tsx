@@ -6,6 +6,7 @@ import { CompactGameHistory } from '@/components/CompactGameHistory';
 import { FloatingElements } from '@/components/FloatingElements';
 import { JackpotTicker } from '@/components/JackpotTicker';
 import { CreditsExchange } from '@/components/CreditsExchange';
+import { BurnStats } from '@/components/BurnStats';
 
 import { Navbar } from '@/components/Navbar';
 import { ContractAddresses } from '@/components/ContractAddresses';
@@ -116,6 +117,9 @@ const Index = () => {
 
           {/* 智能合约地址 - 手机端更紧凑 */}
           <ContractAddresses />
+
+          {/* 全局统计 - 销毁/奖池/旋转 */}
+          <BurnStats />
 
           {/* 中奖播报 */}
           <motion.div
