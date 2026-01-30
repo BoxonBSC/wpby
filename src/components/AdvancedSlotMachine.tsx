@@ -6,6 +6,7 @@ import { WinRevealOverlay } from './WinRevealOverlay';
 import { useCyberSlots, formatPrizeType } from '@/hooks/useCyberSlots';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAudioContext } from '@/contexts/AudioContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Zap, TrendingUp, Coins, Sparkles, Trophy, Ticket, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -37,6 +38,7 @@ const DEFAULT_GRID: SlotSymbol[][] = [
 ];
 
 export function AdvancedSlotMachine() {
+  const { t } = useLanguage();
   const { 
     prizePool: contractPrizePool,
     playerStats,
@@ -193,8 +195,8 @@ export function AdvancedSlotMachine() {
         } else {
           // 未中奖，显示简单提示
           toast({
-            title: "未中奖",
-            description: "再接再厉！下次好运！",
+            title: t('slot.noWin'),
+            description: t('slot.tryAgain'),
           });
         }
         
@@ -206,8 +208,8 @@ export function AdvancedSlotMachine() {
   const executeSpin = useCallback(async () => {
     if (!isConnected) {
       toast({
-        title: "请先连接钱包",
-        description: "需要连接钱包才能开始游戏",
+        title: t('wallet.pleaseConnect'),
+        description: t('wallet.needConnect'),
         variant: "destructive",
       });
       return null;
@@ -216,8 +218,8 @@ export function AdvancedSlotMachine() {
     // 检查游戏凭证
     if (creditsDisplay < currentBetCredits) {
       toast({
-        title: "凭证不足",
-        description: `需要 ${currentBetCredits.toLocaleString()} 游戏凭证。请先销毁代币兑换凭证。`,
+        title: t('wallet.insufficientCredits'),
+        description: t('wallet.needCredits').replace('{amount}', currentBetCredits.toLocaleString()),
         variant: "destructive",
       });
       return null;
@@ -233,8 +235,8 @@ export function AdvancedSlotMachine() {
       // 设置等待结果状态
       setIsWaitingForResult(true);
       toast({
-        title: "🎰 游戏已提交",
-        description: "等待VRF回调结果...",
+        title: t('slot.submitted'),
+        description: t('slot.waitingVRF'),
       });
       playSpinSound();
       return { submitted: true };
@@ -251,12 +253,12 @@ export function AdvancedSlotMachine() {
     if (lastActionRef.current !== 'spin') return;
 
     toast({
-      title: '开始游戏失败',
+      title: t('slot.spinFailed'),
       description: contractError,
       variant: 'destructive',
     });
     lastActionRef.current = null;
-  }, [contractError]);
+  }, [contractError, t]);
 
   const handleSpin = async () => {
     playClickSound();
@@ -266,9 +268,9 @@ export function AdvancedSlotMachine() {
   const handleClaimPrize = async () => {
     const success = await claimPrize();
     if (success) {
-      toast({ title: "✅ 奖金已领取！" });
+      toast({ title: `✅ ${t('slot.claimed')}` });
     } else {
-      toast({ title: "领取失败", variant: "destructive" });
+      toast({ title: t('slot.claimFailed'), variant: "destructive" });
     }
   };
 
@@ -276,8 +278,8 @@ export function AdvancedSlotMachine() {
     playClickSound();
     const ok = await cancelStuckRequest();
     toast({
-      title: ok ? '已尝试解除卡住请求' : '解除失败',
-      description: ok ? '如确实已超时，将会重置你的挂起状态。' : (contractError || '请稍后重试（注意：需要超过 1 小时超时才能解除）'),
+      title: ok ? t('slot.cancelAttempt') : t('slot.cancelFailed'),
+      description: ok ? t('slot.cancelSuccess') : (contractError || t('slot.cancelFailed')),
       variant: ok ? undefined : 'destructive',
     });
   };
@@ -296,8 +298,8 @@ export function AdvancedSlotMachine() {
       autoSpinRef.current = false;
       setAutoSpinCount(0);
       toast({
-        title: "自动旋转已停止",
-        description: "由于凭证不足或其他原因",
+        title: t('auto.stopped'),
+        description: t('auto.stoppedReason'),
         variant: "destructive",
       });
       return;
@@ -313,13 +315,13 @@ export function AdvancedSlotMachine() {
     } else if (autoSpinCount <= 0 && isAutoSpinning) {
       setIsAutoSpinning(false);
       autoSpinRef.current = false;
-      toast({ title: "自动旋转完成", description: "已完成所有自动旋转" });
+      toast({ title: t('auto.completed'), description: t('auto.completedDesc') });
     }
-  }, [isAutoSpinning, isSpinning, autoSpinCount, runAutoSpin]);
+  }, [isAutoSpinning, isSpinning, autoSpinCount, runAutoSpin, t]);
 
   const handleStartAutoSpin = (count: number) => {
     if (!isConnected) {
-      toast({ title: "请先连接钱包", variant: "destructive" });
+      toast({ title: t('wallet.pleaseConnect'), variant: "destructive" });
       return;
     }
     setAutoSpinCount(count);
@@ -331,7 +333,7 @@ export function AdvancedSlotMachine() {
     autoSpinRef.current = false;
     setIsAutoSpinning(false);
     setAutoSpinCount(0);
-    toast({ title: "自动旋转已停止" });
+    toast({ title: t('auto.stopped') });
   };
 
   return (
@@ -355,15 +357,15 @@ export function AdvancedSlotMachine() {
             transition={{ duration: 0.3, repeat: isSpinning ? Infinity : 0 }}
           >
             <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
-            BURN SLOTS
+            {t('slot.title')}
             <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
           </motion.h2>
           <div className="flex items-center justify-center gap-2 mt-1">
             <p className="text-sm text-muted-foreground">
-              5轮符号匹配 | 💯 100%返还
+              {t('slot.subtitle')} | 💯 {t('slot.return')}
             </p>
             <span className="text-xs px-2 py-0.5 rounded bg-neon-green/20 text-neon-green border border-neon-green/30">
-              🔗 链上模式
+              🔗 {t('slot.onchain')}
             </span>
           </div>
         </div>
@@ -376,13 +378,13 @@ export function AdvancedSlotMachine() {
           >
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-neon-green" />
-              <span className="text-sm">待领取奖金: <strong className="text-neon-green">{parseFloat(unclaimedPrize).toFixed(4)} BNB</strong></span>
+              <span className="text-sm">{t('slot.unclaimedPrize')}: <strong className="text-neon-green">{parseFloat(unclaimedPrize).toFixed(4)} BNB</strong></span>
             </div>
             <button
               onClick={handleClaimPrize}
               className="px-3 py-1 rounded bg-neon-green/20 text-neon-green text-sm hover:bg-neon-green/30 transition-colors"
             >
-              领取
+              {t('slot.claim')}
             </button>
           </motion.div>
         )}
@@ -397,10 +399,10 @@ export function AdvancedSlotMachine() {
               <AlertCircle className="w-5 h-5 text-destructive" />
               <div className="text-sm">
                 <div>
-                  检测到挂起旋转请求：<strong className="text-destructive">#{pendingRequest.toString()}</strong>
+                  {t('slot.pendingRequest')}: <strong className="text-destructive">#{pendingRequest.toString()}</strong>
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  等待 VRF 回调；如超过 1 小时可尝试解除。
+                  {t('slot.waitingVRFCallback')}
                 </div>
               </div>
             </div>
@@ -409,7 +411,7 @@ export function AdvancedSlotMachine() {
               disabled={isSpinning}
               className="px-3 py-1 rounded bg-destructive/15 text-destructive text-sm hover:bg-destructive/25 transition-colors disabled:opacity-50"
             >
-              解除
+              {t('slot.cancel')}
             </button>
           </motion.div>
         )}
@@ -417,7 +419,7 @@ export function AdvancedSlotMachine() {
         <div className="flex justify-between items-center mb-4 gap-2">
           <div className="neon-border-pink rounded-lg px-4 py-2 bg-muted/50 flex items-center gap-2">
             <Coins className="w-4 h-4 text-neon-yellow" />
-            <span className="text-xs text-muted-foreground">奖池</span>
+            <span className="text-xs text-muted-foreground">{t('slot.pool')}</span>
             <span className="text-lg font-display neon-text-pink">
               {prizePool >= 1 ? prizePool.toFixed(2) : prizePool >= 0.01 ? prizePool.toFixed(4) : prizePool.toFixed(6)}
             </span>
@@ -426,13 +428,13 @@ export function AdvancedSlotMachine() {
           
           <div className="neon-border rounded-lg px-4 py-2 bg-muted/50 flex items-center gap-2">
             <Ticket className="w-4 h-4 text-neon-cyan" />
-            <span className="text-xs text-muted-foreground">凭证</span>
+            <span className="text-xs text-muted-foreground">{t('slot.credits')}</span>
             <span className="text-lg font-display text-neon-cyan">{creditsDisplay.toLocaleString()}</span>
           </div>
           
           <div className="neon-border-cyan rounded-lg px-4 py-2 bg-muted/50 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-neon-green" />
-            <span className="text-xs text-muted-foreground">胜率</span>
+            <span className="text-xs text-muted-foreground">{t('slot.winRate')}</span>
             <span className="text-lg font-display text-neon-green">
               {totalSpinsDisplay > 0 ? ((totalWinsDisplay / totalSpinsDisplay) * 100).toFixed(1) : '0.0'}%
             </span>
@@ -465,7 +467,7 @@ export function AdvancedSlotMachine() {
             >
               <Loader2 className="w-4 h-4 text-neon-cyan animate-spin" />
               <span className="text-sm text-neon-cyan font-display whitespace-nowrap">
-                {isRevealing ? '开奖中...' : '等待随机数...'}
+                {isRevealing ? t('slot.revealing') || 'Revealing...' : t('slot.waitingRandom') || 'Waiting...'}
               </span>
             </motion.div>
           )}
@@ -474,8 +476,8 @@ export function AdvancedSlotMachine() {
         <div className="mt-4 neon-border rounded-xl p-4 bg-muted/20">
           <div className="text-center text-sm text-muted-foreground mb-3 flex items-center justify-center gap-2">
             <Ticket className="w-4 h-4 text-neon-cyan" />
-            <span className="text-neon-cyan">投注凭证</span>
-            <span className="text-xs text-muted-foreground">(凭证越多，中奖率越高)</span>
+            <span className="text-neon-cyan">{t('bet.credits') || t('slot.credits')}</span>
+            <span className="text-xs text-muted-foreground">({t('bet.moreCredits') || 'More credits = higher odds'})</span>
           </div>
           <BetSelector
             currentBet={currentBetCredits}
@@ -489,7 +491,7 @@ export function AdvancedSlotMachine() {
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-1">
               <Zap className="w-3 h-3 text-neon-cyan" />
-              总游戏
+              {t('stats.totalSpins') || 'Total Spins'}
             </div>
             <div className="text-xl font-display text-neon-cyan">
               {totalSpinsDisplay}
@@ -498,7 +500,7 @@ export function AdvancedSlotMachine() {
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-1">
               <TrendingUp className="w-3 h-3 text-neon-green" />
-              总中奖
+              {t('stats.totalWins') || 'Total Wins'}
             </div>
             <div className="text-xl font-display text-neon-green">
               {totalWinsDisplay}
@@ -507,7 +509,7 @@ export function AdvancedSlotMachine() {
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-1">
               <Trophy className="w-3 h-3 text-neon-yellow" />
-              胜率
+              {t('slot.winRate')}
             </div>
             <div className="text-xl font-display text-neon-yellow">
               {totalSpinsDisplay > 0 
@@ -542,7 +544,7 @@ export function AdvancedSlotMachine() {
                       >
                         🎰
                       </motion.span>
-                      <span>{isRevealing ? '开奖中...' : '等待结果...'}</span>
+                      <span>{isRevealing ? (t('slot.revealing') || 'Revealing...') : t('slot.spinning')}</span>
                       <motion.span
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
@@ -554,7 +556,7 @@ export function AdvancedSlotMachine() {
                   ) : (
                     <span className="flex items-center justify-center gap-2">
                       <Zap className="w-6 h-6" />
-                      开始游戏
+                      {t('slot.spin')}
                       <Zap className="w-6 h-6" />
                     </span>
                   )}
@@ -579,15 +581,15 @@ export function AdvancedSlotMachine() {
               whileTap={{ scale: 0.98 }}
               className="cyber-button w-full text-lg rounded-xl py-5"
             >
-              连接钱包开始游戏
+              {t('slot.connectWallet')}
             </motion.button>
           )}
         </div>
 
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          <span>总游戏: {totalSpinsDisplay}</span>
+          <span>{t('stats.totalSpins') || 'Total Spins'}: {totalSpinsDisplay}</span>
           <span className="mx-3">|</span>
-          <span>总中奖: {totalWinsDisplay}</span>
+          <span>{t('stats.totalWins') || 'Total Wins'}: {totalWinsDisplay}</span>
         </div>
         
         {contractError && (

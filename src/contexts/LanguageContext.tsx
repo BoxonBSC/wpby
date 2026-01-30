@@ -61,11 +61,20 @@ const translations: Record<Language, Record<string, string>> = {
     'slot.cancelAttempt': '已尝试解除卡住请求',
     'slot.cancelSuccess': '如确实已超时，将会重置你的挂起状态。',
     'slot.cancelFailed': '解除失败',
+    'slot.spinFailed': '开始游戏失败',
+    'slot.revealing': '开奖中...',
+    'slot.waitingRandom': '等待随机数...',
     
     // 投注选择
     'bet.probability': '中奖概率',
     'bet.boost': '提升',
     'bet.perSpin': '凭证/次',
+    'bet.credits': '投注凭证',
+    'bet.moreCredits': '凭证越多，中奖概率越高',
+    
+    // 统计
+    'stats.totalSpins': '总游戏',
+    'stats.totalWins': '总中奖',
     
     // 自动旋转
     'auto.title': '自动旋转',
@@ -321,11 +330,20 @@ const translations: Record<Language, Record<string, string>> = {
     'slot.cancelAttempt': 'Attempting to cancel stuck request',
     'slot.cancelSuccess': 'If timed out, your pending status will be reset.',
     'slot.cancelFailed': 'Cancel Failed',
+    'slot.spinFailed': 'Spin Failed',
+    'slot.revealing': 'Revealing...',
+    'slot.waitingRandom': 'Waiting for randomness...',
     
     // Bet selector
     'bet.probability': 'Win Probability',
     'bet.boost': 'Boost',
     'bet.perSpin': 'Credits/Spin',
+    'bet.credits': 'Bet Credits',
+    'bet.moreCredits': 'More credits = higher odds',
+    
+    // Stats
+    'stats.totalSpins': 'Total Spins',
+    'stats.totalWins': 'Total Wins',
     
     // Auto spin
     'auto.title': 'Auto Spin',
