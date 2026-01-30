@@ -113,6 +113,23 @@ const translations: Record<Language, Record<string, string>> = {
     'wallet.insufficientCredits': '凭证不足',
     'wallet.needCredits': '需要 {amount} 游戏凭证。请先销毁代币兑换凭证。',
     
+    // 钱包UI
+    'walletUI.selectWallet': '选择钱包',
+    'walletUI.detected': '✓ 已检测到',
+    'walletUI.notInstalled': '未安装',
+    'walletUI.scan': '扫码',
+    'walletUI.mobileWallet': '手机钱包扫码连接',
+    'walletUI.selectHint': '选择浏览器钱包或扫码连接手机钱包',
+    'walletUI.reselectWallet': '重新选择钱包',
+    'walletUI.switch': '切换',
+    'walletUI.copied': '已复制',
+    'walletUI.copiedDesc': '钱包地址已复制到剪贴板',
+    'walletUI.bnbBalance': 'BNB 余额',
+    'walletUI.tokenBalance': '代币余额',
+    'walletUI.gameCredits': '游戏凭证',
+    'walletUI.permanent': '永久有效',
+    'walletUI.nonTransferable': '不可转让 · 绑定当前钱包',
+    
     // 奖励等级
     'reward.title': '奖励与赔付',
     'reward.deflation': '100% 通缩销毁',
@@ -515,6 +532,23 @@ const translations: Record<Language, Record<string, string>> = {
     'wallet.needConnect': 'Connect wallet to start playing',
     'wallet.insufficientCredits': 'Insufficient Credits',
     'wallet.needCredits': 'Need {amount} credits. Please burn tokens first.',
+    
+    // Wallet UI
+    'walletUI.selectWallet': 'Select Wallet',
+    'walletUI.detected': '✓ Detected',
+    'walletUI.notInstalled': 'Not Installed',
+    'walletUI.scan': 'Scan',
+    'walletUI.mobileWallet': 'Scan to connect mobile wallet',
+    'walletUI.selectHint': 'Choose browser wallet or scan for mobile',
+    'walletUI.reselectWallet': 'Reselect Wallet',
+    'walletUI.switch': 'Switch',
+    'walletUI.copied': 'Copied',
+    'walletUI.copiedDesc': 'Wallet address copied to clipboard',
+    'walletUI.bnbBalance': 'BNB Balance',
+    'walletUI.tokenBalance': 'Token Balance',
+    'walletUI.gameCredits': 'Game Credits',
+    'walletUI.permanent': 'Permanent',
+    'walletUI.nonTransferable': 'Non-transferable · Bound to wallet',
     
     // Reward tiers
     'reward.title': 'Rewards & Payouts',
