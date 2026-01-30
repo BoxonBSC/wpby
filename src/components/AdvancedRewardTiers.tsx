@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { SYMBOLS, PRIZE_TIERS, POOL_PROTECTION } from '@/hooks/useAdvancedSlotMachine';
 import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield, TrendingUp } from 'lucide-react';
 import { BET_AMOUNTS } from './BetSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // 投注对应的概率加成倍数
 const BET_MULTIPLIERS: Record<number, number> = {
@@ -12,62 +13,75 @@ const BET_MULTIPLIERS: Record<number, number> = {
   250000: 20,
 };
 
-const rarityInfo = {
-  legendary: { 
-    label: '传说', 
-    color: 'text-neon-yellow', 
-    bg: 'bg-neon-yellow/10',
-    border: 'border-neon-yellow/60',
-    glow: 'shadow-[0_0_8px_hsl(50_100%_50%/0.3)]',
-    icon: Crown,
-  },
-  epic: { 
-    label: '史诗', 
-    color: 'text-neon-purple', 
-    bg: 'bg-neon-purple/10',
-    border: 'border-neon-purple/60',
-    glow: 'shadow-[0_0_8px_hsl(280_100%_60%/0.3)]',
-    icon: Gem,
-  },
-  rare: { 
-    label: '稀有', 
-    color: 'text-neon-cyan', 
-    bg: 'bg-neon-cyan/10',
-    border: 'border-neon-cyan/60',
-    glow: 'shadow-[0_0_8px_hsl(180_100%_50%/0.3)]',
-    icon: Star,
-  },
-  common: { 
-    label: '普通', 
-    color: 'text-neon-green', 
-    bg: 'bg-neon-green/10',
-    border: 'border-neon-green/60',
-    glow: 'shadow-[0_0_8px_hsl(120_100%_40%/0.2)]',
-    icon: Star,
-  },
-};
-
 export function AdvancedRewardTiers() {
+  const { t, language } = useLanguage();
+  
+  const rarityInfo = {
+    legendary: { 
+      label: t('rarity.legendary'), 
+      color: 'text-neon-yellow', 
+      bg: 'bg-neon-yellow/10',
+      border: 'border-neon-yellow/60',
+      glow: 'shadow-[0_0_8px_hsl(50_100%_50%/0.3)]',
+      icon: Crown,
+    },
+    epic: { 
+      label: t('rarity.epic'), 
+      color: 'text-neon-purple', 
+      bg: 'bg-neon-purple/10',
+      border: 'border-neon-purple/60',
+      glow: 'shadow-[0_0_8px_hsl(280_100%_60%/0.3)]',
+      icon: Gem,
+    },
+    rare: { 
+      label: t('rarity.rare'), 
+      color: 'text-neon-cyan', 
+      bg: 'bg-neon-cyan/10',
+      border: 'border-neon-cyan/60',
+      glow: 'shadow-[0_0_8px_hsl(180_100%_50%/0.3)]',
+      icon: Star,
+    },
+    common: { 
+      label: t('rarity.common'), 
+      color: 'text-neon-green', 
+      bg: 'bg-neon-green/10',
+      border: 'border-neon-green/60',
+      glow: 'shadow-[0_0_8px_hsl(120_100%_40%/0.2)]',
+      icon: Star,
+    },
+  };
+
+  // 奖励名称翻译映射
+  const prizeNames: Record<string, string> = {
+    super_jackpot: t('reward.superJackpot'),
+    jackpot: t('reward.jackpot'),
+    first: t('reward.first'),
+    second: t('reward.second'),
+    third: t('reward.third'),
+    small: t('reward.small'),
+    consolation: t('reward.consolation'),
+  };
+
   return (
     <div className="cyber-card">
       <h3 className="text-xl font-display neon-text-purple mb-4 flex items-center gap-2">
         <Trophy className="w-5 h-5" />
-        奖励与赔付表
+        {t('rewardTiers.title')}
       </h3>
       
       {/* 100% 通缩说明 */}
       <div className="neon-border-green rounded-lg p-3 bg-neon-green/5 mb-4">
         <h4 className="text-sm font-display text-neon-green mb-2 flex items-center gap-2">
           <Shield className="w-4 h-4" />
-          🎯 100% 通缩销毁 | 零抽成
+          {t('rewardTiers.deflationTitle')}
         </h4>
         <div className="text-xs text-muted-foreground space-y-1">
           <p className="text-neon-yellow">
-            ✨ 代币 100% 销毁到黑洞地址
+            {t('rewardTiers.deflationHighlight')}
           </p>
-          <p>• 中奖奖金：95% 玩家获得，5% VRF 运营费</p>
-          <p>• 无隐藏费用，无平台抽成</p>
-          <p>• 智能合约透明可验证</p>
+          <p>• {t('rewardTiers.deflationPoint1')}</p>
+          <p>• {t('rewardTiers.deflationPoint2')}</p>
+          <p>• {t('rewardTiers.deflationPoint3')}</p>
         </div>
       </div>
 
@@ -75,11 +89,11 @@ export function AdvancedRewardTiers() {
       <div className="neon-border-pink rounded-lg p-3 bg-neon-pink/5 mb-4">
         <h4 className="text-sm font-display text-neon-pink mb-2 flex items-center gap-2">
           <Shield className="w-4 h-4" />
-          奖池保护机制
+          {t('rewardTiers.poolProtection')}
         </h4>
         <div className="text-xs text-muted-foreground space-y-1">
-          <p>• 单次最大派奖: 奖池的 <span className="text-neon-yellow">{(POOL_PROTECTION.maxSinglePayout * 100).toFixed(0)}%</span></p>
-          <p>• 奖池资金 <span className="text-neon-green">100%</span> 用于派奖，零储备金</p>
+          <p>• {t('rewardTiers.maxPayout')}: <span className="text-neon-yellow">{(POOL_PROTECTION.maxSinglePayout * 100).toFixed(0)}%</span></p>
+          <p>• {t('rewardTiers.zeroReserve')}</p>
         </div>
       </div>
 
@@ -87,7 +101,7 @@ export function AdvancedRewardTiers() {
       <div className="neon-border-purple rounded-lg p-3 bg-muted/20 mb-4">
         <h4 className="text-sm font-display text-neon-yellow mb-3 flex items-center gap-2">
           <Award className="w-4 h-4" />
-          奖励等级 (基于奖池)
+          {t('rewardTiers.levels')}
         </h4>
         <div className="space-y-1.5">
           {PRIZE_TIERS.map((prize, index) => (
@@ -109,7 +123,7 @@ export function AdvancedRewardTiers() {
                 index === 1 ? 'text-neon-purple' : 
                 'text-foreground'
               }`}>
-                {prize.name}
+                {prizeNames[prize.type] || prize.name}
               </span>
               <span className="text-xs text-muted-foreground">
                 {prize.description}
@@ -121,7 +135,7 @@ export function AdvancedRewardTiers() {
           ))}
         </div>
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          * 实际派奖 = 奖池 × 百分比 (不超过最大派奖限制)
+          * {t('rewardTiers.payoutNote')}
         </p>
       </div>
 
@@ -129,7 +143,7 @@ export function AdvancedRewardTiers() {
       <div className="neon-border-cyan rounded-lg p-3 bg-neon-cyan/5 mb-4">
         <h4 className="text-sm font-display text-neon-cyan mb-3 flex items-center gap-2">
           <TrendingUp className="w-4 h-4" />
-          投注概率加成
+          {t('rewardTiers.betBonus')}
         </h4>
         <div className="space-y-1.5">
           {BET_AMOUNTS.map((bet, index) => {
@@ -161,7 +175,7 @@ export function AdvancedRewardTiers() {
                     multiplier > 1 ? 'text-neon-cyan' :
                     'text-foreground'
                   }`}>
-                    {multiplier}x 中奖概率
+                    {multiplier}x {t('rewardTiers.winOdds')}
                   </div>
                 </div>
                 {multiplier > 1 && (
@@ -174,13 +188,13 @@ export function AdvancedRewardTiers() {
           })}
         </div>
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          投注越高，稀有符号出现概率越大
+          {t('rewardTiers.betTip')}
         </p>
       </div>
 
       {/* 符号出现概率 */}
       <div className="mb-4">
-        <h4 className="text-sm font-display text-neon-purple mb-2">符号稀有度</h4>
+        <h4 className="text-sm font-display text-neon-purple mb-2">{t('rewardTiers.symbolRarity')}</h4>
         <div className="grid grid-cols-2 gap-2">
           {SYMBOLS.map((symbol, index) => {
             const rarity = rarityInfo[symbol.rarity];
@@ -215,19 +229,19 @@ export function AdvancedRewardTiers() {
       <div className="neon-border rounded-lg p-3 bg-muted/20 mb-4">
         <h4 className="text-sm font-display text-neon-cyan mb-2 flex items-center gap-2">
           <Info className="w-4 h-4" />
-          中奖条件 (5符号匹配)
+          {t('rewardTiers.winConditions')}
         </h4>
         <div className="text-xs text-muted-foreground space-y-1.5">
           <p className="text-neon-yellow/90 bg-neon-yellow/5 p-1.5 rounded">
-            ℹ️ 中奖根据5个符号中<strong>相同符号的数量</strong>判定（慷慨版：约60%中奖率）
+            ℹ️ {t('rewardTiers.winConditionsNote')}
           </p>
-          <p><span className="text-neon-yellow">🎰 超级头奖:</span> 5个全是 7️⃣</p>
-          <p><span className="text-neon-purple">💎 头奖:</span> 5个全是 💎，或4个 7️⃣</p>
-          <p><span className="text-neon-orange">👑 一等奖:</span> 任意5个相同符号</p>
-          <p><span className="text-neon-pink">🔔 二等奖:</span> 4个相同的稀有符号 (7️⃣💎👑🔔⭐)</p>
-          <p><span className="text-neon-cyan">⭐ 三等奖:</span> 4个相同的普通符号 (🍒🍋🍊🍇🍀)</p>
-          <p><span className="text-neon-green">🍀 小奖:</span> 任意3个相同符号</p>
-          <p><span className="text-muted-foreground">🎁 安慰奖:</span> 任意2个相同符号 <span className="text-neon-cyan">(~45%概率)</span></p>
+          <p><span className="text-neon-yellow">🎰 {t('reward.superJackpot')}:</span> {t('rewardTiers.condition.superJackpot')}</p>
+          <p><span className="text-neon-purple">💎 {t('reward.jackpot')}:</span> {t('rewardTiers.condition.jackpot')}</p>
+          <p><span className="text-neon-orange">👑 {t('reward.first')}:</span> {t('rewardTiers.condition.first')}</p>
+          <p><span className="text-neon-pink">🔔 {t('reward.second')}:</span> {t('rewardTiers.condition.second')}</p>
+          <p><span className="text-neon-cyan">⭐ {t('reward.third')}:</span> {t('rewardTiers.condition.third')}</p>
+          <p><span className="text-neon-green">🍀 {t('reward.small')}:</span> {t('rewardTiers.condition.small')}</p>
+          <p><span className="text-muted-foreground">🎁 {t('reward.consolation')}:</span> {t('rewardTiers.condition.consolation')}</p>
         </div>
       </div>
 
@@ -235,11 +249,11 @@ export function AdvancedRewardTiers() {
       <div className="neon-border-cyan rounded-lg p-3 bg-neon-cyan/5 mb-4">
         <h4 className="text-sm font-display text-neon-cyan mb-2 flex items-center gap-2">
           <Medal className="w-4 h-4" />
-          结果显示说明
+          {t('rewardTiers.displayNote')}
         </h4>
         <div className="text-xs text-muted-foreground">
-          <p>老虎机显示3行符号，但只有<span className="text-neon-cyan font-bold">中间行（高亮行）</span>是实际开奖结果。</p>
-          <p className="mt-1">上下两行为装饰符号，不参与中奖判定。</p>
+          <p>{t('rewardTiers.displayDesc1')}</p>
+          <p className="mt-1">{t('rewardTiers.displayDesc2')}</p>
         </div>
       </div>
 
@@ -247,8 +261,7 @@ export function AdvancedRewardTiers() {
       <div className="p-3 neon-border rounded-lg bg-muted/20">
         <h4 className="text-sm font-display text-neon-green mb-2">🔗 Chainlink VRF</h4>
         <p className="text-xs text-muted-foreground">
-          使用 Chainlink VRF 生成真随机数，确保结果公平不可预测。
-          每次转动消耗 VRF 请求，约 2-3 区块后返回结果。
+          {t('rewardTiers.vrfDesc')}
         </p>
       </div>
     </div>
