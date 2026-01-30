@@ -338,33 +338,34 @@ export function AdvancedSlotMachine() {
 
   return (
     <div className="relative">
-      <div className="absolute -inset-4 bg-gradient-to-r from-neon-purple/10 via-neon-blue/10 to-neon-pink/10 blur-3xl rounded-3xl" />
+      <div className="absolute -inset-4 bg-gradient-to-r from-neon-purple/10 via-neon-blue/10 to-neon-pink/10 blur-3xl rounded-3xl hidden sm:block" />
       
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative cyber-card overflow-visible"
+        className="relative cyber-card overflow-visible p-3 sm:p-6"
       >
-        <div className="absolute -top-2 -left-2 w-12 h-12 border-t-2 border-l-2 border-neon-blue rounded-tl-lg" />
-        <div className="absolute -top-2 -right-2 w-12 h-12 border-t-2 border-r-2 border-neon-blue rounded-tr-lg" />
-        <div className="absolute -bottom-2 -left-2 w-12 h-12 border-b-2 border-l-2 border-neon-purple rounded-bl-lg" />
-        <div className="absolute -bottom-2 -right-2 w-12 h-12 border-b-2 border-r-2 border-neon-purple rounded-br-lg" />
+        <div className="absolute -top-1.5 sm:-top-2 -left-1.5 sm:-left-2 w-8 sm:w-12 h-8 sm:h-12 border-t-2 border-l-2 border-neon-blue rounded-tl-lg" />
+        <div className="absolute -top-1.5 sm:-top-2 -right-1.5 sm:-right-2 w-8 sm:w-12 h-8 sm:h-12 border-t-2 border-r-2 border-neon-blue rounded-tr-lg" />
+        <div className="absolute -bottom-1.5 sm:-bottom-2 -left-1.5 sm:-left-2 w-8 sm:w-12 h-8 sm:h-12 border-b-2 border-l-2 border-neon-purple rounded-bl-lg" />
+        <div className="absolute -bottom-1.5 sm:-bottom-2 -right-1.5 sm:-right-2 w-8 sm:w-12 h-8 sm:h-12 border-b-2 border-r-2 border-neon-purple rounded-br-lg" />
 
-        <div className="text-center mb-6">
+        {/* 标题 - 手机端隐藏（Index页面已有） */}
+        <div className="text-center mb-3 sm:mb-6 hidden sm:block">
           <motion.h2 
-            className="text-3xl md:text-4xl font-display neon-text-blue glitch flex items-center justify-center gap-3"
+            className="text-2xl sm:text-3xl md:text-4xl font-display neon-text-blue glitch flex items-center justify-center gap-2 sm:gap-3"
             animate={isSpinning ? { scale: [1, 1.02, 1] } : {}}
             transition={{ duration: 0.3, repeat: isSpinning ? Infinity : 0 }}
           >
-            <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-neon-yellow animate-pulse" />
             {t('slot.title')}
-            <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-neon-yellow animate-pulse" />
           </motion.h2>
           <div className="flex items-center justify-center gap-2 mt-1">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {t('slot.subtitle')} | 💯 {t('slot.return')}
             </p>
-            <span className="text-xs px-2 py-0.5 rounded bg-neon-green/20 text-neon-green border border-neon-green/30">
+            <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded bg-neon-green/20 text-neon-green border border-neon-green/30">
               🔗 {t('slot.onchain')}
             </span>
           </div>
@@ -374,15 +375,15 @@ export function AdvancedSlotMachine() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-3 rounded-lg bg-neon-green/10 border border-neon-green/30 flex items-center justify-between"
+            className="mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg bg-neon-green/10 border border-neon-green/30 flex items-center justify-between gap-2"
           >
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-neon-green" />
-              <span className="text-sm">{t('slot.unclaimedPrize')}: <strong className="text-neon-green">{parseFloat(unclaimedPrize).toFixed(4)} BNB</strong></span>
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-neon-green flex-shrink-0" />
+              <span className="text-xs sm:text-sm truncate">{t('slot.unclaimedPrize')}: <strong className="text-neon-green">{parseFloat(unclaimedPrize).toFixed(4)} BNB</strong></span>
             </div>
             <button
               onClick={handleClaimPrize}
-              className="px-3 py-1 rounded bg-neon-green/20 text-neon-green text-sm hover:bg-neon-green/30 transition-colors"
+              className="px-2 sm:px-3 py-1 rounded bg-neon-green/20 text-neon-green text-xs sm:text-sm hover:bg-neon-green/30 transition-colors flex-shrink-0"
             >
               {t('slot.claim')}
             </button>
@@ -393,15 +394,15 @@ export function AdvancedSlotMachine() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center justify-between"
+            className="mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center justify-between gap-2"
           >
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-destructive" />
-              <div className="text-sm">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-destructive flex-shrink-0" />
+              <div className="text-xs sm:text-sm truncate">
                 <div>
                   {t('slot.pendingRequest')}: <strong className="text-destructive">#{pendingRequest.toString()}</strong>
                 </div>
-                <div className="text-xs text-muted-foreground mt-0.5">
+                <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
                   {t('slot.waitingVRFCallback')}
                 </div>
               </div>
@@ -409,33 +410,34 @@ export function AdvancedSlotMachine() {
             <button
               onClick={handleCancelStuck}
               disabled={isSpinning}
-              className="px-3 py-1 rounded bg-destructive/15 text-destructive text-sm hover:bg-destructive/25 transition-colors disabled:opacity-50"
+              className="px-2 sm:px-3 py-1 rounded bg-destructive/15 text-destructive text-xs sm:text-sm hover:bg-destructive/25 transition-colors disabled:opacity-50 flex-shrink-0"
             >
               {t('slot.cancel')}
             </button>
           </motion.div>
         )}
 
-        <div className="flex justify-between items-center mb-4 gap-2">
-          <div className="neon-border-pink rounded-lg px-4 py-2 bg-muted/50 flex items-center gap-2">
-            <Coins className="w-4 h-4 text-neon-yellow" />
-            <span className="text-xs text-muted-foreground">{t('slot.pool')}</span>
-            <span className="text-lg font-display neon-text-pink">
+        {/* 信息栏 - 手机端紧凑 */}
+        <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <div className="neon-border-pink rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 bg-muted/50 flex items-center gap-1 sm:gap-2">
+            <Coins className="w-3 h-3 sm:w-4 sm:h-4 text-neon-yellow" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">{t('slot.pool')}</span>
+            <span className="text-sm sm:text-lg font-display neon-text-pink">
               {prizePool >= 1 ? prizePool.toFixed(2) : prizePool >= 0.01 ? prizePool.toFixed(4) : prizePool.toFixed(6)}
             </span>
-            <span className="text-xs text-neon-pink">BNB</span>
+            <span className="text-[10px] sm:text-xs text-neon-pink">BNB</span>
           </div>
           
-          <div className="neon-border rounded-lg px-4 py-2 bg-muted/50 flex items-center gap-2">
-            <Ticket className="w-4 h-4 text-neon-cyan" />
-            <span className="text-xs text-muted-foreground">{t('slot.credits')}</span>
-            <span className="text-lg font-display text-neon-cyan">{creditsDisplay.toLocaleString()}</span>
+          <div className="neon-border rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 bg-muted/50 flex items-center gap-1 sm:gap-2">
+            <Ticket className="w-3 h-3 sm:w-4 sm:h-4 text-neon-cyan" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">{t('slot.credits')}</span>
+            <span className="text-sm sm:text-lg font-display text-neon-cyan">{creditsDisplay.toLocaleString()}</span>
           </div>
           
-          <div className="neon-border-cyan rounded-lg px-4 py-2 bg-muted/50 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-neon-green" />
-            <span className="text-xs text-muted-foreground">{t('slot.winRate')}</span>
-            <span className="text-lg font-display text-neon-green">
+          <div className="neon-border-cyan rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 bg-muted/50 flex items-center gap-1 sm:gap-2">
+            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-neon-green" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">{t('slot.winRate')}</span>
+            <span className="text-sm sm:text-lg font-display text-neon-green">
               {totalSpinsDisplay > 0 ? ((totalWinsDisplay / totalSpinsDisplay) * 100).toFixed(1) : '0.0'}%
             </span>
           </div>
@@ -473,11 +475,12 @@ export function AdvancedSlotMachine() {
           )}
         </div>
 
-        <div className="mt-4 neon-border rounded-xl p-4 bg-muted/20">
-          <div className="text-center text-sm text-muted-foreground mb-3 flex items-center justify-center gap-2">
-            <Ticket className="w-4 h-4 text-neon-cyan" />
+        {/* 投注选择 - 手机端更紧凑 */}
+        <div className="mt-3 sm:mt-4 neon-border rounded-xl p-2 sm:p-4 bg-muted/20">
+          <div className="text-center text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 flex items-center justify-center gap-1 sm:gap-2">
+            <Ticket className="w-3 h-3 sm:w-4 sm:h-4 text-neon-cyan" />
             <span className="text-neon-cyan">{t('bet.credits') || t('slot.credits')}</span>
-            <span className="text-xs text-muted-foreground">({t('bet.moreCredits') || 'More credits = higher odds'})</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">({t('bet.moreCredits') || 'More credits = higher odds'})</span>
           </div>
           <BetSelector
             currentBet={currentBetCredits}
@@ -487,7 +490,8 @@ export function AdvancedSlotMachine() {
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-4">
+        {/* 统计信息 - 手机端隐藏（信息栏已显示） */}
+        <div className="hidden sm:grid grid-cols-3 gap-3 mt-4">
           <div className="neon-border rounded-lg p-3 bg-muted/30 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-1">
               <Zap className="w-3 h-3 text-neon-cyan" />
@@ -519,45 +523,46 @@ export function AdvancedSlotMachine() {
           </div>
         </div>
 
-        <div className="mt-6 space-y-3">
+        {/* 游戏按钮 */}
+        <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
           {isConnected ? (
             <>
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <motion.button
                   onClick={handleSpin}
                   disabled={isSpinning || isAutoSpinning || isRevealing || isWaitingForResult}
                   whileHover={{ scale: (isSpinning || isAutoSpinning || isRevealing || isWaitingForResult) ? 1 : 1.02 }}
                   whileTap={{ scale: (isSpinning || isAutoSpinning || isRevealing || isWaitingForResult) ? 1 : 0.98 }}
                   className={`
-                    cyber-button flex-1 text-lg rounded-xl py-5
+                    cyber-button flex-1 text-base sm:text-lg rounded-xl py-3 sm:py-5
                     ${(isSpinning || isAutoSpinning || isRevealing || isWaitingForResult)
                       ? 'opacity-50 cursor-not-allowed' 
                       : 'hover:shadow-[0_0_40px_hsl(195_100%_50%/0.5)]'}
                   `}
                 >
                   {(isSpinning || isWaitingForResult || isRevealing) ? (
-                    <span className="flex items-center justify-center gap-3">
+                    <span className="flex items-center justify-center gap-2 sm:gap-3">
                       <motion.span
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
-                        className="text-2xl"
+                        className="text-xl sm:text-2xl"
                       >
                         🎰
                       </motion.span>
-                      <span>{isRevealing ? (t('slot.revealing') || 'Revealing...') : t('slot.spinning')}</span>
+                      <span className="text-sm sm:text-base">{isRevealing ? (t('slot.revealing') || 'Revealing...') : t('slot.spinning')}</span>
                       <motion.span
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
-                        className="text-2xl"
+                        className="text-xl sm:text-2xl"
                       >
                         🎰
                       </motion.span>
                     </span>
                   ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <Zap className="w-6 h-6" />
+                    <span className="flex items-center justify-center gap-1.5 sm:gap-2">
+                      <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
                       {t('slot.spin')}
-                      <Zap className="w-6 h-6" />
+                      <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
                     </span>
                   )}
                 </motion.button>
@@ -579,21 +584,22 @@ export function AdvancedSlotMachine() {
               onClick={() => { playClickSound(); connect(); }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="cyber-button w-full text-lg rounded-xl py-5"
+              className="cyber-button w-full text-base sm:text-lg rounded-xl py-3 sm:py-5"
             >
               {t('slot.connectWallet')}
             </motion.button>
           )}
         </div>
 
-        <div className="mt-4 text-center text-sm text-muted-foreground">
+        {/* 底部统计 - 手机端隐藏 */}
+        <div className="mt-3 sm:mt-4 text-center text-xs sm:text-sm text-muted-foreground hidden sm:block">
           <span>{t('stats.totalSpins') || 'Total Spins'}: {totalSpinsDisplay}</span>
           <span className="mx-3">|</span>
           <span>{t('stats.totalWins') || 'Total Wins'}: {totalWinsDisplay}</span>
         </div>
         
         {contractError && (
-          <div className="mt-2 text-center text-xs text-destructive">
+          <div className="mt-2 text-center text-[10px] sm:text-xs text-destructive">
             {contractError}
           </div>
         )}
