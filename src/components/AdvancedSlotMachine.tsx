@@ -336,34 +336,53 @@ export function AdvancedSlotMachine() {
 
   return (
     <div className="relative">
-      <div className="absolute -inset-4 bg-gradient-to-r from-fire-red/10 via-fire-orange/10 to-fire-yellow/10 blur-3xl rounded-3xl" />
+      {/* 深红光晕背景 */}
+      <div className="absolute -inset-6 rounded-3xl overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-fire-crimson/15 via-fire-red/10 to-fire-deep/20 blur-2xl" />
+        <motion.div
+          animate={{ opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute inset-0 bg-gradient-to-t from-fire-ember/10 via-transparent to-transparent"
+        />
+      </div>
       
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative cyber-card overflow-visible"
+        className="relative cyber-card overflow-visible fire-glow-pulse"
       >
-        <div className="absolute -top-2 -left-2 w-12 h-12 border-t-2 border-l-2 border-fire-orange rounded-tl-lg" />
-        <div className="absolute -top-2 -right-2 w-12 h-12 border-t-2 border-r-2 border-fire-orange rounded-tr-lg" />
-        <div className="absolute -bottom-2 -left-2 w-12 h-12 border-b-2 border-l-2 border-fire-red rounded-bl-lg" />
-        <div className="absolute -bottom-2 -right-2 w-12 h-12 border-b-2 border-r-2 border-fire-red rounded-br-lg" />
+        {/* 角落装饰 - 火焰色 */}
+        <div className="absolute -top-2 -left-2 w-10 h-10 border-t-2 border-l-2 border-fire-ember/60 rounded-tl-lg" />
+        <div className="absolute -top-2 -right-2 w-10 h-10 border-t-2 border-r-2 border-fire-ember/60 rounded-tr-lg" />
+        <div className="absolute -bottom-2 -left-2 w-10 h-10 border-b-2 border-l-2 border-fire-crimson/60 rounded-bl-lg" />
+        <div className="absolute -bottom-2 -right-2 w-10 h-10 border-b-2 border-r-2 border-fire-crimson/60 rounded-br-lg" />
 
-        <div className="text-center mb-6">
+        <div className="text-center mb-5">
           <motion.h2 
-            className="text-3xl md:text-4xl font-display fire-text-orange glitch flex items-center justify-center gap-3"
+            className="text-2xl md:text-3xl font-display fire-text flex items-center justify-center gap-3"
             animate={isSpinning ? { scale: [1, 1.02, 1] } : {}}
             transition={{ duration: 0.3, repeat: isSpinning ? Infinity : 0 }}
           >
-            <Flame className="w-8 h-8 text-fire-yellow flame-flicker" />
+            <motion.div
+              animate={{ scale: [1, 1.1, 1], rotate: [-2, 2, -2] }}
+              transition={{ duration: 0.6, repeat: Infinity }}
+            >
+              <Flame className="w-7 h-7 text-fire-ember flame-flicker" />
+            </motion.div>
             BURN SLOTS
-            <Flame className="w-8 h-8 text-fire-yellow flame-flicker" />
+            <motion.div
+              animate={{ scale: [1, 1.1, 1], rotate: [2, -2, 2] }}
+              transition={{ duration: 0.6, repeat: Infinity }}
+            >
+              <Flame className="w-7 h-7 text-fire-ember flame-flicker" />
+            </motion.div>
           </motion.h2>
-          <div className="flex items-center justify-center gap-2 mt-1">
+          <div className="flex items-center justify-center gap-2 mt-1.5">
             <p className="text-sm text-muted-foreground">
-              5轮符号匹配 | 🔥 通缩即奖励
+              5轮符号匹配 · 通缩即奖励
             </p>
-            <span className="text-xs px-2 py-0.5 rounded bg-neon-green/20 text-neon-green border border-neon-green/30">
-              🔗 链上模式
+            <span className="text-xs px-2 py-0.5 rounded-md bg-neon-green/15 text-neon-green border border-neon-green/25">
+              链上模式
             </span>
           </div>
         </div>
