@@ -13,7 +13,7 @@ interface WinDisplay {
 }
 
 export function JackpotTicker() {
-  const { recentWins, prizePool } = useCyberSlots();
+  const { recentWins, prizePool, totalBurned } = useCyberSlots();
   const { t, language } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayWins, setDisplayWins] = useState<WinDisplay[]>([]);
@@ -57,6 +57,7 @@ export function JackpotTicker() {
   }, [displayWins.length]);
 
   const poolDisplay = formatBnbDisplay(prizePool);
+  const burnedDisplay = formatBnbDisplay(totalBurned);
   const hasWins = displayWins.length > 0;
   const winner = hasWins ? displayWins[currentIndex] : null;
 
@@ -65,9 +66,15 @@ export function JackpotTicker() {
       <div className="absolute inset-0 shine-effect opacity-50" />
       
       <div className="relative">
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <span className="text-xs text-muted-foreground">{t('jackpot.pool')}</span>
-          <span className="text-lg font-display text-neon-yellow">{poolDisplay} BNB</span>
+        <div className="flex items-center justify-center gap-3 sm:gap-6 mb-1 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">{t('jackpot.pool')}</span>
+            <span className="text-base sm:text-lg font-display text-neon-yellow">{poolDisplay} BNB</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">{t('jackpot.burned')}</span>
+            <span className="text-base sm:text-lg font-display text-neon-pink">{Number(burnedDisplay).toLocaleString()} 🔥</span>
+          </div>
         </div>
         
         {hasWins ? (

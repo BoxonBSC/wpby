@@ -34,6 +34,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // 奖池播报
     'jackpot.pool': '奖池',
+    'jackpot.burned': '总销毁',
     'jackpot.waiting': '等待第一位赢家...',
     
     // 老虎机
@@ -475,6 +476,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Jackpot ticker
     'jackpot.pool': 'Prize Pool',
+    'jackpot.burned': 'Total Burned',
     'jackpot.waiting': 'Waiting for first winner...',
     
     // Slot machine

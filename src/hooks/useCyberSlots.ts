@@ -33,6 +33,7 @@ export interface ContractState {
   availablePool: string;
   totalSpins: bigint;
   totalPaidOut: string;
+  totalBurned: string;
   playerStats: PlayerStats | null;
   tokenBalance: string;
   tokenAllowance: string;
@@ -154,6 +155,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     availablePool: '0',
     totalSpins: 0n,
     totalPaidOut: '0',
+    totalBurned: '0',
     playerStats: null,
     tokenBalance: '0',
     tokenAllowance: '0',
@@ -256,11 +258,12 @@ export function useCyberSlots(): UseCyberSlotsReturn {
     
     try {
       console.log('[CyberSlots] Fetching public data from contract...');
-      const [prizePool, availablePool, totalSpins, totalPaidOut] = await Promise.all([
+      const [prizePool, availablePool, totalSpins, totalPaidOut, totalBurned] = await Promise.all([
         contract.getPrizePool(),
         contract.getAvailablePool(),
         contract.totalSpins(),
         contract.totalPaidOut(),
+        contract.totalCreditsDeposited(),
       ]);
 
       console.log('[CyberSlots] Raw contract data:', {
@@ -268,6 +271,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         availablePool: availablePool.toString(),
         totalSpins: totalSpins.toString(),
         totalPaidOut: totalPaidOut.toString(),
+        totalBurned: totalBurned.toString(),
       });
 
       setState(prev => ({
@@ -276,6 +280,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         availablePool: formatEther(availablePool),
         totalSpins,
         totalPaidOut: formatEther(totalPaidOut),
+        totalBurned: formatEther(totalBurned),
       }));
     } catch (err) {
       console.error('[CyberSlots] Failed to refresh public data:', err);
