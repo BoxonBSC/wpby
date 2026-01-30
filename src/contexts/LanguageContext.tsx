@@ -375,6 +375,15 @@ const translations: Record<Language, Record<string, string>> = {
     'audio.unmute': '取消静音',
     'audio.bgMusicOn': '开启背景音乐',
     'audio.bgMusicOff': '关闭背景音乐',
+    
+    // 自动旋转
+    'autoSpin.title': '自动旋转',
+    'autoSpin.remaining': '自动',
+    'autoSpin.stop': '停止',
+    'autoSpin.selectCount': '选择自动旋转次数',
+    'autoSpin.times': '次',
+    'autoSpin.start': '开始自动',
+    'autoSpin.hint': '中途可随时点击停止',
   },
   en: {
     // Navigation
@@ -739,6 +748,15 @@ const translations: Record<Language, Record<string, string>> = {
     'audio.unmute': 'Unmute',
     'audio.bgMusicOn': 'Turn on background music',
     'audio.bgMusicOff': 'Turn off background music',
+    
+    // Auto spin
+    'autoSpin.title': 'Auto Spin',
+    'autoSpin.remaining': 'Auto',
+    'autoSpin.stop': 'Stop',
+    'autoSpin.selectCount': 'Select auto spin count',
+    'autoSpin.times': 'x',
+    'autoSpin.start': 'Start Auto',
+    'autoSpin.hint': 'Click stop anytime',
   },
 };
 

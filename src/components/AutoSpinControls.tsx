@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Square, Settings, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AutoSpinControlsProps {
   isAutoSpinning: boolean;
@@ -21,6 +22,7 @@ export function AutoSpinControls({
   disabled,
   playClickSound,
 }: AutoSpinControlsProps) {
+  const { t } = useLanguage();
   const [showOptions, setShowOptions] = useState(false);
   const [selectedCount, setSelectedCount] = useState(10);
 
@@ -64,7 +66,7 @@ export function AutoSpinControls({
                 <RotateCcw className="w-4 h-4 text-neon-orange" />
               </motion.div>
               <span className="text-sm font-display text-neon-orange">
-                自动: {remainingSpins}
+                {t('autoSpin.remaining')}: {remainingSpins}
               </span>
             </div>
             
@@ -76,7 +78,7 @@ export function AutoSpinControls({
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/30 transition-colors border border-destructive/50"
             >
               <Square className="w-4 h-4" />
-              <span className="text-sm font-display">停止</span>
+              <span className="text-sm font-display">{t('autoSpin.stop')}</span>
             </motion.button>
           </motion.div>
         ) : (
@@ -102,7 +104,7 @@ export function AutoSpinControls({
               `}
             >
               <Settings className="w-4 h-4" />
-              <span className="text-sm font-display">自动旋转</span>
+              <span className="text-sm font-display">{t('autoSpin.title')}</span>
             </motion.button>
 
             {/* 选项面板 */}
@@ -115,7 +117,7 @@ export function AutoSpinControls({
                   className="absolute top-full left-0 mt-2 p-4 rounded-xl bg-background/95 backdrop-blur-lg border border-border neon-border-purple z-50 min-w-[200px]"
                 >
                   <div className="text-xs text-muted-foreground mb-3 font-display">
-                    选择自动旋转次数
+                    {t('autoSpin.selectCount')}
                   </div>
                   
                   {/* 次数选项 */}
@@ -133,7 +135,7 @@ export function AutoSpinControls({
                             : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'}
                         `}
                       >
-                        {count}次
+                        {count}{t('autoSpin.times')}
                       </motion.button>
                     ))}
                   </div>
@@ -146,12 +148,12 @@ export function AutoSpinControls({
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-neon-purple to-neon-pink text-background font-display shadow-[0_0_20px_hsl(280_100%_60%/0.3)] hover:shadow-[0_0_30px_hsl(280_100%_60%/0.5)] transition-shadow"
                   >
                     <Play className="w-4 h-4" />
-                    开始自动 ({selectedCount}次)
+                    {t('autoSpin.start')} ({selectedCount}{t('autoSpin.times')})
                   </motion.button>
 
                   {/* 提示 */}
                   <div className="mt-3 text-xs text-muted-foreground text-center">
-                    中途可随时点击停止
+                    {t('autoSpin.hint')}
                   </div>
                 </motion.div>
               )}
