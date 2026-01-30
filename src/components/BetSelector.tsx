@@ -1,16 +1,18 @@
 import { motion } from 'framer-motion';
 import { Ticket, Minus, Plus, TrendingUp } from 'lucide-react';
 
-// 最低20000凭证起投
-const BET_AMOUNTS = [20000, 50000, 100000, 200000, 500000];
+// 与合约 CyberSlots.sol 保持一致的投注档位
+// betLevel1-5: 10K, 25K, 50K, 100K, 250K 代币
+const BET_AMOUNTS = [10000, 25000, 50000, 100000, 250000];
 
-// 投注对应的概率加成倍数
+// 投注对应的概率加成倍数 (与合约 getBetMultiplier 一致)
+// 合约返回: 100, 250, 500, 1000, 2000 (即 1x, 2.5x, 5x, 10x, 20x)
 const BET_MULTIPLIERS: Record<number, number> = {
-  20000: 1,
-  50000: 2.5,
-  100000: 5,
-  200000: 10,
-  500000: 20,
+  10000: 1,
+  25000: 2.5,
+  50000: 5,
+  100000: 10,
+  250000: 20,
 };
 
 interface BetSelectorProps {
