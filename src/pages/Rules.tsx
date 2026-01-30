@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Navbar } from '@/components/Navbar';
 import { AdvancedRewardTiers } from '@/components/AdvancedRewardTiers';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Gamepad2, 
   Wallet, 
@@ -19,6 +20,8 @@ import {
 } from 'lucide-react';
 
 const Rules = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="min-h-screen bg-background cyber-grid relative">
       <div className="fixed inset-0 pointer-events-none scanlines opacity-50" />
@@ -33,9 +36,9 @@ const Rules = () => {
           className="text-center mb-8"
         >
           <h1 className="text-3xl md:text-4xl font-display neon-text-cyan mb-2">
-            🎰 游戏规则说明
+            🎰 {t('rules.title')}
           </h1>
-          <p className="text-muted-foreground">一分钟看懂 Burn Slots 怎么玩</p>
+          <p className="text-muted-foreground">{t('rules.subtitle')}</p>
         </motion.div>
 
         {/* 游戏简介 - 通俗易懂版 */}
@@ -46,30 +49,30 @@ const Rules = () => {
         >
           <h2 className="text-xl font-display neon-text-yellow flex items-center gap-2 mb-4">
             <Zap className="w-5 h-5" />
-            这是什么游戏？
+            {t('rules.whatIsThis')}
           </h2>
           <div className="text-muted-foreground space-y-3">
             <p className="text-foreground text-lg">
-              简单来说：<span className="text-neon-cyan">用代币换凭证</span> → <span className="text-neon-purple">用凭证玩老虎机</span> → <span className="text-neon-green">中奖赢 BNB</span>
+              {t('rules.simpleExplain')}
             </p>
             <div className="neon-border-green rounded-lg p-4 bg-neon-green/5">
-              <p className="text-neon-green font-display mb-2">💰 核心亮点：100% 通缩销毁，零平台抽成！</p>
+              <p className="text-neon-green font-display mb-2">💰 {t('rules.highlight')}</p>
               <div className="text-sm space-y-2">
-                <p>你投入的代币会被 100% 销毁到黑洞地址，中奖奖金分配如下：</p>
+                <p>{t('rules.tokenBurnDesc')}</p>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <div className="p-2 rounded bg-neon-green/10 border border-neon-green/30 text-center">
                     <div className="text-neon-green font-display text-lg">95%</div>
-                    <div className="text-xs text-muted-foreground">玩家获得</div>
-                    <div className="text-xs text-neon-green">直发钱包</div>
+                    <div className="text-xs text-muted-foreground">{t('rules.playerGet')}</div>
+                    <div className="text-xs text-neon-green">{t('rules.directToWallet')}</div>
                   </div>
                   <div className="p-2 rounded bg-neon-cyan/10 border border-neon-cyan/30 text-center">
                     <div className="text-neon-cyan font-display text-lg">5%</div>
-                    <div className="text-xs text-muted-foreground">运营费用</div>
-                    <div className="text-xs text-neon-cyan">VRF Gas费</div>
+                    <div className="text-xs text-muted-foreground">{t('rules.operationFee')}</div>
+                    <div className="text-xs text-neon-cyan">{t('rules.vrfGas')}</div>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  💡 5% 用于 Chainlink VRF 预言机 Gas 费，保障随机数公平生成
+                  💡 {t('rules.vrfNote')}
                 </p>
               </div>
             </div>
@@ -85,21 +88,21 @@ const Rules = () => {
         >
           <h2 className="text-xl font-display neon-text-green flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5" />
-            🔥 通缩机制：玩游戏 = 销毁代币
+            {t('deflation.title')}
           </h2>
           
           <div className="space-y-4">
             {/* 核心机制解释 */}
             <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5">
-              <h3 className="font-display text-neon-yellow mb-3">💡 这是怎么运作的？</h3>
+              <h3 className="font-display text-neon-yellow mb-3">{t('deflation.howItWorks')}</h3>
               <div className="space-y-3 text-sm text-muted-foreground">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-neon-purple/20 flex items-center justify-center flex-shrink-0">
                     <span className="text-lg">1️⃣</span>
                   </div>
                   <div>
-                    <p className="text-foreground font-display">代币换凭证 = 代币销毁</p>
-                    <p>当你用代币兑换游戏凭证时，代币会被发送到<span className="text-neon-pink">黑洞地址</span>永久销毁，不是转给平台！</p>
+                    <p className="text-foreground font-display">{t('deflation.step1Title')}</p>
+                    <p>{t('deflation.step1Desc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -107,8 +110,8 @@ const Rules = () => {
                     <span className="text-lg">2️⃣</span>
                   </div>
                   <div>
-                    <p className="text-foreground font-display">凭证用于游戏</p>
-                    <p>你获得的凭证只能用于老虎机游戏，<span className="text-neon-cyan">1:1比例</span>，永久有效，无需每次授权</p>
+                    <p className="text-foreground font-display">{t('deflation.step2Title')}</p>
+                    <p>{t('deflation.step2Desc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -116,8 +119,8 @@ const Rules = () => {
                     <span className="text-lg">3️⃣</span>
                   </div>
                   <div>
-                    <p className="text-foreground font-display">中奖直接发 BNB</p>
-                    <p>奖池是真实的 BNB，中奖后<span className="text-neon-green">直接打到你钱包</span>，不是代币！</p>
+                    <p className="text-foreground font-display">{t('deflation.step3Title')}</p>
+                    <p>{t('deflation.step3Desc')}</p>
                   </div>
                 </div>
               </div>
@@ -126,37 +129,37 @@ const Rules = () => {
             {/* 好处列表 */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="neon-border-green rounded-lg p-4 bg-neon-green/5">
-                <h3 className="font-display text-neon-green mb-2">✅ 对持币者的好处</h3>
+                <h3 className="font-display text-neon-green mb-2">{t('benefits.holdersTitle')}</h3>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span><span className="text-neon-yellow">持续通缩</span>：每次游戏都在销毁代币，流通量持续减少</span>
+                    <span><span className="text-neon-yellow">{t('benefits.deflation')}</span>：{t('benefits.deflationDesc')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span><span className="text-neon-yellow">价值支撑</span>：销毁减少供应，理论上有助于代币升值</span>
+                    <span><span className="text-neon-yellow">{t('benefits.value')}</span>：{t('benefits.valueDesc')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span><span className="text-neon-yellow">真实用途</span>：代币有了实际应用场景，不只是炒作</span>
+                    <span><span className="text-neon-yellow">{t('benefits.utility')}</span>：{t('benefits.utilityDesc')}</span>
                   </li>
                 </ul>
               </div>
               
               <div className="neon-border-cyan rounded-lg p-4 bg-neon-cyan/5">
-                <h3 className="font-display text-neon-cyan mb-2">🎮 对玩家的好处</h3>
+                <h3 className="font-display text-neon-cyan mb-2">{t('benefits.playersTitle')}</h3>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-cyan mt-0.5 flex-shrink-0" />
-                    <span><span className="text-neon-green">BNB奖励</span>：中奖得到的是真金白银（BNB），不是空气币</span>
+                    <span><span className="text-neon-green">{t('benefits.bnbReward')}</span>：{t('benefits.bnbRewardDesc')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-cyan mt-0.5 flex-shrink-0" />
-                    <span><span className="text-neon-green">公平透明</span>：Chainlink VRF 保证随机，没人能作弊</span>
+                    <span><span className="text-neon-green">{t('benefits.fair')}</span>：{t('benefits.fairDesc')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-cyan mt-0.5 flex-shrink-0" />
-                    <span><span className="text-neon-green">高概率中奖</span>：约60%概率至少匹配2个符号拿安慰奖</span>
+                    <span><span className="text-neon-green">{t('benefits.highOdds')}</span>：{t('benefits.highOddsDesc')}</span>
                   </li>
                 </ul>
               </div>
@@ -164,17 +167,12 @@ const Rules = () => {
 
             {/* 通俗总结 */}
             <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
-              <h3 className="font-display text-neon-pink mb-2">🎯 一句话总结</h3>
+              <h3 className="font-display text-neon-pink mb-2">{t('summary.title')}</h3>
               <p className="text-foreground">
-                <span className="text-neon-yellow">玩家玩游戏</span> → 
-                <span className="text-neon-pink"> 代币被销毁</span> → 
-                <span className="text-neon-green"> 流通量减少</span> → 
-                <span className="text-neon-cyan"> 币价有支撑</span> → 
-                <span className="text-neon-purple"> 同时还有机会赢BNB</span>
+                {t('summary.flow')}
               </p>
               <p className="text-sm text-muted-foreground mt-2">
-                这不是"消费"，而是一种<span className="text-neon-green">有机会获得回报的通缩行为</span>。
-                你每玩一次，就为所有持币者做了贡献！
+                {t('summary.note')}
               </p>
             </div>
           </div>
@@ -189,7 +187,7 @@ const Rules = () => {
           >
             <h2 className="text-xl font-display neon-text-blue flex items-center gap-2 mb-4">
               <Gamepad2 className="w-5 h-5" />
-              怎么玩？（4步走）
+              {t('howToPlay.title')}
             </h2>
 
             <div className="space-y-4">
@@ -202,11 +200,11 @@ const Rules = () => {
                 </div>
                 <div>
                   <div className="font-display text-foreground mb-1 flex items-center gap-2">
-                    1. 连接钱包
-                    <span className="text-xs px-2 py-0.5 rounded bg-neon-blue/20 text-neon-blue">必须</span>
+                    {t('howToPlay.step1Title')}
+                    <span className="text-xs px-2 py-0.5 rounded bg-neon-blue/20 text-neon-blue">{t('howToPlay.required')}</span>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-2">
-                    <p>选择你常用的钱包连接到 BNB Smart Chain 网络：</p>
+                    <p>{t('howToPlay.step1Desc')}</p>
                     <div className="flex flex-wrap gap-2">
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#E2761B]/10 border border-[#E2761B]/30 text-xs">
                         🦊 MetaMask
@@ -215,14 +213,14 @@ const Rules = () => {
                         ⬛ OKX Wallet
                       </span>
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#F3BA2F]/10 border border-[#F3BA2F]/30 text-xs">
-                        🟡 币安钱包
+                        🟡 {t('howToPlay.binanceWallet') || 'Binance Wallet'}
                       </span>
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#2980FE]/10 border border-[#2980FE]/30 text-xs">
                         🔵 TokenPocket
                       </span>
                     </div>
                     <p className="text-neon-cyan text-xs">
-                      💡 没有钱包？推荐下载 MetaMask 或 TokenPocket
+                      {t('howToPlay.walletTip')}
                     </p>
                   </div>
                 </div>
@@ -237,13 +235,13 @@ const Rules = () => {
                 </div>
                 <div>
                   <div className="font-display text-foreground mb-1 flex items-center gap-2">
-                    2. 兑换游戏凭证
-                    <span className="text-xs px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple">重要</span>
+                    {t('howToPlay.step2Title')}
+                    <span className="text-xs px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple">{t('howToPlay.important')}</span>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <p>用你的代币兑换游戏凭证，<span className="text-neon-yellow">1:1 兑换</span>，比如：</p>
-                    <p className="text-neon-cyan">100,000 代币 → 100,000 凭证</p>
-                    <p className="text-xs">⚠️ 凭证只能用于游戏，不能转让或提现</p>
+                    <p>{t('howToPlay.step2Desc')}</p>
+                    <p className="text-neon-cyan">{t('howToPlay.step2Example')}</p>
+                    <p className="text-xs">{t('howToPlay.step2Note')}</p>
                   </div>
                 </div>
               </div>
@@ -256,9 +254,9 @@ const Rules = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="font-display text-foreground mb-1">3. 选择投注金额</div>
+                  <div className="font-display text-foreground mb-1">{t('howToPlay.step3Title')}</div>
                   <div className="text-sm text-muted-foreground space-y-2">
-                    <p>最低 <span className="text-neon-yellow font-display">10,000 凭证</span> 起投，可选择更高金额：</p>
+                    <p>{t('howToPlay.step3Desc')}</p>
                     <div className="grid grid-cols-5 gap-1 text-xs">
                       <div className="p-2 rounded bg-muted/30 text-center">
                         <div className="text-foreground">10K</div>
@@ -281,7 +279,7 @@ const Rules = () => {
                         <div className="text-neon-green">20x</div>
                       </div>
                     </div>
-                    <p className="text-neon-green">💡 投注越高，中奖概率越大！250K投注有20倍概率加成！</p>
+                    <p className="text-neon-green">{t('howToPlay.step3Tip')}</p>
                   </div>
                 </div>
               </div>
@@ -294,10 +292,9 @@ const Rules = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="font-display text-foreground mb-1">4. 开始游戏！</div>
+                  <div className="font-display text-foreground mb-1">{t('howToPlay.step4Title')}</div>
                   <div className="text-sm text-muted-foreground">
-                    点击"开始"按钮，5个转轮会开始转动。每个轮子停止后显示一个符号，
-                    <span className="text-neon-yellow">根据5个符号中相同符号的数量判定中奖！</span>
+                    {t('howToPlay.step4Desc')}
                   </div>
                 </div>
               </div>
@@ -312,103 +309,98 @@ const Rules = () => {
           >
             <h2 className="text-xl font-display neon-text-purple flex items-center gap-2 mb-4">
               <Trophy className="w-5 h-5" />
-              怎么算中奖？
+              {t('winRules.title')}
             </h2>
 
             <div className="space-y-4">
               {/* 基本规则 */}
               <div className="neon-border rounded-lg p-4 bg-muted/20">
-                <h3 className="font-display text-neon-cyan mb-2">🎯 基本规则</h3>
+                <h3 className="font-display text-neon-cyan mb-2">{t('winRules.basic')}</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span>游戏有 <span className="text-neon-cyan">5个转轮</span>，每轮产生 <span className="text-neon-cyan">1个符号</span></span>
+                    <span>{t('winRules.rule1')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span>根据 <span className="text-neon-purple">5个符号中相同符号的数量</span> 判定中奖</span>
+                    <span>{t('winRules.rule2')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span><span className="text-neon-yellow">3个以上相同符号</span> 就算中奖</span>
+                    <span>{t('winRules.rule3')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                    <span>界面显示3行，但只有 <span className="text-neon-green">中间行（高亮行）</span> 是实际结果</span>
+                    <span>{t('winRules.rule4')}</span>
                   </li>
                 </ul>
               </div>
 
               {/* 奖励等级简化版 */}
               <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5">
-                <h3 className="font-display text-neon-yellow mb-3">🏆 奖励等级（从高到低）</h3>
+                <h3 className="font-display text-neon-yellow mb-3">{t('winExample.title')}</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 p-2 rounded bg-neon-yellow/10">
                     <span>🎰</span>
-                    <span className="text-neon-yellow font-display flex-1">超级头奖</span>
-                    <span className="text-foreground">5个全是7️⃣</span>
+                    <span className="text-neon-yellow font-display flex-1">{t('reward.superJackpot')}</span>
+                    <span className="text-foreground">{t('prizeDesc.superJackpot') || '5×7️⃣'}</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池50%</span>
+                    <span className="text-neon-green font-display">{t('prizePool.superJackpot') || '50%'}</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-neon-purple/10">
                     <span>💎</span>
-                    <span className="text-neon-purple font-display flex-1">头奖</span>
-                    <span className="text-foreground">5个💎 或 4个7️⃣</span>
+                    <span className="text-neon-purple font-display flex-1">{t('reward.jackpot')}</span>
+                    <span className="text-foreground">{t('prizeDesc.jackpot') || '5×💎 / 4×7️⃣'}</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池25%</span>
+                    <span className="text-neon-green font-display">{t('prizePool.jackpot') || '25%'}</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>👑</span>
-                    <span className="text-foreground font-display flex-1">一等奖</span>
-                    <span className="text-muted-foreground">任意5个相同</span>
+                    <span className="text-foreground font-display flex-1">{t('reward.first')}</span>
+                    <span className="text-muted-foreground">{t('prizeDesc.first') || '5 same'}</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池13%</span>
+                    <span className="text-neon-green font-display">{t('prizePool.first') || '13%'}</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>🔔</span>
-                    <span className="text-foreground font-display flex-1">二等奖</span>
-                    <span className="text-muted-foreground">4个稀有符号相同</span>
+                    <span className="text-foreground font-display flex-1">{t('reward.second')}</span>
+                    <span className="text-muted-foreground">{t('prizeDesc.second') || '4× rare'}</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池5%</span>
+                    <span className="text-neon-green font-display">{t('prizePool.second') || '5%'}</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>⭐</span>
-                    <span className="text-foreground font-display flex-1">三等奖</span>
-                    <span className="text-muted-foreground">4个普通符号相同</span>
+                    <span className="text-foreground font-display flex-1">{t('reward.third')}</span>
+                    <span className="text-muted-foreground">{t('prizeDesc.third') || '4× common'}</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池1.7%</span>
+                    <span className="text-neon-green font-display">{t('prizePool.third') || '1.7%'}</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-muted/20">
                     <span>🍀</span>
-                    <span className="text-foreground font-display flex-1">小奖</span>
-                    <span className="text-muted-foreground">任意3个相同</span>
+                    <span className="text-foreground font-display flex-1">{t('reward.small')}</span>
+                    <span className="text-muted-foreground">{t('prizeDesc.small') || '3 same'}</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池0.5%</span>
+                    <span className="text-neon-green font-display">{t('prizePool.small') || '0.5%'}</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-neon-cyan/10">
                     <span>🎁</span>
-                    <span className="text-neon-cyan font-display flex-1">安慰奖</span>
-                    <span className="text-muted-foreground">任意2个相同</span>
+                    <span className="text-neon-cyan font-display flex-1">{t('reward.consolation')}</span>
+                    <span className="text-muted-foreground">{t('prizeDesc.consolation') || '2 same'}</span>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-neon-green font-display">奖池0.1%</span>
+                    <span className="text-neon-green font-display">{t('prizePool.consolation') || '0.1%'}</span>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  * 单次最大派奖不超过奖池的50%
+                  * {t('prizeNote.maxPayout') || 'Max payout per spin: 50% of pool'}
                 </p>
               </div>
 
               {/* 举例说明 */}
               <div className="neon-border-green rounded-lg p-4 bg-neon-green/5">
-                <h3 className="font-display text-neon-green mb-2">📖 举个例子</h3>
+                <h3 className="font-display text-neon-green mb-2">{t('example.title') || '📖 Example'}</h3>
                 <div className="text-sm text-muted-foreground space-y-2">
-                  <p>
-                    假设当前奖池有 <span className="text-neon-yellow font-display">10 BNB</span>，你投注后开出 [7️⃣ 💎 7️⃣ 7️⃣ 7️⃣]，
-                    其中有4个7️⃣，中了<span className="text-neon-purple">头奖</span>！
-                  </p>
-                  <p>
-                    奖金计算：10 × 25% = <span className="text-neon-green font-display">2.5 BNB</span>（扣除5%运营费后实得约 2.375 BNB）
-                  </p>
+                  <p>{t('example.desc1') || 'If pool has 10 BNB and you spin [7️⃣ 💎 7️⃣ 7️⃣ 7️⃣], you got 4×7️⃣ - Jackpot!'}</p>
+                  <p>{t('example.desc2') || 'Prize: 10 × 25% = 2.5 BNB (minus 5% fee = ~2.375 BNB)'}</p>
                 </div>
               </div>
             </div>
@@ -424,33 +416,33 @@ const Rules = () => {
         >
           <h2 className="text-xl font-display neon-text-cyan flex items-center gap-2 mb-4">
             <Gift className="w-5 h-5" />
-            符号说明
+            {t('symbols.title') || 'Symbol Guide'}
           </h2>
 
           <div className="grid md:grid-cols-4 gap-4">
             <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5 text-center">
               <div className="text-3xl mb-2">7️⃣ 💎</div>
-              <div className="font-display text-neon-yellow">传说符号</div>
-              <div className="text-xs text-muted-foreground mt-1">最稀有，基础概率约1-2%</div>
+              <div className="font-display text-neon-yellow">{t('rarity.legendary')}</div>
+              <div className="text-xs text-muted-foreground mt-1">{t('symbols.legendaryDesc') || 'Base odds ~1-2%'}</div>
             </div>
             <div className="neon-border-purple rounded-lg p-4 bg-neon-purple/5 text-center">
               <div className="text-3xl mb-2">👑 🔔 ⭐</div>
-              <div className="font-display text-neon-purple">史诗符号</div>
-              <div className="text-xs text-muted-foreground mt-1">较稀有，基础概率约3-5%</div>
+              <div className="font-display text-neon-purple">{t('rarity.epic')}</div>
+              <div className="text-xs text-muted-foreground mt-1">{t('symbols.epicDesc') || 'Base odds ~3-5%'}</div>
             </div>
             <div className="neon-border-cyan rounded-lg p-4 bg-neon-cyan/5 text-center">
               <div className="text-3xl mb-2">🍒 🍋 🍊</div>
-              <div className="font-display text-neon-cyan">稀有符号</div>
-              <div className="text-xs text-muted-foreground mt-1">基础概率约17%</div>
+              <div className="font-display text-neon-cyan">{t('rarity.rare')}</div>
+              <div className="text-xs text-muted-foreground mt-1">{t('symbols.rareDesc') || 'Base odds ~17%'}</div>
             </div>
             <div className="neon-border rounded-lg p-4 bg-muted/20 text-center">
               <div className="text-3xl mb-2">🍇 🍀</div>
-              <div className="font-display text-foreground">普通符号</div>
-              <div className="text-xs text-muted-foreground mt-1">基础概率约17%</div>
+              <div className="font-display text-foreground">{t('rarity.common')}</div>
+              <div className="text-xs text-muted-foreground mt-1">{t('symbols.commonDesc') || 'Base odds ~17%'}</div>
             </div>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-3">
-            💡 投注越高，稀有符号出现概率越大！500K投注时稀有符号概率提升20倍
+            💡 {t('symbols.betTip') || 'Higher bets increase rare symbol odds. 500K bet = 20x boost!'}
           </p>
         </motion.div>
 
@@ -463,43 +455,42 @@ const Rules = () => {
         >
           <h2 className="text-xl font-display neon-text-green flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5" />
-            为什么公平？
+            {t('security.fairTitle') || 'Why Is It Fair?'}
           </h2>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="neon-border rounded-lg p-4 bg-muted/20">
-              <h3 className="font-display text-neon-cyan mb-2">🔗 Chainlink VRF 2.5 随机数</h3>
+              <h3 className="font-display text-neon-cyan mb-2">{t('security.vrfTitle')}</h3>
               <p className="text-sm text-muted-foreground">
-                我们使用最新的 Chainlink VRF 2.5（可验证随机函数）生成每次游戏的随机结果。
-                <span className="text-neon-yellow">这意味着：</span>
+                {t('security.vrfDesc')}
               </p>
               <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                <li>• 没有人能预测或操控结果</li>
-                <li>• 每个随机数都可以在链上验证</li>
-                <li>• 完全透明，任何人都能审计</li>
+                <li>• {t('security.vrfPoint1') || 'No one can predict or manipulate results'}</li>
+                <li>• {t('security.vrfPoint2') || 'Every random number is verifiable on-chain'}</li>
+                <li>• {t('security.vrfPoint3') || 'Fully transparent, anyone can audit'}</li>
               </ul>
               <div className="mt-3 p-2 rounded bg-neon-cyan/10 border border-neon-cyan/30">
                 <p className="text-xs text-neon-cyan">
-                  💡 奖池的 5% 会自动用于 VRF 预言机 Gas 费充值，确保服务持续运行
+                  💡 {t('security.vrfGasNote') || '5% of pool auto-funds VRF gas fees'}
                 </p>
               </div>
             </div>
             <div className="neon-border-purple rounded-lg p-4 bg-muted/20">
-              <h3 className="font-display text-neon-purple mb-2">📜 智能合约自动执行</h3>
+              <h3 className="font-display text-neon-purple mb-2">{t('security.contractTitle') || '📜 Smart Contract Auto-Execution'}</h3>
               <p className="text-sm text-muted-foreground">
-                所有游戏逻辑都在智能合约中运行：
+                {t('security.contractDesc') || 'All game logic runs in smart contracts:'}
               </p>
               <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                <li>• 代码开源，任何人可审计</li>
-                <li>• 凭证消耗、奖励发放全自动</li>
-                <li>• 没有人能修改规则或作弊</li>
-                <li>• 奖池资金锁定在合约中</li>
+                <li>• {t('security.contractPoint1') || 'Open source, anyone can audit'}</li>
+                <li>• {t('security.contractPoint2') || 'Credits and rewards fully automated'}</li>
+                <li>• {t('security.contractPoint3') || 'No one can modify rules or cheat'}</li>
+                <li>• {t('security.contractPoint4') || 'Pool funds locked in contract'}</li>
               </ul>
               <a 
                 href="#" 
                 className="inline-flex items-center gap-1 text-sm text-neon-purple hover:underline mt-2"
               >
-                查看智能合约 <ExternalLink className="w-3 h-3" />
+                {t('security.viewContract') || 'View Smart Contract'} <ExternalLink className="w-3 h-3" />
               </a>
             </div>
           </div>
@@ -514,28 +505,27 @@ const Rules = () => {
         >
           <h2 className="text-xl font-display neon-text-yellow flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5" />
-            🔒 管理员权限设计：只降不升
+            {t('admin.title') || '🔒 Admin Design: Only Reduce, Never Increase'}
           </h2>
 
           <div className="space-y-4">
             {/* 核心设计理念 */}
             <div className="neon-border-yellow rounded-lg p-4 bg-neon-yellow/5">
-              <h3 className="font-display text-neon-yellow mb-3">⚡ 核心设计：投注门槛只能降低，不能提高</h3>
+              <h3 className="font-display text-neon-yellow mb-3">{t('admin.coreDesign') || '⚡ Core: Bet threshold can only be lowered'}</h3>
               <div className="text-sm text-muted-foreground space-y-2">
                 <p className="text-foreground">
-                  智能合约内置了<span className="text-neon-green">单向调整机制</span>：管理员只有<span className="text-neon-cyan">降低</span>投注门槛的权限，
-                  <span className="text-neon-pink">永远无法提高</span>门槛。
+                  {t('admin.coreDesc') || 'Smart contract has one-way adjustment: admin can only lower thresholds, never raise them.'}
                 </p>
                 <div className="grid md:grid-cols-2 gap-3 mt-3">
                   <div className="p-3 rounded bg-neon-green/10 border border-neon-green/30">
-                    <div className="text-neon-green font-display mb-1">✅ 允许的操作</div>
-                    <p className="text-xs">降低门槛：例如 10K → 5K → 2K</p>
-                    <p className="text-xs">让更多玩家能参与游戏</p>
+                    <div className="text-neon-green font-display mb-1">{t('admin.allowed') || '✅ Allowed'}</div>
+                    <p className="text-xs">{t('admin.allowedDesc') || 'Lower threshold: 10K → 5K → 2K'}</p>
+                    <p className="text-xs">{t('admin.allowedNote') || 'More players can participate'}</p>
                   </div>
                   <div className="p-3 rounded bg-neon-pink/10 border border-neon-pink/30">
-                    <div className="text-neon-pink font-display mb-1">❌ 禁止的操作</div>
-                    <p className="text-xs">提高门槛：例如 10K → 20K → 50K</p>
-                    <p className="text-xs">合约代码层面完全禁止</p>
+                    <div className="text-neon-pink font-display mb-1">{t('admin.forbidden') || '❌ Forbidden'}</div>
+                    <p className="text-xs">{t('admin.forbiddenDesc') || 'Raise threshold: 10K → 20K → 50K'}</p>
+                    <p className="text-xs">{t('admin.forbiddenNote') || 'Blocked at code level'}</p>
                   </div>
                 </div>
               </div>
@@ -543,15 +533,15 @@ const Rules = () => {
 
             {/* 为什么这样设计 */}
             <div className="neon-border-cyan rounded-lg p-4 bg-neon-cyan/5">
-              <h3 className="font-display text-neon-cyan mb-3">💡 为什么这样设计？</h3>
+              <h3 className="font-display text-neon-cyan mb-3">{t('admin.whyTitle') || '💡 Why This Design?'}</h3>
               <div className="text-sm text-muted-foreground space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-neon-yellow/20 flex items-center justify-center flex-shrink-0">
                     <TrendingUp className="w-4 h-4 text-neon-yellow" />
                   </div>
                   <div>
-                    <p className="text-foreground font-display">应对币价上涨</p>
-                    <p>如果代币价格上涨10倍，原来 10K 代币可能价值就变得很高。管理员可以降低门槛到 1K，让普通玩家依然能玩得起。</p>
+                    <p className="text-foreground font-display">{t('admin.priceRise') || 'Adapt to price increase'}</p>
+                    <p>{t('admin.priceRiseDesc') || 'If token price rises 10x, admin can lower threshold so players can still afford to play.'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -559,8 +549,8 @@ const Rules = () => {
                     <Shield className="w-4 h-4 text-neon-green" />
                   </div>
                   <div>
-                    <p className="text-foreground font-display">保护玩家利益</p>
-                    <p>防止管理员通过<span className="text-neon-pink">提高门槛</span>来变相压榨玩家。如果能提高门槛，管理员可能在玩家充值凭证后突然提高投注要求。</p>
+                    <p className="text-foreground font-display">{t('admin.protection') || 'Protect players'}</p>
+                    <p>{t('admin.protectionDesc') || 'Prevents admin from raising thresholds to squeeze players after they deposit credits.'}</p>
                   </div>
                 </div>
               </div>
@@ -568,70 +558,69 @@ const Rules = () => {
 
             {/* 对玩家的保障 */}
             <div className="neon-border-green rounded-lg p-4 bg-neon-green/5">
-              <h3 className="font-display text-neon-green mb-2">🛡️ 这意味着什么？</h3>
+              <h3 className="font-display text-neon-green mb-2">{t('admin.guarantee') || '🛡️ What This Means'}</h3>
               <ul className="text-sm text-muted-foreground space-y-2">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                  <span><span className="text-neon-yellow">你的凭证永远够用</span>：门槛只会降低，你的凭证只会越来越"值钱"</span>
+                  <span>{t('admin.point1') || 'Your credits always work: thresholds only go down'}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                  <span><span className="text-neon-yellow">中奖概率不变</span>：调整门槛不会改变游戏概率，只影响每次投注的数量要求</span>
+                  <span>{t('admin.point2') || 'Win odds unchanged: only bet amount requirements change'}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-neon-green mt-0.5 flex-shrink-0" />
-                  <span><span className="text-neon-yellow">代码层面保障</span>：这不是承诺，是智能合约硬编码的规则，任何人都无法绕过</span>
+                  <span>{t('admin.point3') || 'Code-level guarantee: hardcoded rule, no workaround'}</span>
                 </li>
               </ul>
             </div>
 
             {/* 技术说明 */}
             <div className="neon-border rounded-lg p-4 bg-muted/20">
-              <h3 className="font-display text-muted-foreground mb-2">📝 技术实现</h3>
+              <h3 className="font-display text-muted-foreground mb-2">{t('admin.techTitle') || '📝 Technical Implementation'}</h3>
               <p className="text-xs text-muted-foreground font-mono bg-muted/30 p-2 rounded">
                 require(_level1 &lt;= betLevel1, "Can only lower level 1");<br/>
-                // 合约代码强制要求：新门槛 ≤ 旧门槛
+                // {t('admin.techNote') || 'Contract enforces: new threshold ≤ old threshold'}
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                这段代码写在智能合约里，部署后永远无法修改。任何尝试提高门槛的交易都会被自动拒绝。
+                {t('admin.techDesc') || 'This code is in the smart contract, immutable after deployment. Any attempt to raise threshold is auto-rejected.'}
               </p>
             </div>
 
             {/* 合约开源与资金安全 */}
             <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
-              <h3 className="font-display text-neon-pink mb-3">🔐 合约开源 + 资金不可提取</h3>
+              <h3 className="font-display text-neon-pink mb-3">{t('admin.fundsTitle') || '🔐 Open Source + Non-Withdrawable Funds'}</h3>
               <div className="text-sm text-muted-foreground space-y-3">
                 <p className="text-foreground">
-                  我们的智能合约采用<span className="text-neon-green">完全去中心化设计</span>，代码完全开源，任何人都可以审计验证。
+                  {t('admin.fundsDesc') || 'Our smart contract is fully decentralized. Code is open source, anyone can audit.'}
                 </p>
                 
                 <div className="grid md:grid-cols-2 gap-3">
                   <div className="p-3 rounded bg-neon-green/10 border border-neon-green/30">
-                    <div className="text-neon-green font-display mb-1">📖 代码开源</div>
-                    <p className="text-xs">合约代码在 BSCScan 上完全公开</p>
-                    <p className="text-xs">任何人都可以查看、审计代码逻辑</p>
-                    <p className="text-xs text-neon-cyan mt-1">没有任何隐藏后门</p>
+                    <div className="text-neon-green font-display mb-1">{t('admin.openSource') || '📖 Open Source'}</div>
+                    <p className="text-xs">{t('admin.openSourceDesc1') || 'Contract code public on BSCScan'}</p>
+                    <p className="text-xs">{t('admin.openSourceDesc2') || 'Anyone can view and audit'}</p>
+                    <p className="text-xs text-neon-cyan mt-1">{t('admin.openSourceNote') || 'No hidden backdoors'}</p>
                   </div>
                   <div className="p-3 rounded bg-neon-purple/10 border border-neon-purple/30">
-                    <div className="text-neon-purple font-display mb-1">🚫 无提款权限</div>
-                    <p className="text-xs">管理员没有任何函数可以提取奖池资金</p>
-                    <p className="text-xs">合约内的 BNB 只能通过中奖发放</p>
-                    <p className="text-xs text-neon-yellow mt-1">资金只出不进（对管理员）</p>
+                    <div className="text-neon-purple font-display mb-1">{t('admin.noWithdraw') || '🚫 No Withdraw Function'}</div>
+                    <p className="text-xs">{t('admin.noWithdrawDesc1') || 'Admin cannot withdraw pool funds'}</p>
+                    <p className="text-xs">{t('admin.noWithdrawDesc2') || 'BNB only distributed via wins'}</p>
+                    <p className="text-xs text-neon-yellow mt-1">{t('admin.noWithdrawNote') || 'Funds out only (for admin)'}</p>
                   </div>
                 </div>
 
                 <div className="p-3 rounded bg-neon-yellow/10 border border-neon-yellow/30">
-                  <p className="text-neon-yellow font-display text-sm mb-1">💰 这意味着什么？</p>
+                  <p className="text-neon-yellow font-display text-sm mb-1">{t('admin.meaning') || '💰 What This Means'}</p>
                   <ul className="text-xs space-y-1">
-                    <li>• 奖池里的钱<span className="text-neon-green">只能被玩家赢走</span>，管理员拿不到一分</li>
-                    <li>• 不存在"跑路"风险 —— 因为根本没有跑路的代码入口</li>
-                    <li>• 即使项目方消失，合约依然正常运行，奖池依然可以被赢取</li>
+                    <li>• {t('admin.meaningPoint1') || 'Pool can only be won by players, admin gets nothing'}</li>
+                    <li>• {t('admin.meaningPoint2') || 'No "rug pull" risk - no code entry for it'}</li>
+                    <li>• {t('admin.meaningPoint3') || 'Even if team disappears, contract runs, pool remains winnable'}</li>
                   </ul>
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  💡 这是真正的<span className="text-neon-cyan">去中心化游戏</span>：规则由代码执行，不由人控制。
-                  你可以在区块浏览器上亲自查看合约代码，验证我们说的每一句话。
+                  💡 {t('admin.conclusion') || 'This is true decentralized gaming: rules by code, not people. Check the contract yourself on block explorer.'}
                 </p>
               </div>
             </div>
@@ -647,45 +636,45 @@ const Rules = () => {
         >
           <h2 className="text-xl font-display neon-text-pink flex items-center gap-2 mb-4">
             <HelpCircle className="w-5 h-5" />
-            常见问题
+            {t('faq.title')}
           </h2>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
-              <h3 className="font-display text-foreground mb-2">代币兑换凭证后能退回吗？</h3>
+              <h3 className="font-display text-foreground mb-2">{t('faq.q1')}</h3>
               <p className="text-sm text-muted-foreground">
-                不能。凭证是一次性的游戏筹码，兑换后只能用于游戏，不能转让或退回。请根据自己的需求合理兑换。
+                {t('faq.a1')}
               </p>
             </div>
             <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
-              <h3 className="font-display text-neon-yellow mb-2">💰 奖池的钱从哪来？</h3>
+              <h3 className="font-display text-neon-yellow mb-2">{t('faq.poolSource') || '💰 Where does pool money come from?'}</h3>
               <div className="text-sm text-muted-foreground space-y-2">
                 <p className="text-foreground">
-                  奖池资金来源于 <span className="text-neon-green font-display">交易税的 3%</span>！
+                  {t('faq.poolSourceAnswer1') || 'Prize pool funded by 3% of trading tax!'}
                 </p>
                 <p>
-                  每一笔代币交易（买入/卖出）都会产生交易税，其中 <span className="text-neon-cyan">3%</span> 会自动进入游戏奖池，用于奖励中奖玩家。
+                  {t('faq.poolSourceAnswer2') || 'Every token trade (buy/sell) generates tax, 3% goes to game pool for winners.'}
                 </p>
                 <div className="neon-border-pink rounded p-2 bg-neon-pink/10 mt-2">
                   <p className="text-xs">
-                    <span className="text-neon-purple">工作原理：</span>交易税 → 自动兑换为 BNB → 注入奖池合约
+                    {t('faq.poolSourceNote') || 'How it works: Tax → Auto-swap to BNB → Inject to pool contract'}
                   </p>
                 </div>
                 <p className="text-neon-green text-xs">
-                  ✨ 交易越活跃，奖池越大，中奖奖励越多！
+                  ✨ {t('faq.poolSourceTip') || 'More trading = bigger pool = bigger prizes!'}
                 </p>
               </div>
             </div>
             <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
-              <h3 className="font-display text-foreground mb-2">为什么要用凭证而不是直接用代币？</h3>
+              <h3 className="font-display text-foreground mb-2">{t('faq.whyCredits') || 'Why use credits instead of tokens directly?'}</h3>
               <p className="text-sm text-muted-foreground">
-                凭证系统可以减少链上交易次数，节省 Gas 费。你可以一次兑换大量凭证，然后多次游戏，体验更流畅。
+                {t('faq.whyCreditsAnswer') || 'Credit system reduces on-chain transactions, saving gas. Exchange once, play many times, smoother experience.'}
               </p>
             </div>
             <div className="neon-border-pink rounded-lg p-4 bg-neon-pink/5">
-              <h3 className="font-display text-foreground mb-2">投注越高真的概率越大吗？</h3>
+              <h3 className="font-display text-foreground mb-2">{t('faq.higherBet') || 'Higher bet really means higher odds?'}</h3>
               <p className="text-sm text-muted-foreground">
-                是的！高投注会增加稀有符号（如7️⃣💎）的出现概率。500K投注相比20K有20倍的概率加成，但请量力而行。
+                {t('faq.higherBetAnswer') || 'Yes! Higher bets increase rare symbol (7️⃣💎) appearance. 500K bet has 20x odds boost vs 20K, but bet responsibly.'}
               </p>
             </div>
           </div>
@@ -700,7 +689,7 @@ const Rules = () => {
         >
           <h2 className="text-xl font-display neon-text-purple flex items-center gap-2 mb-4">
             <Coins className="w-5 h-5" />
-            完整赔付表
+            {t('payoutTable.title') || 'Full Payout Table'}
           </h2>
           <AdvancedRewardTiers />
         </motion.div>
