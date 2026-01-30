@@ -9,34 +9,43 @@ import { CreditsExchange } from '@/components/CreditsExchange';
 
 import { Navbar } from '@/components/Navbar';
 import { ContractAddresses } from '@/components/ContractAddresses';
-import { Sparkles, Zap, Trophy } from 'lucide-react';
+import { Flame, Zap, Trophy } from 'lucide-react';
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background cyber-grid relative overflow-x-hidden">
       {/* 扫描线效果 */}
-      <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
+      <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
       
-      {/* 背景渐变 */}
-      <div className="fixed inset-0 bg-gradient-to-b from-neon-purple/5 via-transparent to-neon-blue/5 pointer-events-none" />
+      {/* 火焰渐变背景 */}
+      <div className="fixed inset-0 bg-gradient-to-b from-fire-red/5 via-transparent to-fire-orange/5 pointer-events-none" />
       
-      {/* 动态光晕背景 */}
+      {/* 动态火焰光晕背景 */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div
           animate={{
             x: [0, 100, 0],
             y: [0, 50, 0],
+            scale: [1, 1.1, 1],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-purple/10 rounded-full blur-[100px]"
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-fire-red/10 rounded-full blur-[100px]"
         />
         <motion.div
           animate={{
             x: [0, -100, 0],
             y: [0, -50, 0],
+            scale: [1.1, 1, 1.1],
           }}
           transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-blue/10 rounded-full blur-[100px]"
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fire-orange/10 rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-fire-yellow/5 rounded-full blur-[120px]"
         />
       </div>
 
@@ -46,7 +55,7 @@ const Index = () => {
       <Navbar />
       
       <main className="container mx-auto px-4 pt-20 pb-8 relative z-10">
-        {/* Hero Section - 更紧凑 */}
+        {/* Hero Section - 火焰主题 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -55,47 +64,55 @@ const Index = () => {
           <motion.div
             animate={{ 
               textShadow: [
-                '0 0 20px hsl(195 100% 50% / 0.5)',
-                '0 0 40px hsl(195 100% 50% / 0.8)',
-                '0 0 20px hsl(195 100% 50% / 0.5)',
+                '0 0 20px hsl(25 100% 55% / 0.5)',
+                '0 0 40px hsl(0 85% 50% / 0.8)',
+                '0 0 20px hsl(25 100% 55% / 0.5)',
               ]
             }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             <h1 className="text-3xl md:text-5xl font-display text-shimmer mb-2 flex items-center justify-center gap-3">
               <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                animate={{ 
+                  rotate: [0, -5, 5, 0],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <Sparkles className="w-8 h-8 text-neon-yellow" />
+                <Flame className="w-8 h-8 text-fire-orange" />
               </motion.div>
-              CYBER SLOTS
+              BURN SLOTS
               <motion.div
-                animate={{ rotate: [0, -10, 10, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                animate={{ 
+                  rotate: [0, 5, -5, 0],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <Sparkles className="w-8 h-8 text-neon-yellow" />
+                <Flame className="w-8 h-8 text-fire-orange" />
               </motion.div>
             </h1>
           </motion.div>
           
-          {/* 动态标签 */}
+          <p className="text-sm text-muted-foreground mb-2">🔥 燃烧老虎机 · 通缩即奖励</p>
+          
+          {/* 动态标签 - 火焰配色 */}
           <div className="flex flex-wrap justify-center gap-2 mb-2">
             <motion.span
               whileHover={{ scale: 1.1 }}
-              className="px-3 py-1 rounded-full text-xs font-display bg-neon-purple/20 text-neon-purple border border-neon-purple/30 flex items-center gap-1"
+              className="px-3 py-1 rounded-full text-xs font-display bg-fire-red/20 text-fire-red border border-fire-red/30 flex items-center gap-1"
             >
               <Zap className="w-3 h-3" /> 5轮 × 3行
             </motion.span>
             <motion.span
               whileHover={{ scale: 1.1 }}
-              className="px-3 py-1 rounded-full text-xs font-display bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
+              className="px-3 py-1 rounded-full text-xs font-display bg-fire-yellow/20 text-fire-yellow border border-fire-yellow/30"
             >
               15条赔付线
             </motion.span>
             <motion.span
               whileHover={{ scale: 1.1 }}
-              className="px-3 py-1 rounded-full text-xs font-display bg-neon-pink/20 text-neon-pink border border-neon-pink/30"
+              className="px-3 py-1 rounded-full text-xs font-display bg-fire-orange/20 text-fire-orange border border-fire-orange/30"
             >
               10种符号
             </motion.span>
@@ -158,15 +175,15 @@ const Index = () => {
         </div>
 
 
-        {/* Footer */}
+        {/* Footer - 火焰主题 */}
         <motion.footer
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           className="mt-8 text-center text-sm text-muted-foreground"
         >
-          <div className="neon-border-purple inline-block px-4 py-2 rounded-lg bg-muted/20">
-            <p>链上版本 | 智能合约已连接</p>
+          <div className="fire-border-red inline-block px-4 py-2 rounded-lg bg-muted/20">
+            <p>🔥 链上版本 | 智能合约已连接</p>
             <p className="mt-0.5 text-xs">Powered by BNB Chain & Chainlink VRF</p>
           </div>
         </motion.footer>

@@ -51,14 +51,24 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Fire color palette
+        fire: {
+          orange: "hsl(var(--fire-orange))",
+          red: "hsl(var(--fire-red))",
+          yellow: "hsl(var(--fire-yellow))",
+          ember: "hsl(var(--fire-ember))",
+          crimson: "hsl(var(--fire-crimson))",
+          gold: "hsl(var(--fire-gold))",
+        },
+        // Legacy neon mapped to fire
         neon: {
-          blue: "hsl(var(--neon-blue))",
-          purple: "hsl(var(--neon-purple))",
-          pink: "hsl(var(--neon-pink))",
-          cyan: "hsl(var(--neon-cyan))",
+          blue: "hsl(var(--fire-orange))",
+          purple: "hsl(var(--fire-red))",
+          pink: "hsl(var(--fire-crimson))",
+          cyan: "hsl(var(--fire-yellow))",
           green: "hsl(var(--neon-green))",
-          yellow: "hsl(var(--neon-yellow))",
-          orange: "hsl(var(--neon-orange))",
+          yellow: "hsl(var(--fire-gold))",
+          orange: "hsl(var(--fire-ember))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -107,8 +117,10 @@ export default {
         "flicker": "flicker 3s ease-in-out infinite",
       },
       backgroundImage: {
-        "cyber-gradient": "linear-gradient(135deg, hsl(var(--neon-blue) / 0.2), hsl(var(--neon-purple) / 0.2))",
-        "cyber-gradient-intense": "linear-gradient(135deg, hsl(var(--neon-blue) / 0.4), hsl(var(--neon-purple) / 0.4))",
+        "fire-gradient": "linear-gradient(135deg, hsl(var(--fire-orange) / 0.2), hsl(var(--fire-red) / 0.2))",
+        "fire-gradient-intense": "linear-gradient(135deg, hsl(var(--fire-orange) / 0.4), hsl(var(--fire-red) / 0.4))",
+        "cyber-gradient": "linear-gradient(135deg, hsl(var(--fire-orange) / 0.2), hsl(var(--fire-red) / 0.2))",
+        "cyber-gradient-intense": "linear-gradient(135deg, hsl(var(--fire-orange) / 0.4), hsl(var(--fire-red) / 0.4))",
       },
     },
   },

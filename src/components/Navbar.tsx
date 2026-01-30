@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Gamepad2, History, FileText, Menu, X } from 'lucide-react';
+import { Gamepad2, History, FileText, Menu, X, Flame } from 'lucide-react';
 import { useState } from 'react';
 import { AudioControls } from './AudioControls';
 
@@ -18,17 +18,19 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo - 火焰主题 */}
           <Link to="/" className="flex items-center gap-2">
-            <motion.span
-              animate={{ rotate: [0, 10, -10, 0] }}
+            <motion.div
+              animate={{ 
+                scale: [1, 1.1, 1],
+                rotate: [0, -5, 5, 0],
+              }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="text-2xl"
             >
-              🎰
-            </motion.span>
-            <span className="font-display text-xl neon-text-blue hidden sm:block">
-              CYBER SLOTS
+              <Flame className="w-6 h-6 text-fire-orange" />
+            </motion.div>
+            <span className="font-display text-xl fire-text-orange hidden sm:block">
+              BURN SLOTS
             </span>
           </Link>
 
@@ -44,7 +46,7 @@ export function Navbar() {
                     relative px-4 py-2 rounded-lg flex items-center gap-2
                     font-display text-sm transition-colors
                     ${isActive 
-                      ? 'text-neon-blue' 
+                      ? 'text-fire-orange' 
                       : 'text-muted-foreground hover:text-foreground'
                     }
                   `}
@@ -54,7 +56,7 @@ export function Navbar() {
                   {isActive && (
                     <motion.div
                       layoutId="activeNav"
-                      className="absolute inset-0 neon-border rounded-lg bg-neon-blue/10"
+                      className="absolute inset-0 fire-border rounded-lg bg-fire-orange/10"
                       style={{ zIndex: -1 }}
                     />
                   )}
@@ -103,7 +105,7 @@ export function Navbar() {
                   flex items-center gap-3 px-4 py-3 rounded-lg
                   font-display transition-colors
                   ${isActive 
-                    ? 'text-neon-blue bg-neon-blue/10' 
+                    ? 'text-fire-orange bg-fire-orange/10' 
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }
                 `}

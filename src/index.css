@@ -2,66 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Cyberpunk Design System - Neon colors, dark theme */
+/* BURNSLOTS Design System - Fire theme, dark background */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Cyberpunk Neon Colors */
-    --neon-blue: 195 100% 50%;
-    --neon-purple: 280 100% 60%;
-    --neon-pink: 320 100% 60%;
-    --neon-cyan: 180 100% 50%;
-    --neon-green: 150 100% 50%;
-    --neon-yellow: 50 100% 50%;
-    --neon-orange: 25 100% 55%;
+    /* Fire Color Palette */
+    --fire-orange: 25 100% 55%;
+    --fire-red: 0 85% 50%;
+    --fire-yellow: 45 100% 55%;
+    --fire-ember: 15 90% 45%;
+    --fire-crimson: 350 85% 45%;
+    --fire-gold: 40 100% 50%;
+    
+    /* Neon mappings to fire (for compatibility) */
+    --neon-blue: 25 100% 55%;
+    --neon-purple: 0 85% 50%;
+    --neon-pink: 350 85% 45%;
+    --neon-cyan: 45 100% 55%;
+    --neon-green: 120 70% 45%;
+    --neon-yellow: 40 100% 50%;
+    --neon-orange: 15 90% 45%;
     
     /* Dark Background Palette */
-    --background: 240 20% 4%;
-    --foreground: 195 100% 90%;
+    --background: 0 15% 5%;
+    --foreground: 40 100% 90%;
 
-    --card: 240 15% 8%;
-    --card-foreground: 195 100% 90%;
+    --card: 0 12% 8%;
+    --card-foreground: 40 100% 90%;
 
-    --popover: 240 15% 10%;
-    --popover-foreground: 195 100% 90%;
+    --popover: 0 12% 10%;
+    --popover-foreground: 40 100% 90%;
 
-    --primary: 195 100% 50%;
-    --primary-foreground: 240 20% 4%;
+    --primary: 25 100% 55%;
+    --primary-foreground: 0 15% 5%;
 
-    --secondary: 280 100% 60%;
-    --secondary-foreground: 240 20% 4%;
+    --secondary: 0 85% 50%;
+    --secondary-foreground: 0 15% 5%;
 
-    --muted: 240 15% 15%;
-    --muted-foreground: 195 50% 60%;
+    --muted: 0 10% 15%;
+    --muted-foreground: 25 50% 60%;
 
-    --accent: 320 100% 60%;
-    --accent-foreground: 240 20% 4%;
+    --accent: 45 100% 55%;
+    --accent-foreground: 0 15% 5%;
 
     --destructive: 0 100% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 195 50% 20%;
-    --input: 240 15% 12%;
-    --ring: 195 100% 50%;
+    --border: 25 50% 20%;
+    --input: 0 12% 12%;
+    --ring: 25 100% 55%;
 
     --radius: 0.5rem;
 
-    /* Glow Effects */
-    --glow-blue: 0 0 20px hsl(195 100% 50% / 0.5), 0 0 40px hsl(195 100% 50% / 0.3);
-    --glow-purple: 0 0 20px hsl(280 100% 60% / 0.5), 0 0 40px hsl(280 100% 60% / 0.3);
-    --glow-pink: 0 0 20px hsl(320 100% 60% / 0.5), 0 0 40px hsl(320 100% 60% / 0.3);
-    --glow-cyan: 0 0 20px hsl(180 100% 50% / 0.5), 0 0 40px hsl(180 100% 50% / 0.3);
+    /* Glow Effects - Fire themed */
+    --glow-orange: 0 0 20px hsl(25 100% 55% / 0.5), 0 0 40px hsl(25 100% 55% / 0.3);
+    --glow-red: 0 0 20px hsl(0 85% 50% / 0.5), 0 0 40px hsl(0 85% 50% / 0.3);
+    --glow-yellow: 0 0 20px hsl(45 100% 55% / 0.5), 0 0 40px hsl(45 100% 55% / 0.3);
+    --glow-gold: 0 0 20px hsl(40 100% 50% / 0.5), 0 0 40px hsl(40 100% 50% / 0.3);
+    
+    /* Legacy glow mappings */
+    --glow-blue: var(--glow-orange);
+    --glow-purple: var(--glow-red);
+    --glow-pink: var(--glow-red);
+    --glow-cyan: var(--glow-yellow);
 
     /* Sidebar */
-    --sidebar-background: 240 15% 6%;
-    --sidebar-foreground: 195 100% 90%;
-    --sidebar-primary: 195 100% 50%;
-    --sidebar-primary-foreground: 240 20% 4%;
-    --sidebar-accent: 280 100% 60%;
-    --sidebar-accent-foreground: 240 20% 4%;
-    --sidebar-border: 195 50% 20%;
-    --sidebar-ring: 195 100% 50%;
+    --sidebar-background: 0 12% 6%;
+    --sidebar-foreground: 40 100% 90%;
+    --sidebar-primary: 25 100% 55%;
+    --sidebar-primary-foreground: 0 15% 5%;
+    --sidebar-accent: 0 85% 50%;
+    --sidebar-accent-foreground: 0 15% 5%;
+    --sidebar-border: 25 50% 20%;
+    --sidebar-ring: 25 100% 55%;
   }
 }
 
@@ -81,51 +95,88 @@
 }
 
 @layer components {
-  /* Neon Text Effects */
+  /* Fire Text Effects */
+  .fire-text-orange {
+    color: hsl(var(--fire-orange));
+    text-shadow: var(--glow-orange);
+  }
+
+  .fire-text-red {
+    color: hsl(var(--fire-red));
+    text-shadow: var(--glow-red);
+  }
+
+  .fire-text-yellow {
+    color: hsl(var(--fire-yellow));
+    text-shadow: var(--glow-yellow);
+  }
+
+  .fire-text-gold {
+    color: hsl(var(--fire-gold));
+    text-shadow: var(--glow-gold);
+  }
+
+  /* Legacy neon text classes mapped to fire */
   .neon-text-blue {
-    color: hsl(var(--neon-blue));
-    text-shadow: var(--glow-blue);
+    color: hsl(var(--fire-orange));
+    text-shadow: var(--glow-orange);
   }
 
   .neon-text-purple {
-    color: hsl(var(--neon-purple));
-    text-shadow: var(--glow-purple);
+    color: hsl(var(--fire-red));
+    text-shadow: var(--glow-red);
   }
 
   .neon-text-pink {
-    color: hsl(var(--neon-pink));
-    text-shadow: var(--glow-pink);
+    color: hsl(var(--fire-red));
+    text-shadow: var(--glow-red);
   }
 
   .neon-text-cyan {
-    color: hsl(var(--neon-cyan));
-    text-shadow: var(--glow-cyan);
+    color: hsl(var(--fire-yellow));
+    text-shadow: var(--glow-yellow);
   }
 
-  /* Neon Border Effects */
+  /* Fire Border Effects */
+  .fire-border {
+    border: 1px solid hsl(var(--fire-orange));
+    box-shadow: var(--glow-orange), inset 0 0 20px hsl(var(--fire-orange) / 0.1);
+  }
+
+  .fire-border-red {
+    border: 1px solid hsl(var(--fire-red));
+    box-shadow: var(--glow-red), inset 0 0 20px hsl(var(--fire-red) / 0.1);
+  }
+
+  .fire-border-yellow {
+    border: 1px solid hsl(var(--fire-yellow));
+    box-shadow: var(--glow-yellow), inset 0 0 20px hsl(var(--fire-yellow) / 0.1);
+  }
+
+  /* Legacy neon border classes mapped to fire */
   .neon-border {
-    border: 1px solid hsl(var(--neon-blue));
-    box-shadow: var(--glow-blue), inset 0 0 20px hsl(var(--neon-blue) / 0.1);
+    border: 1px solid hsl(var(--fire-orange));
+    box-shadow: var(--glow-orange), inset 0 0 20px hsl(var(--fire-orange) / 0.1);
   }
 
   .neon-border-purple {
-    border: 1px solid hsl(var(--neon-purple));
-    box-shadow: var(--glow-purple), inset 0 0 20px hsl(var(--neon-purple) / 0.1);
+    border: 1px solid hsl(var(--fire-red));
+    box-shadow: var(--glow-red), inset 0 0 20px hsl(var(--fire-red) / 0.1);
   }
 
   .neon-border-pink {
-    border: 1px solid hsl(var(--neon-pink));
-    box-shadow: var(--glow-pink), inset 0 0 20px hsl(var(--neon-pink) / 0.1);
+    border: 1px solid hsl(var(--fire-red));
+    box-shadow: var(--glow-red), inset 0 0 20px hsl(var(--fire-red) / 0.1);
   }
 
   .neon-border-cyan {
-    border: 1px solid hsl(var(--neon-cyan));
-    box-shadow: var(--glow-cyan), inset 0 0 20px hsl(var(--neon-cyan) / 0.1);
+    border: 1px solid hsl(var(--fire-yellow));
+    box-shadow: var(--glow-yellow), inset 0 0 20px hsl(var(--fire-yellow) / 0.1);
   }
 
   .neon-border-yellow {
-    border: 1px solid hsl(var(--neon-yellow));
-    box-shadow: 0 0 20px hsl(var(--neon-yellow) / 0.5), 0 0 40px hsl(var(--neon-yellow) / 0.3), inset 0 0 20px hsl(var(--neon-yellow) / 0.1);
+    border: 1px solid hsl(var(--fire-gold));
+    box-shadow: var(--glow-gold), inset 0 0 20px hsl(var(--fire-gold) / 0.1);
   }
 
   .neon-border-green {
@@ -133,19 +184,19 @@
     box-shadow: 0 0 20px hsl(var(--neon-green) / 0.5), 0 0 40px hsl(var(--neon-green) / 0.3), inset 0 0 20px hsl(var(--neon-green) / 0.1);
   }
 
-  /* Cyberpunk Button */
+  /* Fire Button */
   .cyber-button {
     @apply relative overflow-hidden px-8 py-4 font-bold uppercase tracking-wider;
     font-family: 'Orbitron', sans-serif;
-    background: linear-gradient(135deg, hsl(var(--neon-blue) / 0.2), hsl(var(--neon-purple) / 0.2));
-    border: 2px solid hsl(var(--neon-blue));
-    box-shadow: var(--glow-blue);
+    background: linear-gradient(135deg, hsl(var(--fire-orange) / 0.2), hsl(var(--fire-red) / 0.2));
+    border: 2px solid hsl(var(--fire-orange));
+    box-shadow: var(--glow-orange);
     transition: all 0.3s ease;
   }
 
   .cyber-button:hover {
-    background: linear-gradient(135deg, hsl(var(--neon-blue) / 0.4), hsl(var(--neon-purple) / 0.4));
-    box-shadow: 0 0 30px hsl(var(--neon-blue) / 0.8), 0 0 60px hsl(var(--neon-blue) / 0.4);
+    background: linear-gradient(135deg, hsl(var(--fire-orange) / 0.4), hsl(var(--fire-red) / 0.4));
+    box-shadow: 0 0 30px hsl(var(--fire-orange) / 0.8), 0 0 60px hsl(var(--fire-orange) / 0.4);
     transform: translateY(-2px);
   }
 
@@ -155,14 +206,14 @@
     transform: none;
   }
 
-  /* Cyberpunk Card */
+  /* Fire Card */
   .cyber-card {
     @apply relative p-6 rounded-lg;
-    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(240 15% 12%) 100%);
-    border: 1px solid hsl(var(--neon-blue) / 0.3);
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(0 12% 12%) 100%);
+    border: 1px solid hsl(var(--fire-orange) / 0.3);
     box-shadow: 
-      0 0 20px hsl(var(--neon-blue) / 0.1),
-      inset 0 1px 0 hsl(var(--neon-blue) / 0.2);
+      0 0 20px hsl(var(--fire-orange) / 0.1),
+      inset 0 1px 0 hsl(var(--fire-orange) / 0.2);
   }
 
   /* Glitch Effect */
@@ -189,11 +240,11 @@
     }
   }
 
-  /* Grid Background */
+  /* Fire Grid Background */
   .cyber-grid {
     background-image: 
-      linear-gradient(hsl(var(--neon-blue) / 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--neon-blue) / 0.1) 1px, transparent 1px);
+      linear-gradient(hsl(var(--fire-orange) / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--fire-orange) / 0.08) 1px, transparent 1px);
     background-size: 50px 50px;
   }
 
@@ -212,44 +263,44 @@
     pointer-events: none;
   }
 
-  /* Neon Pulse Animation */
-  @keyframes neon-pulse {
+  /* Fire Pulse Animation */
+  @keyframes fire-pulse {
     0%, 100% {
       opacity: 1;
       filter: brightness(1);
     }
     50% {
       opacity: 0.8;
-      filter: brightness(1.2);
+      filter: brightness(1.3);
     }
   }
 
   .neon-pulse {
-    animation: neon-pulse 2s ease-in-out infinite;
+    animation: fire-pulse 2s ease-in-out infinite;
   }
 
-  /* Slot Reel Styles */
+  /* Slot Reel Styles - Fire themed */
   .slot-reel {
     background: linear-gradient(180deg, 
-      hsl(240 20% 2%) 0%, 
-      hsl(240 15% 8%) 10%, 
-      hsl(240 15% 12%) 50%, 
-      hsl(240 15% 8%) 90%, 
-      hsl(240 20% 2%) 100%
+      hsl(0 15% 2%) 0%, 
+      hsl(0 12% 8%) 10%, 
+      hsl(0 12% 12%) 50%, 
+      hsl(0 12% 8%) 90%, 
+      hsl(0 15% 2%) 100%
     );
-    border: 2px solid hsl(var(--neon-purple) / 0.5);
+    border: 2px solid hsl(var(--fire-red) / 0.5);
     box-shadow: 
-      inset 0 0 30px hsl(var(--neon-purple) / 0.2),
-      0 0 20px hsl(var(--neon-purple) / 0.3);
+      inset 0 0 30px hsl(var(--fire-red) / 0.2),
+      0 0 20px hsl(var(--fire-red) / 0.3);
   }
 
-  /* Win Animation */
+  /* Win Animation - Fire themed */
   @keyframes win-flash {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(var(--neon-yellow) / 0.5);
+      box-shadow: 0 0 20px hsl(var(--fire-gold) / 0.5);
     }
     50% {
-      box-shadow: 0 0 60px hsl(var(--neon-yellow) / 1), 0 0 100px hsl(var(--neon-yellow) / 0.5);
+      box-shadow: 0 0 60px hsl(var(--fire-gold) / 1), 0 0 100px hsl(var(--fire-gold) / 0.5);
     }
   }
 
@@ -294,6 +345,30 @@
     animation: float 3s ease-in-out infinite;
   }
 
+  /* Flame Flicker Animation */
+  @keyframes flame-flicker {
+    0%, 100% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+    25% {
+      opacity: 0.9;
+      transform: scaleY(1.02);
+    }
+    50% {
+      opacity: 0.95;
+      transform: scaleY(0.98);
+    }
+    75% {
+      opacity: 0.85;
+      transform: scaleY(1.01);
+    }
+  }
+
+  .flame-flicker {
+    animation: flame-flicker 0.5s ease-in-out infinite;
+  }
+
   /* Sparkle Effect */
   @keyframes sparkle {
     0%, 100% {
@@ -310,17 +385,16 @@
     animation: sparkle 2s ease-in-out infinite;
   }
 
-  /* Rainbow Glow */
-  @keyframes rainbow-glow {
-    0% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
-    25% { box-shadow: 0 0 20px hsl(var(--neon-purple) / 0.5), 0 0 40px hsl(var(--neon-purple) / 0.3); }
-    50% { box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.5), 0 0 40px hsl(var(--neon-pink) / 0.3); }
-    75% { box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.5), 0 0 40px hsl(var(--neon-cyan) / 0.3); }
-    100% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
+  /* Fire Glow Animation */
+  @keyframes fire-glow {
+    0% { box-shadow: 0 0 20px hsl(var(--fire-orange) / 0.5), 0 0 40px hsl(var(--fire-orange) / 0.3); }
+    33% { box-shadow: 0 0 25px hsl(var(--fire-red) / 0.5), 0 0 50px hsl(var(--fire-red) / 0.3); }
+    66% { box-shadow: 0 0 20px hsl(var(--fire-yellow) / 0.5), 0 0 40px hsl(var(--fire-yellow) / 0.3); }
+    100% { box-shadow: 0 0 20px hsl(var(--fire-orange) / 0.5), 0 0 40px hsl(var(--fire-orange) / 0.3); }
   }
 
   .rainbow-glow {
-    animation: rainbow-glow 4s linear infinite;
+    animation: fire-glow 3s linear infinite;
   }
 
   /* Shine Effect */
@@ -337,15 +411,15 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      hsl(var(--neon-yellow) / 0.3) 50%,
+      hsl(var(--fire-gold) / 0.3) 50%,
       transparent 100%
     );
     background-size: 200% 100%;
     animation: shine 3s ease-in-out infinite;
   }
 
-  /* Coin Rain */
-  @keyframes coin-fall {
+  /* Ember Fall */
+  @keyframes ember-fall {
     0% {
       transform: translateY(-100%) rotate(0deg);
       opacity: 1;
@@ -357,7 +431,7 @@
   }
 
   .coin-rain {
-    animation: coin-fall 3s linear infinite;
+    animation: ember-fall 3s linear infinite;
   }
 
   /* Pulse Ring */
@@ -376,28 +450,28 @@
     animation: pulse-ring 1.5s ease-out infinite;
   }
 
-  /* Electric Border */
-  @keyframes electric-border {
+  /* Fire Border Animation */
+  @keyframes fire-border {
     0%, 100% {
-      border-color: hsl(var(--neon-blue));
-      box-shadow: 0 0 10px hsl(var(--neon-blue) / 0.5);
+      border-color: hsl(var(--fire-orange));
+      box-shadow: 0 0 10px hsl(var(--fire-orange) / 0.5);
     }
     25% {
-      border-color: hsl(var(--neon-cyan));
-      box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.7);
+      border-color: hsl(var(--fire-yellow));
+      box-shadow: 0 0 20px hsl(var(--fire-yellow) / 0.7);
     }
     50% {
-      border-color: hsl(var(--neon-purple));
-      box-shadow: 0 0 30px hsl(var(--neon-purple) / 0.7);
+      border-color: hsl(var(--fire-red));
+      box-shadow: 0 0 30px hsl(var(--fire-red) / 0.7);
     }
     75% {
-      border-color: hsl(var(--neon-pink));
-      box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.7);
+      border-color: hsl(var(--fire-gold));
+      box-shadow: 0 0 20px hsl(var(--fire-gold) / 0.7);
     }
   }
 
   .electric-border {
-    animation: electric-border 2s linear infinite;
+    animation: fire-border 2s linear infinite;
   }
 
   /* Bounce In */
@@ -419,7 +493,7 @@
     animation: bounce-in 0.5s ease-out;
   }
 
-  /* Text Shimmer */
+  /* Fire Text Shimmer */
   @keyframes text-shimmer {
     0% {
       background-position: -200% center;
@@ -432,11 +506,11 @@
   .text-shimmer {
     background: linear-gradient(
       90deg,
-      hsl(var(--neon-yellow)) 0%,
-      hsl(var(--neon-orange)) 25%,
-      hsl(var(--neon-pink)) 50%,
-      hsl(var(--neon-purple)) 75%,
-      hsl(var(--neon-yellow)) 100%
+      hsl(var(--fire-yellow)) 0%,
+      hsl(var(--fire-orange)) 25%,
+      hsl(var(--fire-red)) 50%,
+      hsl(var(--fire-gold)) 75%,
+      hsl(var(--fire-yellow)) 100%
     );
     background-size: 200% auto;
     background-clip: text;
@@ -453,9 +527,9 @@
   .glow-hover:hover {
     transform: translateY(-3px);
     box-shadow: 
-      0 0 20px hsl(var(--neon-blue) / 0.6),
-      0 0 40px hsl(var(--neon-blue) / 0.4),
-      0 0 60px hsl(var(--neon-blue) / 0.2);
+      0 0 20px hsl(var(--fire-orange) / 0.6),
+      0 0 40px hsl(var(--fire-orange) / 0.4),
+      0 0 60px hsl(var(--fire-orange) / 0.2);
   }
 
   /* Slot Reel Animations - GPU accelerated */
@@ -531,13 +605,13 @@
     animation: landing-bounce 0.4s ease-out;
   }
 
-  /* Reel glow pulse */
+  /* Reel glow pulse - fire themed */
   @keyframes reel-glow {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(195 100% 50% / 0.3);
+      box-shadow: 0 0 20px hsl(25 100% 55% / 0.3);
     }
     50% {
-      box-shadow: 0 0 35px hsl(195 100% 50% / 0.5);
+      box-shadow: 0 0 35px hsl(25 100% 55% / 0.5);
     }
   }
 
@@ -545,15 +619,15 @@
     animation: reel-glow 1s ease-in-out infinite;
   }
 
-  /* Win celebration */
+  /* Win celebration - fire themed */
   @keyframes win-pulse {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(50 100% 50% / 0.4);
-      border-color: hsl(50 100% 50% / 0.6);
+      box-shadow: 0 0 20px hsl(40 100% 50% / 0.4);
+      border-color: hsl(40 100% 50% / 0.6);
     }
     50% {
-      box-shadow: 0 0 40px hsl(50 100% 50% / 0.7);
-      border-color: hsl(50 100% 50% / 1);
+      box-shadow: 0 0 40px hsl(40 100% 50% / 0.7);
+      border-color: hsl(40 100% 50% / 1);
     }
   }
 

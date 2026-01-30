@@ -7,7 +7,7 @@ import { useCyberSlots, formatPrizeType } from '@/hooks/useCyberSlots';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAudioContext } from '@/contexts/AudioContext';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Zap, TrendingUp, Coins, Sparkles, Trophy, Ticket, AlertCircle, Loader2 } from 'lucide-react';
+import { Zap, TrendingUp, Coins, Flame, Trophy, Ticket, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { formatEther } from 'ethers';
 import { type SlotSymbol } from '@/hooks/useAdvancedSlotMachine';
@@ -336,31 +336,31 @@ export function AdvancedSlotMachine() {
 
   return (
     <div className="relative">
-      <div className="absolute -inset-4 bg-gradient-to-r from-neon-purple/10 via-neon-blue/10 to-neon-pink/10 blur-3xl rounded-3xl" />
+      <div className="absolute -inset-4 bg-gradient-to-r from-fire-red/10 via-fire-orange/10 to-fire-yellow/10 blur-3xl rounded-3xl" />
       
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className="relative cyber-card overflow-visible"
       >
-        <div className="absolute -top-2 -left-2 w-12 h-12 border-t-2 border-l-2 border-neon-blue rounded-tl-lg" />
-        <div className="absolute -top-2 -right-2 w-12 h-12 border-t-2 border-r-2 border-neon-blue rounded-tr-lg" />
-        <div className="absolute -bottom-2 -left-2 w-12 h-12 border-b-2 border-l-2 border-neon-purple rounded-bl-lg" />
-        <div className="absolute -bottom-2 -right-2 w-12 h-12 border-b-2 border-r-2 border-neon-purple rounded-br-lg" />
+        <div className="absolute -top-2 -left-2 w-12 h-12 border-t-2 border-l-2 border-fire-orange rounded-tl-lg" />
+        <div className="absolute -top-2 -right-2 w-12 h-12 border-t-2 border-r-2 border-fire-orange rounded-tr-lg" />
+        <div className="absolute -bottom-2 -left-2 w-12 h-12 border-b-2 border-l-2 border-fire-red rounded-bl-lg" />
+        <div className="absolute -bottom-2 -right-2 w-12 h-12 border-b-2 border-r-2 border-fire-red rounded-br-lg" />
 
         <div className="text-center mb-6">
           <motion.h2 
-            className="text-3xl md:text-4xl font-display neon-text-blue glitch flex items-center justify-center gap-3"
+            className="text-3xl md:text-4xl font-display fire-text-orange glitch flex items-center justify-center gap-3"
             animate={isSpinning ? { scale: [1, 1.02, 1] } : {}}
             transition={{ duration: 0.3, repeat: isSpinning ? Infinity : 0 }}
           >
-            <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
-            CYBER SLOTS
-            <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
+            <Flame className="w-8 h-8 text-fire-yellow flame-flicker" />
+            BURN SLOTS
+            <Flame className="w-8 h-8 text-fire-yellow flame-flicker" />
           </motion.h2>
           <div className="flex items-center justify-center gap-2 mt-1">
             <p className="text-sm text-muted-foreground">
-              5轮符号匹配 | 💯 100%返还
+              5轮符号匹配 | 🔥 通缩即奖励
             </p>
             <span className="text-xs px-2 py-0.5 rounded bg-neon-green/20 text-neon-green border border-neon-green/30">
               🔗 链上模式
