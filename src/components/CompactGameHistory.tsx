@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Clock, Trophy, User } from 'lucide-react';
 import { useCyberSlots, formatSymbols, shortenAddress } from '@/hooks/useCyberSlots';
 import { formatEther } from 'ethers';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HistoryItem {
   id: string;
@@ -15,6 +16,7 @@ interface HistoryItem {
 
 export function CompactGameHistory() {
   const { recentWins } = useCyberSlots();
+  const { t } = useLanguage();
 
   const displayHistory: HistoryItem[] = recentWins
     .filter(win => win.winAmount > 0n)
@@ -36,10 +38,10 @@ export function CompactGameHistory() {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-display neon-text-cyan flex items-center gap-2">
           <Clock className="w-4 h-4" />
-          最近中奖
+          {t('compactHistory.title')}
         </h3>
         {displayHistory.length > 0 && (
-          <span className="text-xs text-neon-green">🔗 实时</span>
+          <span className="text-xs text-neon-green">🔗 {t('compactHistory.live')}</span>
         )}
       </div>
 
@@ -94,7 +96,7 @@ export function CompactGameHistory() {
         
         {displayHistory.length === 0 && (
           <div className="text-center text-muted-foreground text-xs py-4">
-            暂无中奖记录
+            {t('compactHistory.noRecords')}
           </div>
         )}
       </div>
@@ -103,7 +105,7 @@ export function CompactGameHistory() {
         href="/history" 
         className="mt-3 text-xs text-neon-cyan hover:underline text-center block"
       >
-        查看更多 →
+        {t('compactHistory.viewMore')}
       </a>
     </div>
   );

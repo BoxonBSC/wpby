@@ -384,6 +384,27 @@ const translations: Record<Language, Record<string, string>> = {
     'win.prize': '获得奖金',
     'win.clickToClose': '点击任意位置关闭',
     
+    // 中奖显示 (WinDisplay)
+    'winDisplay.first': '👑 一等奖 👑',
+    'winDisplay.second': '🔔 二等奖 🔔',
+    'winDisplay.third': '⭐ 三等奖 ⭐',
+    'winDisplay.small': '🍀 小奖 🍀',
+    'winDisplay.consolation': '🎁 安慰奖 🎁',
+    'winDisplay.paylines': '{n} 条赔付线中奖',
+    'winDisplay.poolPercent': '奖池 {n}%',
+    'winDisplay.more': '更多',
+    
+    // 紧凑历史记录 (CompactGameHistory)
+    'compactHistory.title': '最近中奖',
+    'compactHistory.live': '实时',
+    'compactHistory.noRecords': '暂无中奖记录',
+    'compactHistory.viewMore': '查看更多 →',
+    
+    // 404页面
+    'notFound.title': '404',
+    'notFound.message': '页面未找到',
+    'notFound.backHome': '返回首页',
+    
     // 钱包提示
     'howToPlay.binanceWallet': '币安钱包',
     
@@ -803,6 +824,27 @@ const translations: Record<Language, Record<string, string>> = {
     // Win overlay
     'win.prize': 'Prize Won',
     'win.clickToClose': 'Click anywhere to close',
+    
+    // WinDisplay
+    'winDisplay.first': '👑 1st Prize 👑',
+    'winDisplay.second': '🔔 2nd Prize 🔔',
+    'winDisplay.third': '⭐ 3rd Prize ⭐',
+    'winDisplay.small': '🍀 Small Win 🍀',
+    'winDisplay.consolation': '🎁 Consolation 🎁',
+    'winDisplay.paylines': '{n} paylines won',
+    'winDisplay.poolPercent': 'Pool {n}%',
+    'winDisplay.more': 'more',
+    
+    // CompactGameHistory
+    'compactHistory.title': 'Recent Wins',
+    'compactHistory.live': 'Live',
+    'compactHistory.noRecords': 'No wins yet',
+    'compactHistory.viewMore': 'View more →',
+    
+    // 404 Page
+    'notFound.title': '404',
+    'notFound.message': 'Page not found',
+    'notFound.backHome': 'Return to Home',
     
     // Wallet
     'howToPlay.binanceWallet': 'Binance Wallet',

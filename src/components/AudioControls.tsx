@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Volume2, VolumeX, Music, Music2 } from 'lucide-react';
 import { useAudioContext } from '@/contexts/AudioContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function AudioControls() {
   const { 
@@ -13,6 +14,7 @@ export function AudioControls() {
     stopBgMusic,
     playClickSound,
   } = useAudioContext();
+  const { t } = useLanguage();
 
   const handleMuteClick = () => {
     playClickSound();
@@ -45,7 +47,7 @@ export function AudioControls() {
             ? 'bg-destructive/20 text-destructive' 
             : 'bg-muted/50 text-neon-cyan hover:bg-muted'}
         `}
-        title={isMuted ? '取消静音' : '静音'}
+        title={isMuted ? t('audio.unmute') : t('audio.mute')}
       >
         {isMuted ? (
           <VolumeX className="w-5 h-5" />
@@ -91,7 +93,7 @@ export function AudioControls() {
               ? 'bg-neon-purple/20 text-neon-purple neon-border-purple'
               : 'bg-muted/50 text-muted-foreground hover:text-neon-purple hover:bg-muted'}
         `}
-        title={isBgMusicPlaying ? '关闭背景音乐' : '开启背景音乐'}
+        title={isBgMusicPlaying ? t('audio.bgMusicOff') : t('audio.bgMusicOn')}
       >
         {isBgMusicPlaying ? (
           <motion.div

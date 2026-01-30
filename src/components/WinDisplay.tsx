@@ -1,19 +1,20 @@
 import { motion } from 'framer-motion';
 import { SpinResult, PrizeType } from '@/hooks/useAdvancedSlotMachine';
 import { Sparkles, Crown, Star, Gem, Trophy } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WinDisplayProps {
   result: SpinResult;
 }
 
 // 7级奖励显示配置 - 与合约 prizeType 一致
-const PRIZE_DISPLAY: Record<PrizeType, { 
+const getPrizeDisplay = (t: (key: string) => string): Record<PrizeType, { 
   title: string; 
   icon: React.ReactNode;
   colorClass: string;
   glowClass: string;
   animate: boolean;
-}> = {
+}> => ({
   super_jackpot: {
     title: '🎰 SUPER JACKPOT 🎰',
     icon: <Trophy className="w-10 h-10 text-neon-yellow" />,
@@ -29,35 +30,35 @@ const PRIZE_DISPLAY: Record<PrizeType, {
     animate: true,
   },
   first: {
-    title: '👑 一等奖 👑',
+    title: t('winDisplay.first'),
     icon: <Crown className="w-7 h-7 text-neon-orange" />,
     colorClass: 'text-neon-orange',
     glowClass: 'drop-shadow-[0_0_20px_hsl(30_100%_50%/0.7)]',
     animate: true,
   },
   second: {
-    title: '🔔 二等奖 🔔',
+    title: t('winDisplay.second'),
     icon: <Star className="w-6 h-6 text-neon-pink" />,
     colorClass: 'text-neon-pink',
     glowClass: 'drop-shadow-[0_0_15px_hsl(330_100%_50%/0.6)]',
     animate: false,
   },
   third: {
-    title: '⭐ 三等奖 ⭐',
+    title: t('winDisplay.third'),
     icon: <Star className="w-5 h-5 text-neon-cyan" />,
     colorClass: 'text-neon-cyan',
     glowClass: 'drop-shadow-[0_0_10px_hsl(195_100%_50%/0.5)]',
     animate: false,
   },
   small: {
-    title: '🍀 小奖 🍀',
+    title: t('winDisplay.small'),
     icon: <Sparkles className="w-4 h-4 text-neon-green" />,
     colorClass: 'text-neon-green',
     glowClass: '',
     animate: false,
   },
   consolation: {
-    title: '🎁 安慰奖 🎁',
+    title: t('winDisplay.consolation'),
     icon: <Sparkles className="w-4 h-4 text-muted-foreground" />,
     colorClass: 'text-muted-foreground',
     glowClass: '',
@@ -70,10 +71,12 @@ const PRIZE_DISPLAY: Record<PrizeType, {
     glowClass: '',
     animate: false,
   },
-};
+});
 
 export function WinDisplay({ result }: WinDisplayProps) {
-  const displayConfig = PRIZE_DISPLAY[result.prizeType];
+  const { t } = useLanguage();
+  const prizeDisplay = getPrizeDisplay(t);
+  const displayConfig = prizeDisplay[result.prizeType];
   const isHighTier = ['super_jackpot', 'jackpot', 'first'].includes(result.prizeType);
   
   return (
@@ -145,7 +148,7 @@ export function WinDisplay({ result }: WinDisplayProps) {
           </div>
           <div className="text-xl text-neon-green/80 font-display">BNB</div>
           <div className="text-sm text-muted-foreground mt-2">
-            奖池 {(result.poolPercentUsed * 100).toFixed(1)}%
+            {t('winDisplay.poolPercent').replace('{n}', (result.poolPercentUsed * 100).toFixed(1))}
           </div>
         </motion.div>
 
@@ -158,7 +161,7 @@ export function WinDisplay({ result }: WinDisplayProps) {
         >
           <div className="flex items-center justify-center gap-2 text-foreground">
             <Sparkles className="w-4 h-4 text-neon-purple" />
-            <span>{result.winLines.length} 条赔付线中奖</span>
+            <span>{t('winDisplay.paylines').replace('{n}', String(result.winLines.length))}</span>
           </div>
 
           {/* 中奖线详情 */}
@@ -177,7 +180,7 @@ export function WinDisplay({ result }: WinDisplayProps) {
             ))}
             {result.winLines.length > 5 && (
               <div className="px-3 py-1 rounded-full bg-muted/50 border border-border text-sm text-muted-foreground">
-                +{result.winLines.length - 5} 更多
+                +{result.winLines.length - 5} {t('winDisplay.more')}
               </div>
             )}
           </div>
