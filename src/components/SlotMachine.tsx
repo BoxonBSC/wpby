@@ -101,7 +101,7 @@ export function SlotMachine() {
 
         {/* Title */}
         <h2 className="text-center text-2xl md:text-3xl font-display neon-text-blue mb-6 glitch">
-          CYBER SLOTS
+          BURN SLOTS
         </h2>
 
         {/* Prize Pool Display */}

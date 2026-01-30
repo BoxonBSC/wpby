@@ -1,6 +1,6 @@
-# 🚀 Cyber Slots 智能合约部署完整指南（新手版）
+# 🚀 Burn Slots 智能合约部署完整指南（新手版）
 
-本指南将一步步教你如何部署 Cyber Slots 老虎机游戏的智能合约到 BNB Chain。
+本指南将一步步教你如何部署 Burn Slots 老虎机游戏的智能合约到 BNB Chain。
 
 ---
 
@@ -93,7 +93,7 @@
 5. 在 **Deploy** 旁边填入参数：
 
 ```
-name: "Cyber Slots Token"
+name: "Burn Slots Token"
 symbol: "CST"
 initialSupply: 1000000000
 ```
@@ -355,6 +355,6 @@ A:
 
 ---
 
-**🎉 恭喜！如果你完成了以上所有步骤，你的 Cyber Slots 游戏就已经成功部署了！**
+**🎉 恭喜！如果你完成了以上所有步骤，你的 Burn Slots 游戏就已经成功部署了！**
 
 如有问题，请在项目仓库提交 Issue。

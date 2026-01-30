@@ -355,7 +355,7 @@ export function AdvancedSlotMachine() {
             transition={{ duration: 0.3, repeat: isSpinning ? Infinity : 0 }}
           >
             <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
-            CYBER SLOTS
+            BURN SLOTS
             <Sparkles className="w-8 h-8 text-neon-yellow animate-pulse" />
           </motion.h2>
           <div className="flex items-center justify-center gap-2 mt-1">

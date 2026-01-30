@@ -35,7 +35,7 @@ const Rules = () => {
           <h1 className="text-3xl md:text-4xl font-display neon-text-cyan mb-2">
             🎰 游戏规则说明
           </h1>
-          <p className="text-muted-foreground">一分钟看懂 Cyber Slots 怎么玩</p>
+          <p className="text-muted-foreground">一分钟看懂 Burn Slots 怎么玩</p>
         </motion.div>
 
         {/* 游戏简介 - 通俗易懂版 */}

@@ -22,7 +22,7 @@ const bscTestnet = {
 
 // 应用元数据
 const metadata = {
-  name: 'Cyber Slots',
+  name: 'Burn Slots',
   description: '链上老虎机 GameFi - 公平透明的区块链游戏',
   url: typeof window !== 'undefined' ? window.location.origin : 'https://cyberslots.app',
   icons: ['https://avatars.githubusercontent.com/u/37784886'],

@@ -1,4 +1,4 @@
-# Cyber Slots 智能合约部署指南
+# Burn Slots 智能合约部署指南
 
 ## 📁 合约文件
 
@@ -21,7 +21,7 @@
 3. 编译器版本选择 `0.8.19`
 4. 切换到 Deploy 标签，Environment 选择 `Injected Provider - MetaMask`
 5. 填入部署参数:
-   - `name`: `Cyber Slots Token`
+   - `name`: `Burn Slots Token`
    - `symbol`: `CST`
    - `initialSupply`: `1000000000`
 6. 点击 Deploy，在 MetaMask 中确认交易

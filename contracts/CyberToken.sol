@@ -3,14 +3,14 @@ pragma solidity ^0.8.19;
 
 /**
  * @title CyberToken
- * @dev BEP-20代币合约，用于Cyber Slots老虎机游戏
+ * @dev BEP-20代币合约，用于Burn Slots老虎机游戏
  * 
  * 部署步骤（Remix IDE）：
  * 1. 打开 https://remix.ethereum.org/
  * 2. 创建新文件，粘贴此代码
  * 3. 编译器版本选择 0.8.19+
  * 4. 部署时填入参数：
- *    - name: "Cyber Slots Token"
+ *    - name: "Burn Slots Token"
  *    - symbol: "CST" 
  *    - initialSupply: 1000000000 (10亿)
  */
