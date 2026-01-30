@@ -62,33 +62,33 @@ const SymbolCell = memo(function SymbolCell({
   return (
     <div
       className={`
-        relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center flex-shrink-0
+        relative w-[52px] h-[52px] sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center flex-shrink-0
         ${isMiddleRow && !isBlurred ? 'z-10' : 'z-0'}
       `}
     >
-      {/* 中间行指示器 - 左右两侧的小箭头 */}
+      {/* 中间行指示器 - 手机端更小 */}
       {isMiddleRow && !isBlurred && (
         <>
-          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-neon-cyan/60 rounded-r" />
-          <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-neon-cyan/60 rounded-l" />
+          <div className="absolute -left-0.5 sm:-left-1 top-1/2 -translate-y-1/2 w-0.5 sm:w-1 h-3 sm:h-4 bg-neon-cyan/60 rounded-r" />
+          <div className="absolute -right-0.5 sm:-right-1 top-1/2 -translate-y-1/2 w-0.5 sm:w-1 h-3 sm:h-4 bg-neon-cyan/60 rounded-l" />
         </>
       )}
       
       <div className={`
-        absolute inset-1 rounded-lg
+        absolute inset-0.5 sm:inset-1 rounded-md sm:rounded-lg
         bg-gradient-to-br from-muted/60 to-muted/30
         border ${rarityBorder[symbolInfo.rarity]}
-        ${isMiddleRow && !isBlurred ? 'border-neon-cyan/70 shadow-[0_0_15px_hsl(195_100%_50%/0.3)]' : ''}
+        ${isMiddleRow && !isBlurred ? 'border-neon-cyan/70 shadow-[0_0_10px_hsl(195_100%_50%/0.3)] sm:shadow-[0_0_15px_hsl(195_100%_50%/0.3)]' : ''}
         ${!isMiddleRow && !isBlurred ? 'opacity-60' : ''}
         ${rarityGlow[symbolInfo.rarity]}
-        ${isWinning ? 'animate-pulse border-neon-yellow shadow-[0_0_25px_hsl(50_100%_50%/0.7)]' : ''}
-        ${showLanding && isMiddleRow ? 'border-neon-yellow shadow-[0_0_25px_hsl(50_100%_50%/0.6)]' : ''}
+        ${isWinning ? 'animate-pulse border-neon-yellow shadow-[0_0_15px_hsl(50_100%_50%/0.7)] sm:shadow-[0_0_25px_hsl(50_100%_50%/0.7)]' : ''}
+        ${showLanding && isMiddleRow ? 'border-neon-yellow shadow-[0_0_15px_hsl(50_100%_50%/0.6)] sm:shadow-[0_0_25px_hsl(50_100%_50%/0.6)]' : ''}
         transition-all duration-150
       `} />
       
       <span 
         className={`
-          relative z-10 text-3xl md:text-4xl select-none
+          relative z-10 text-2xl sm:text-3xl md:text-4xl select-none
           ${isBlurred ? 'blur-[1px] opacity-70' : ''}
           ${!isMiddleRow && !isBlurred ? 'opacity-50 scale-90' : ''}
           ${isWinning ? 'drop-shadow-[0_0_15px_rgba(255,255,255,0.9)] animate-bounce' : ''}
@@ -100,7 +100,7 @@ const SymbolCell = memo(function SymbolCell({
       </span>
 
       {isWinning && (
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-neon-yellow/20 via-transparent to-neon-yellow/20 animate-pulse" />
+        <div className="absolute inset-0 rounded-md sm:rounded-lg bg-gradient-to-r from-neon-yellow/20 via-transparent to-neon-yellow/20 animate-pulse" />
       )}
     </div>
   );
@@ -125,7 +125,8 @@ function AdvancedSlotReelInner({
   const velocityRef = useRef(0);
   const stopTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  const SYMBOL_HEIGHT = 64; // 对应 h-16
+  // 手机端符号高度52px，桌面端64px
+  const SYMBOL_HEIGHT = typeof window !== 'undefined' && window.innerWidth < 640 ? 52 : 64;
   const VISIBLE_SYMBOLS = 3;
   const STRIP_LENGTH = 25;
   
