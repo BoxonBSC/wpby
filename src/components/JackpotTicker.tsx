@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Trophy, Sparkles } from 'lucide-react';
 import { useCyberSlots, formatSymbols, formatPrizeType, shortenAddress } from '@/hooks/useCyberSlots';
 import { formatEther } from 'ethers';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WinDisplay {
   address: string;
@@ -13,6 +14,7 @@ interface WinDisplay {
 
 export function JackpotTicker() {
   const { recentWins, prizePool } = useCyberSlots();
+  const { t, language } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayWins, setDisplayWins] = useState<WinDisplay[]>([]);
 
@@ -35,7 +37,7 @@ export function JackpotTicker() {
         .map(win => ({
           address: shortenAddress(win.player),
           amount: formatEther(win.winAmount),
-          prize: formatPrizeType(win.prizeType).name,
+          prize: formatPrizeType(win.prizeType, language).name,
           symbols: formatSymbols(win.symbols),
         }));
       
@@ -43,7 +45,7 @@ export function JackpotTicker() {
         setDisplayWins(realWins);
       }
     }
-  }, [recentWins]);
+  }, [recentWins, language]);
 
   useEffect(() => {
     if (displayWins.length === 0) return;
@@ -64,7 +66,7 @@ export function JackpotTicker() {
       
       <div className="relative">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <span className="text-xs text-muted-foreground">奖池</span>
+          <span className="text-xs text-muted-foreground">{t('jackpot.pool')}</span>
           <span className="text-lg font-display text-neon-yellow">{poolDisplay} BNB</span>
         </div>
         
@@ -91,7 +93,7 @@ export function JackpotTicker() {
         ) : (
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Trophy className="w-4 h-4 text-neon-yellow/50" />
-            <span>等待第一位赢家...</span>
+            <span>{t('jackpot.waiting')}</span>
             <Sparkles className="w-4 h-4 text-neon-pink/50" />
           </div>
         )}

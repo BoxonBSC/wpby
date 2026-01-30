@@ -4,9 +4,11 @@ import { GameHistory } from '@/components/GameHistory';
 import { Trophy, TrendingUp, Coins } from 'lucide-react';
 import { useCyberSlots } from '@/hooks/useCyberSlots';
 import { formatEther } from 'ethers';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const History = () => {
   const { totalSpins, totalPaidOut, recentWins } = useCyberSlots();
+  const { t } = useLanguage();
 
   // 从链上事件中计算排行榜数据
   const leaderboard = (() => {
@@ -48,9 +50,9 @@ const History = () => {
           className="text-center mb-8"
         >
           <h1 className="text-3xl md:text-4xl font-display neon-text-purple mb-2">
-            游戏记录
+            {t('history.title')}
           </h1>
-          <p className="text-muted-foreground">查看最近的游戏记录和排行榜</p>
+          <p className="text-muted-foreground">{t('history.subtitle')}</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-6">
@@ -62,8 +64,8 @@ const History = () => {
           >
             <h2 className="text-xl font-display neon-text-yellow flex items-center gap-2 mb-4">
               <Trophy className="w-5 h-5" />
-              中奖排行榜
-              <span className="text-xs text-neon-green ml-2">🔗 实时</span>
+              {t('history.leaderboard')}
+              <span className="text-xs text-neon-green ml-2">🔗 {t('history.realtime')}</span>
             </h2>
 
             <div className="space-y-2">
@@ -97,7 +99,7 @@ const History = () => {
                     <div className="flex-1">
                       <div className="font-display text-foreground">{player.address}</div>
                       <div className="text-sm text-muted-foreground">
-                        {player.winCount} 次中奖
+                        {player.winCount} {t('history.wins')}
                       </div>
                     </div>
                     <div className="text-right">
@@ -109,7 +111,7 @@ const History = () => {
                 ))
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  暂无排行榜数据
+                  {t('history.noLeaderboard')}
                 </div>
               )}
             </div>
@@ -139,7 +141,7 @@ const History = () => {
               <div className="text-2xl font-display text-foreground">
                 {totalSpins.toString()}
               </div>
-              <div className="text-sm text-muted-foreground">总游戏次数 🔗</div>
+              <div className="text-sm text-muted-foreground">{t('history.totalSpins')} 🔗</div>
             </div>
           </div>
           <div className="cyber-card flex items-center gap-4">
@@ -150,7 +152,7 @@ const History = () => {
               <div className="text-2xl font-display text-foreground">
                 {parseFloat(totalPaidOut).toFixed(4)} BNB
               </div>
-              <div className="text-sm text-muted-foreground">总派奖金额 🔗</div>
+              <div className="text-sm text-muted-foreground">{t('history.totalPaidOut')} 🔗</div>
             </div>
           </div>
         </motion.div>

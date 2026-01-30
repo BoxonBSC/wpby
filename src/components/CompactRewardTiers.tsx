@@ -1,5 +1,5 @@
-import { SYMBOLS, PAYLINES, PRIZE_TIERS, POOL_PROTECTION } from '@/hooks/useAdvancedSlotMachine';
-import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield, ChevronDown, ChevronUp, TrendingUp, Copy, ExternalLink } from 'lucide-react';
+import { SYMBOLS, PRIZE_TIERS, POOL_PROTECTION } from '@/hooks/useAdvancedSlotMachine';
+import { Trophy, Medal, Award, Star, Gem, Crown, Info, Shield, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import {
   Collapsible,
@@ -9,8 +9,7 @@ import {
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BET_AMOUNTS } from './BetSelector';
-import { CYBER_SLOTS_ADDRESS, CYBER_TOKEN_ADDRESS } from '@/config/contracts';
-import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // 投注对应的概率加成倍数
 const BET_MULTIPLIERS: Record<number, number> = {
@@ -20,39 +19,10 @@ const BET_MULTIPLIERS: Record<number, number> = {
   100000: 10,
   250000: 20,
 };
-const rarityInfo = {
-  legendary: { 
-    label: '传说', 
-    color: 'text-neon-yellow', 
-    bg: 'bg-neon-yellow/5',
-    border: 'border-neon-yellow/30',
-    icon: Crown,
-  },
-  epic: { 
-    label: '史诗', 
-    color: 'text-neon-purple', 
-    bg: 'bg-neon-purple/5',
-    border: 'border-neon-purple/30',
-    icon: Gem,
-  },
-  rare: { 
-    label: '稀有', 
-    color: 'text-neon-cyan', 
-    bg: 'bg-neon-cyan/5',
-    border: 'border-neon-cyan/30',
-    icon: Star,
-  },
-  common: { 
-    label: '普通', 
-    color: 'text-muted-foreground', 
-    bg: 'bg-muted/5',
-    border: 'border-border/30',
-    icon: Star,
-  },
-};
 
 export function CompactRewardTiers() {
   const isMobile = useIsMobile();
+  const { t, language } = useLanguage();
   // 移动端默认折叠，桌面端默认展开
   const [showSymbols, setShowSymbols] = useState(false);
   const [showConditions, setShowConditions] = useState(false);
@@ -65,49 +35,91 @@ export function CompactRewardTiers() {
     }
   }, [isMobile]);
 
+  const rarityInfo = {
+    legendary: { 
+      label: t('rarity.legendary'), 
+      color: 'text-neon-yellow', 
+      bg: 'bg-neon-yellow/5',
+      border: 'border-neon-yellow/30',
+      icon: Crown,
+    },
+    epic: { 
+      label: t('rarity.epic'), 
+      color: 'text-neon-purple', 
+      bg: 'bg-neon-purple/5',
+      border: 'border-neon-purple/30',
+      icon: Gem,
+    },
+    rare: { 
+      label: t('rarity.rare'), 
+      color: 'text-neon-cyan', 
+      bg: 'bg-neon-cyan/5',
+      border: 'border-neon-cyan/30',
+      icon: Star,
+    },
+    common: { 
+      label: t('rarity.common'), 
+      color: 'text-muted-foreground', 
+      bg: 'bg-muted/5',
+      border: 'border-border/30',
+      icon: Star,
+    },
+  };
+
+  // 奖励等级翻译
+  const prizeNames: Record<string, string> = {
+    'super_jackpot': t('reward.superJackpot'),
+    'jackpot': t('reward.jackpot'),
+    'first': t('reward.first'),
+    'second': t('reward.second'),
+    'third': t('reward.third'),
+    'small': t('reward.small'),
+    'consolation': t('reward.consolation'),
+  };
+
   return (
     <div className="h-full flex flex-col rounded-2xl bg-gradient-to-b from-muted/40 to-muted/20 border border-border/50 p-3 lg:p-4 backdrop-blur-sm">
       {/* 标题 */}
       <h3 className="text-base lg:text-lg font-display text-neon-cyan mb-3 flex items-center gap-2">
         <Trophy className="w-4 h-4 lg:w-5 lg:h-5" />
-        奖励与赔付
+        {t('reward.title')}
       </h3>
       
       {/* 资金分配说明 */}
       <div className="rounded-xl p-2.5 lg:p-3 bg-gradient-to-r from-neon-green/10 to-neon-cyan/5 border border-neon-green/20 mb-2 lg:mb-3">
         <div className="flex items-center gap-2 mb-1.5">
           <Shield className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-green flex-shrink-0" />
-          <span className="text-neon-green font-display text-xs lg:text-sm">100% 通缩销毁</span>
-          <span className="text-neon-yellow text-xs px-1.5 py-0.5 rounded bg-neon-yellow/10">零抽成</span>
+          <span className="text-neon-green font-display text-xs lg:text-sm">{t('reward.deflation')}</span>
+          <span className="text-neon-yellow text-xs px-1.5 py-0.5 rounded bg-neon-yellow/10">{t('reward.noFee')}</span>
         </div>
         <p className="text-xs text-muted-foreground mb-1.5">
-          代币 100% 销毁，中奖奖金分配：
+          {t('reward.tokenBurn')}
         </p>
         <div className="text-xs text-muted-foreground space-y-1">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1">
-              <span className="text-neon-green">●</span> 玩家获得（直发钱包）
+              <span className="text-neon-green">●</span> {t('reward.playerGet')}
             </span>
             <span className="text-neon-green font-display">95%</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1">
-              <span className="text-neon-cyan">●</span> VRF 运营费用
+              <span className="text-neon-cyan">●</span> {t('reward.vrfFee')}
             </span>
             <span className="text-neon-cyan font-display">5%</span>
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-          💡 5%用于 Chainlink VRF 预言机 Gas 费
+          💡 {t('reward.vrfNote')}
         </p>
       </div>
 
       {/* 单次派奖上限 */}
       <div className="rounded-xl p-2.5 lg:p-3 bg-gradient-to-b from-neon-pink/10 to-transparent border border-neon-pink/20 text-center mb-2 lg:mb-3">
         <div className="flex items-center justify-center gap-2">
-          <span className="text-xs text-muted-foreground">单次最大派奖:</span>
+          <span className="text-xs text-muted-foreground">{t('reward.maxPayout')}:</span>
           <span className="text-neon-yellow font-display text-sm lg:text-base">
-            奖池的 {(POOL_PROTECTION.maxSinglePayout * 100).toFixed(0)}%
+            {t('reward.poolPercent')} {(POOL_PROTECTION.maxSinglePayout * 100).toFixed(0)}%
           </span>
         </div>
       </div>
@@ -116,7 +128,7 @@ export function CompactRewardTiers() {
       <div className="rounded-xl p-2.5 lg:p-3 bg-gradient-to-b from-neon-purple/10 to-transparent border border-neon-purple/20 mb-2 lg:mb-3">
         <h4 className="text-xs font-display text-neon-purple mb-2 flex items-center gap-1.5">
           <Award className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
-          奖励等级
+          {t('reward.levels')}
         </h4>
         <div className="space-y-1 lg:space-y-1.5">
           {PRIZE_TIERS.slice(0, isMobile ? 3 : 6).map((prize, index) => (
@@ -137,7 +149,7 @@ export function CompactRewardTiers() {
                 index === 1 ? 'text-neon-purple' : 
                 'text-foreground/80'
               }`}>
-                {prize.name}
+                {prizeNames[prize.type] || prize.name}
               </span>
               <span className={`font-display ${
                 index === 0 ? 'text-neon-yellow' :
@@ -150,7 +162,7 @@ export function CompactRewardTiers() {
           ))}
           {isMobile && (
             <div className="text-xs text-center text-muted-foreground pt-1">
-              +3个更多奖励等级...
+              {t('reward.moreLevel')}
             </div>
           )}
         </div>
@@ -160,7 +172,7 @@ export function CompactRewardTiers() {
       <div className="rounded-xl p-2.5 lg:p-3 bg-gradient-to-b from-neon-cyan/10 to-transparent border border-neon-cyan/20 mb-2 lg:mb-3">
         <h4 className="text-xs font-display text-neon-cyan mb-2 flex items-center gap-1.5">
           <TrendingUp className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
-          投注概率加成
+          {t('reward.betBoost')}
         </h4>
         
         {/* 移动端: 2列网格显示 */}
@@ -247,7 +259,7 @@ export function CompactRewardTiers() {
           })}
         </div>
         <p className="text-xs text-muted-foreground mt-1.5 text-center hidden lg:block">
-          投注越高，稀有符号出现概率越大
+          {t('reward.higherBet')}
         </p>
       </div>
 
@@ -256,7 +268,7 @@ export function CompactRewardTiers() {
         <CollapsibleTrigger className="w-full flex items-center justify-between p-2 lg:p-2.5 rounded-xl bg-muted/20 hover:bg-muted/30 border border-border/30 transition-all">
           <span className="text-xs font-display text-neon-purple flex items-center gap-1.5">
             <Gem className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
-            符号概率 (VRF)
+            {t('reward.symbolOdds')}
           </span>
           {showSymbols ? (
             <ChevronUp className="w-4 h-4 text-neon-purple/60" />
@@ -296,7 +308,7 @@ export function CompactRewardTiers() {
         <CollapsibleTrigger className="w-full flex items-center justify-between p-2 lg:p-2.5 rounded-xl bg-muted/20 hover:bg-muted/30 border border-border/30 transition-all">
           <span className="text-xs font-display text-neon-cyan flex items-center gap-1.5">
             <Info className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
-            中奖条件
+            {t('reward.winConditions')}
           </span>
           {showConditions ? (
             <ChevronUp className="w-4 h-4 text-neon-cyan/60" />
@@ -308,36 +320,36 @@ export function CompactRewardTiers() {
           <div className="text-xs space-y-0.5 lg:space-y-1 p-2 lg:p-3 bg-muted/10 rounded-xl border border-border/20">
             <p className="flex items-center gap-2">
               <span className="text-neon-yellow">🎰</span>
-              <span className="text-muted-foreground">超级头奖:</span>
-              <span className="text-foreground/80 ml-auto">5×7️⃣</span>
+              <span className="text-muted-foreground">{t('reward.superJackpot')}:</span>
+              <span className="text-foreground/80 ml-auto">{t('condition.superJackpot')}</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-purple">💎</span>
-              <span className="text-muted-foreground">头奖:</span>
-              <span className="text-foreground/80 ml-auto">5×💎 或 4×7️⃣</span>
+              <span className="text-muted-foreground">{t('reward.jackpot')}:</span>
+              <span className="text-foreground/80 ml-auto">{t('condition.jackpot')}</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-orange">👑</span>
-              <span className="text-muted-foreground">一等奖:</span>
-              <span className="text-foreground/80 ml-auto">5个相同符号</span>
+              <span className="text-muted-foreground">{t('reward.first')}:</span>
+              <span className="text-foreground/80 ml-auto">{t('condition.first')}</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-pink">🔔</span>
-              <span className="text-muted-foreground">二等奖:</span>
-              <span className="text-foreground/80 ml-auto">4×稀有符号</span>
+              <span className="text-muted-foreground">{t('reward.second')}:</span>
+              <span className="text-foreground/80 ml-auto">{t('condition.second')}</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-cyan">⭐</span>
-              <span className="text-muted-foreground">三等奖:</span>
-              <span className="text-foreground/80 ml-auto">4个普通符号</span>
+              <span className="text-muted-foreground">{t('reward.third')}:</span>
+              <span className="text-foreground/80 ml-auto">{t('condition.third')}</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-neon-green">🍀</span>
-              <span className="text-muted-foreground">小奖:</span>
-              <span className="text-foreground/80 ml-auto">3个相同符号</span>
+              <span className="text-muted-foreground">{t('reward.small')}:</span>
+              <span className="text-foreground/80 ml-auto">{t('condition.small')}</span>
             </p>
             <p className="text-muted-foreground/70 text-center pt-1 border-t border-border/20 mt-1">
-              仅中间行有效
+              {t('reward.middleOnly')}
             </p>
           </div>
         </CollapsibleContent>
@@ -349,17 +361,17 @@ export function CompactRewardTiers() {
         <div className="flex items-center justify-between text-xs p-2 lg:p-2.5 rounded-xl bg-muted/15 border border-border/20">
           <span className="flex items-center gap-1.5 text-neon-purple">
             <Medal className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
-            有效赔付
+            {t('reward.payline')}
           </span>
-          <span className="text-foreground font-display">中间行</span>
+          <span className="text-foreground font-display">{t('reward.middleRow')}</span>
         </div>
         
         <div className="p-2 lg:p-2.5 rounded-xl bg-gradient-to-r from-neon-green/10 to-neon-cyan/5 border border-neon-green/20">
           <div className="flex items-center gap-1.5 text-xs text-neon-green font-display">
-            🔗 Chainlink VRF 2.5
+            🔗 {t('reward.chainlinkVRF')}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5 lg:mt-1 hidden lg:block">
-            真随机数，5%资金自动充值Gas
+            {t('reward.vrfDesc')}
           </p>
         </div>
 

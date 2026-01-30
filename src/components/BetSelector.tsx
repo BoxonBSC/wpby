@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Ticket, Minus, Plus, TrendingUp } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // 与合约 CyberSlots.sol 保持一致的投注档位
 // betLevel1-5: 10K, 25K, 50K, 100K, 250K 代币
@@ -28,6 +29,7 @@ export function BetSelector({
   disabled = false,
   playClickSound 
 }: BetSelectorProps) {
+  const { t } = useLanguage();
   const currentIndex = BET_AMOUNTS.indexOf(currentBet);
   
   const handleDecrease = () => {
@@ -90,7 +92,7 @@ export function BetSelector({
           }`}>
             {currentMultiplier}x
           </span>
-          <span className="text-xs text-muted-foreground">中奖概率</span>
+          <span className="text-xs text-muted-foreground">{t('bet.probability')}</span>
         </div>
         {currentMultiplier > 1 && (
           <motion.span
@@ -98,7 +100,7 @@ export function BetSelector({
             animate={{ opacity: 1, x: 0 }}
             className="text-xs text-neon-green"
           >
-            ↑ 提升 {((currentMultiplier - 1) * 100).toFixed(0)}%
+            ↑ {t('bet.boost')} {((currentMultiplier - 1) * 100).toFixed(0)}%
           </motion.span>
         )}
       </motion.div>
@@ -129,7 +131,7 @@ export function BetSelector({
               {formatBet(currentBet)}
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">凭证/次</span>
+          <span className="text-xs text-muted-foreground">{t('bet.perSpin')}</span>
         </div>
         
         <motion.button

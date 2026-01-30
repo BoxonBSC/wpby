@@ -10,8 +10,11 @@ import { CreditsExchange } from '@/components/CreditsExchange';
 import { Navbar } from '@/components/Navbar';
 import { ContractAddresses } from '@/components/ContractAddresses';
 import { Sparkles, Zap, Trophy } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Index = () => {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-background cyber-grid relative overflow-x-hidden">
       {/* 扫描线效果 */}
@@ -85,25 +88,25 @@ const Index = () => {
               whileHover={{ scale: 1.1 }}
               className="px-3 py-1 rounded-full text-xs font-display bg-neon-purple/20 text-neon-purple border border-neon-purple/30 flex items-center gap-1"
             >
-              <Zap className="w-3 h-3" /> 5符号匹配
+              <Zap className="w-3 h-3" /> {t('home.tag.symbols')}
             </motion.span>
             <motion.span
               whileHover={{ scale: 1.1 }}
               className="px-3 py-1 rounded-full text-xs font-display bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
             >
-              中间行赔付
+              {t('home.tag.payline')}
             </motion.span>
             <motion.span
               whileHover={{ scale: 1.1 }}
               className="px-3 py-1 rounded-full text-xs font-display bg-neon-pink/20 text-neon-pink border border-neon-pink/30"
             >
-              10种符号
+              {t('home.tag.symbolCount')}
             </motion.span>
             <motion.span
               whileHover={{ scale: 1.1 }}
               className="px-3 py-1 rounded-full text-xs font-display bg-neon-green/20 text-neon-green border border-neon-green/30 flex items-center gap-1"
             >
-              <Trophy className="w-3 h-3" /> 100% 返还
+              <Trophy className="w-3 h-3" /> {t('home.tag.return')}
             </motion.span>
           </div>
 
@@ -166,8 +169,8 @@ const Index = () => {
           className="mt-8 text-center text-sm text-muted-foreground"
         >
           <div className="neon-border-purple inline-block px-4 py-2 rounded-lg bg-muted/20">
-            <p>链上版本 | 智能合约已连接</p>
-            <p className="mt-0.5 text-xs">Powered by BNB Chain & Chainlink VRF</p>
+            <p>{t('footer.onchain')}</p>
+            <p className="mt-0.5 text-xs">{t('footer.poweredBy')}</p>
           </div>
         </motion.footer>
       </main>

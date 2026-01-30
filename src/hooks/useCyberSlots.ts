@@ -842,8 +842,26 @@ export function formatSymbols(symbols: number[]): string[] {
   return symbols.map(s => SYMBOL_MAP[s] || '❓');
 }
 
-export function formatPrizeType(prizeType: string): { name: string; emoji: string } {
-  return PRIZE_TYPE_MAP[prizeType] || PRIZE_TYPE_MAP.none;
+export function formatPrizeType(prizeType: string, language: 'zh' | 'en' = 'zh'): { name: string; emoji: string } {
+  const prizeMap = PRIZE_TYPE_MAP[prizeType] || PRIZE_TYPE_MAP.none;
+  
+  // 英文翻译映射
+  const englishNames: Record<string, string> = {
+    '超级头奖': 'Super Jackpot',
+    '头奖': 'Jackpot',
+    '一等奖': '1st Prize',
+    '二等奖': '2nd Prize',
+    '三等奖': '3rd Prize',
+    '小奖': 'Small Win',
+    '安慰奖': 'Consolation',
+    '未中奖': 'No Win',
+  };
+  
+  if (language === 'en' && englishNames[prizeMap.name]) {
+    return { name: englishNames[prizeMap.name], emoji: prizeMap.emoji };
+  }
+  
+  return prizeMap;
 }
 
 export function shortenAddress(address: string): string {

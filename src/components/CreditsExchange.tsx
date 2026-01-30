@@ -4,12 +4,14 @@ import { useWallet } from '@/contexts/WalletContext';
 import { useCyberSlots } from '@/hooks/useCyberSlots';
 import { Flame, ArrowRight, Ticket, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const EXCHANGE_AMOUNTS = [100000, 500000, 1000000, 5000000];
 
 export function CreditsExchange() {
   const { isConnected } = useWallet();
   const { tokenBalance, gameCredits, depositCredits, error: contractError, refreshData } = useCyberSlots();
+  const { t } = useLanguage();
   const [selectedAmount, setSelectedAmount] = useState(EXCHANGE_AMOUNTS[1]);
   const [isExchanging, setIsExchanging] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -20,7 +22,7 @@ export function CreditsExchange() {
   const handleExchange = async () => {
     if (!isConnected) {
       toast({
-        title: "请先连接钱包",
+        title: t('wallet.pleaseConnect'),
         variant: "destructive",
       });
       return;
@@ -28,8 +30,8 @@ export function CreditsExchange() {
 
     if (tokenBalanceNum < selectedAmount) {
       toast({
-        title: "代币不足",
-        description: `需要 ${selectedAmount.toLocaleString()} 代币`,
+        title: t('exchange.insufficientTokens'),
+        description: t('exchange.needTokens').replace('{amount}', selectedAmount.toLocaleString()),
         variant: "destructive",
       });
       return;
@@ -43,23 +45,23 @@ export function CreditsExchange() {
       if (result.ok) {
         setShowSuccess(true);
         toast({
-          title: "兑换成功！🎉",
-          description: `销毁 ${selectedAmount.toLocaleString()} 代币，获得 ${selectedAmount.toLocaleString()} 游戏凭证`,
+          title: `${t('exchange.success')} 🎉`,
+          description: t('exchange.successDesc').replace('{amount}', selectedAmount.toLocaleString()),
         });
         setTimeout(() => setShowSuccess(false), 2000);
         await refreshData();
       } else {
         toast({
-          title: "兑换失败",
-          description: result.error || contractError || "请检查授权和余额",
+          title: t('exchange.failed'),
+          description: result.error || contractError || t('exchange.checkAuth'),
           variant: "destructive",
         });
       }
     } catch (err) {
       console.error('Exchange failed:', err);
       toast({
-        title: "兑换失败",
-        description: contractError || "交易失败，请稍后重试",
+        title: t('exchange.failed'),
+        description: contractError || t('exchange.checkAuth'),
         variant: "destructive",
       });
     }
@@ -77,30 +79,27 @@ export function CreditsExchange() {
     <div className="rounded-2xl bg-gradient-to-b from-muted/40 to-muted/20 border border-border/50 p-4 backdrop-blur-sm">
       <h3 className="text-base font-display text-neon-orange mb-3 flex items-center gap-2">
         <Flame className="w-4 h-4" />
-        销毁代币换凭证
+        {t('exchange.title')}
       </h3>
 
       {/* 说明 */}
       <div className="text-xs text-muted-foreground mb-4 p-2 rounded-lg bg-muted/20 border border-border/30">
         <p className="flex items-start gap-2">
           <AlertCircle className="w-3 h-3 mt-0.5 text-neon-yellow flex-shrink-0" />
-          <span>
-            销毁代币获得<span className="text-neon-cyan">游戏凭证</span>（1:1兑换）。
-            凭证<span className="text-neon-pink">永久有效</span>、<span className="text-neon-purple">不可转让</span>，只能用于本钱包玩老虎机。
-          </span>
+          <span>{t('exchange.notice')}</span>
         </p>
       </div>
 
       {/* 当前余额 */}
       <div className="grid grid-cols-2 gap-2 mb-4">
         <div className="p-2.5 rounded-xl bg-gradient-to-b from-neon-purple/10 to-transparent border border-neon-purple/20 text-center">
-          <div className="text-xs text-muted-foreground mb-1">代币余额</div>
+          <div className="text-xs text-muted-foreground mb-1">{t('exchange.tokenBalance')}</div>
           <div className="text-neon-purple font-display">
             {formatNumber(tokenBalanceNum)}
           </div>
         </div>
         <div className="p-2.5 rounded-xl bg-gradient-to-b from-neon-cyan/10 to-transparent border border-neon-cyan/20 text-center">
-          <div className="text-xs text-muted-foreground mb-1">游戏凭证</div>
+          <div className="text-xs text-muted-foreground mb-1">{t('exchange.gameCredits')}</div>
           <div className="text-neon-cyan font-display flex items-center justify-center gap-1">
             <Ticket className="w-3 h-3" />
             {formatNumber(gameCreditsNum)}
@@ -135,11 +134,11 @@ export function CreditsExchange() {
       {/* 兑换预览 */}
       <div className="flex items-center justify-center gap-2 mb-4 p-3 rounded-xl bg-muted/20 border border-border/30">
         <div className="text-center">
-          <div className="text-xs text-muted-foreground">销毁</div>
+          <div className="text-xs text-muted-foreground">{t('exchange.burn')}</div>
           <div className="text-neon-red font-display text-lg">
             -{formatNumber(selectedAmount)}
           </div>
-          <div className="text-xs text-muted-foreground">代币</div>
+          <div className="text-xs text-muted-foreground">{t('exchange.token')}</div>
         </div>
         
         <motion.div
@@ -150,12 +149,12 @@ export function CreditsExchange() {
         </motion.div>
         
         <div className="text-center">
-          <div className="text-xs text-muted-foreground">获得</div>
+          <div className="text-xs text-muted-foreground">{t('exchange.get')}</div>
           <div className="text-neon-green font-display text-lg flex items-center gap-1">
             <Ticket className="w-4 h-4" />
             +{formatNumber(selectedAmount)}
           </div>
-          <div className="text-xs text-muted-foreground">凭证</div>
+          <div className="text-xs text-muted-foreground">{t('exchange.credit')}</div>
         </div>
       </div>
 
@@ -188,7 +187,7 @@ export function CreditsExchange() {
               >
                 <Flame className="w-4 h-4" />
               </motion.span>
-              销毁中...
+              {t('exchange.burning')}
             </motion.span>
           ) : showSuccess ? (
             <motion.span
@@ -199,7 +198,7 @@ export function CreditsExchange() {
               className="flex items-center justify-center gap-2 text-neon-green"
             >
               <CheckCircle className="w-4 h-4" />
-              兑换成功！
+              {t('exchange.success')}
             </motion.span>
           ) : (
             <motion.span
@@ -210,7 +209,7 @@ export function CreditsExchange() {
               className="flex items-center justify-center gap-2"
             >
               <Flame className="w-4 h-4" />
-              销毁代币换凭证
+              {t('exchange.button')}
               <Sparkles className="w-4 h-4" />
             </motion.span>
           )}

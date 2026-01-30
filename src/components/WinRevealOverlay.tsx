@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Trophy, Sparkles, X } from 'lucide-react';
 import { SYMBOLS, type SlotSymbol } from '@/hooks/useAdvancedSlotMachine';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WinRevealOverlayProps {
   isVisible: boolean;
@@ -23,6 +24,8 @@ function WinRevealOverlayInner({
   symbols,
   onClose,
 }: WinRevealOverlayProps) {
+  const { t } = useLanguage();
+
   if (!isVisible) return null;
 
   return (
@@ -76,7 +79,7 @@ function WinRevealOverlayInner({
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-1">
             <Trophy className="w-4 h-4 text-neon-yellow" />
-            获得奖金
+            {t('win.prize')}
           </div>
           <div className="text-4xl font-display neon-text-green animate-pulse">
             +{winAmount} BNB
@@ -85,7 +88,7 @@ function WinRevealOverlayInner({
 
         {/* 底部提示 */}
         <p className="text-center text-sm text-muted-foreground mt-4">
-          点击任意位置关闭
+          {t('win.clickToClose')}
         </p>
       </div>
     </div>

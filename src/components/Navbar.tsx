@@ -1,18 +1,24 @@
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Gamepad2, History, FileText, Menu, X } from 'lucide-react';
+import { Gamepad2, History, FileText, Menu, X, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { AudioControls } from './AudioControls';
-
-const navItems = [
-  { path: '/', label: '游戏', icon: Gamepad2 },
-  { path: '/history', label: '记录', icon: History },
-  { path: '/rules', label: '规则', icon: FileText },
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function Navbar() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
+
+  const navItems = [
+    { path: '/', label: t('nav.game'), icon: Gamepad2 },
+    { path: '/history', label: t('nav.history'), icon: History },
+    { path: '/rules', label: t('nav.rules'), icon: FileText },
+  ];
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'zh' ? 'en' : 'zh');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border">
@@ -63,8 +69,22 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Audio Controls & Mobile Menu */}
-          <div className="flex items-center gap-3">
+          {/* Audio Controls & Language & Mobile Menu */}
+          <div className="flex items-center gap-2">
+            {/* Language Toggle */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/50 hover:bg-muted border border-border/50 transition-colors"
+              title={language === 'zh' ? 'Switch to English' : '切换到中文'}
+            >
+              <Globe className="w-4 h-4 text-neon-cyan" />
+              <span className="text-xs font-display text-foreground">
+                {language === 'zh' ? 'EN' : '中'}
+              </span>
+            </motion.button>
+
             <AudioControls />
             
             {/* Mobile Menu Button */}
