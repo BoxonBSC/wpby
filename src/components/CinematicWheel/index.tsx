@@ -1,13 +1,20 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { Crown, Sparkles } from 'lucide-react';
 import { ThemeType, THEME_COLORS, WheelSector, CinematicWheelProps } from './types';
 import { WheelBackground } from './WheelBackground';
 import { WheelSectors } from './WheelSectors';
-import { CrystalPointer } from './CrystalPointer';
+import { CasinoPointer } from './CasinoPointer';
+import { WheelPegs } from './WheelPegs';
 import { ParticleExplosion } from './ParticleExplosion';
 import { useWallet } from '@/contexts/WalletContext';
 import { toast } from '@/hooks/use-toast';
+
+const hsla = (hsl: string, alpha: number) => {
+  if (hsl.startsWith('hsla(')) return hsl;
+  if (!hsl.startsWith('hsl(')) return hsl;
+  return hsl.replace(/^hsl\(/, 'hsla(').replace(/\)$/, `, ${alpha})`);
+};
 
 export function CinematicWheel({ 
   sectors, 
@@ -159,7 +166,7 @@ export function CinematicWheel({
           style={{
             width: wheelSize + 200,
             height: wheelSize + 200,
-            background: `radial-gradient(circle, ${colors.glow}15 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${hsla(colors.glow, 0.12)} 0%, transparent 70%)`,
           }}
           animate={{
             opacity: [0.5, 0.8, 0.5],
@@ -178,7 +185,7 @@ export function CinematicWheel({
         className="relative"
         style={{ 
           width: wheelSize + 40, 
-          height: wheelSize + 40,
+          height: wheelSize + 120,
           perspective: '1000px',
         }}
       >
@@ -201,7 +208,7 @@ export function CinematicWheel({
               height: wheelSize,
               left: 20,
               top: 30,
-              background: 'radial-gradient(ellipse, rgba(0,0,0,0.6) 0%, transparent 70%)',
+              background: `radial-gradient(ellipse, ${hsla('hsl(var(--background))', 0.7)} 0%, transparent 70%)`,
               filter: 'blur(20px)',
               transform: 'rotateX(-8deg) translateZ(-50px)',
             }}
@@ -215,7 +222,7 @@ export function CinematicWheel({
               height: wheelSize + 30,
               left: 5,
               top: 5,
-              background: `conic-gradient(from 0deg, ${colors.gradient[0]}40, ${colors.gradient[1]}20, ${colors.gradient[0]}40, ${colors.gradient[1]}20, ${colors.gradient[0]}40)`,
+              background: `conic-gradient(from 0deg, ${hsla(colors.gradient[0], 0.35)}, ${hsla(colors.gradient[1], 0.18)}, ${hsla(colors.gradient[0], 0.35)}, ${hsla(colors.gradient[1], 0.18)}, ${hsla(colors.gradient[0], 0.35)})`,
               filter: 'blur(1px)',
             }}
           />
@@ -228,7 +235,7 @@ export function CinematicWheel({
               height: wheelSize + 20,
               left: 10,
               top: 10,
-              background: `linear-gradient(135deg, ${colors.gradient[2]} 0%, #000 50%, ${colors.gradient[2]} 100%)`,
+              background: `linear-gradient(135deg, ${colors.gradient[2]} 0%, hsl(var(--background)) 50%, ${colors.gradient[2]} 100%)`,
               boxShadow: `
                 inset 0 2px 20px rgba(255,255,255,0.1),
                 inset 0 -2px 20px rgba(0,0,0,0.8),
@@ -260,13 +267,16 @@ export function CinematicWheel({
               size={wheelSize}
               winningSector={winningSector?.id || null}
             />
+
+            {/* 外圈钉子 - z-index: 15 (跟随轮盘一起转) */}
+            <WheelPegs theme={theme} size={wheelSize} count={Math.max(24, sectors.length * 2)} />
             
             {/* Motion Blur 效果 - z-index: 20 */}
             {spinPhase === 'spinning' && (
               <motion.div
                 className="absolute inset-0 rounded-full pointer-events-none"
                 style={{
-                  background: `radial-gradient(circle, transparent 30%, ${colors.glow}10 100%)`,
+                  background: `radial-gradient(circle, transparent 30%, ${hsla(colors.glow, 0.08)} 100%)`,
                   filter: 'blur(3px)',
                   zIndex: 20,
                 }}
@@ -282,11 +292,26 @@ export function CinematicWheel({
           </motion.div>
         </motion.div>
 
-        {/* 水晶指针 */}
-        <CrystalPointer isSpinning={isSpinning} theme={theme} />
+        {/* 赌场指针 */}
+        <CasinoPointer isSpinning={isSpinning} theme={theme} />
 
         {/* 粒子爆炸效果 */}
         <ParticleExplosion isActive={showCelebration} theme={theme} />
+
+        {/* 简易底座（轮盘支架） */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+          style={{
+            top: wheelSize + 38,
+            width: wheelSize * 0.72,
+            height: 56,
+            borderRadius: 18,
+            background: `linear-gradient(180deg, hsl(var(--muted)) 0%, hsl(var(--background)) 100%)`,
+            border: `1px solid ${hsla(colors.accent, 0.25)}`,
+            boxShadow: `0 14px 28px ${hsla('hsl(var(--background))', 0.55)}, inset 0 1px 0 ${hsla('hsl(var(--foreground))', 0.06)}`,
+            zIndex: 5,
+          }}
+        />
       </div>
 
       {/* 旋转按钮 */}
@@ -325,7 +350,7 @@ export function CinematicWheel({
         {/* 按钮内容 */}
         <div 
           className="relative px-12 py-4 font-display text-xl tracking-wider"
-          style={{ color: '#000' }}
+          style={{ color: 'hsl(var(--primary-foreground))' }}
         >
           {isSpinning ? (
             <span className="flex items-center justify-center gap-3">
