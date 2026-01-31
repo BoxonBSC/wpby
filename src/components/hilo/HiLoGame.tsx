@@ -19,12 +19,24 @@ import {
 } from '@/config/hilo';
 import { Button } from '@/components/ui/button';
 import { Wallet, ChevronUp, ChevronDown, Equal, HandCoins, Play } from 'lucide-react';
+import { useAudio } from '@/hooks/useAudio';
 
 // 模拟数据
 const MOCK_CREDITS = 1000000;
 const MOCK_PRIZE_POOL = 10;
 
 export function HiLoGame() {
+  // 音效
+  const { 
+    playCardFlipSound, 
+    playSelectTierSound, 
+    playCorrectGuessSound, 
+    playWrongGuessSound, 
+    playCashOutSound,
+    playMilestoneSound,
+    playClickSound,
+  } = useAudio();
+
   // 游戏状态
   const [gameState, setGameState] = useState<HiLoGameState>('idle');
   const [currentCard, setCurrentCard] = useState<Card | null>(null);
@@ -51,6 +63,9 @@ export function HiLoGame() {
     const tier = BET_TIERS[selectedTierIndex];
     if (credits < tier.betAmount) return;
     
+    playClickSound();
+    playCardFlipSound();
+    
     setCredits(prev => prev - tier.betAmount);
     setCurrentBetTier(tier);
     setCurrentCard(generateRandomCard());
@@ -60,17 +75,23 @@ export function HiLoGame() {
     setGuessCorrect(null);
     // 锁定当前奖池快照 - 整局游戏的奖励都基于此计算
     setPrizePoolSnapshot(prizePool);
-  }, [credits, selectedTierIndex, prizePool]);
+  }, [credits, selectedTierIndex, prizePool, playClickSound, playCardFlipSound]);
 
   // 猜测
   const makeGuess = useCallback((guess: Guess) => {
     if (gameState !== 'playing' || !currentCard || isRevealing) return;
     
+    playClickSound();
     setIsRevealing(true);
     
     // 生成下一张牌
     const newCard = generateRandomCard();
     setNextCard(newCard);
+    
+    // 播放翻牌音效
+    setTimeout(() => {
+      playCardFlipSound();
+    }, 200);
     
     // 判断结果
     setTimeout(() => {
@@ -90,11 +111,20 @@ export function HiLoGame() {
         const newStreak = streak + 1;
         setStreak(newStreak);
         
+        // 播放猜对音效
+        playCorrectGuessSound();
+        
+        // 检查是否是里程碑（3次、5次、7次等）
+        if (newStreak % 2 === 1 && newStreak > 1) {
+          setTimeout(() => playMilestoneSound(), 300);
+        }
+        
         // 检查是否达到门槛上限
         if (newStreak >= currentBetTier.maxStreak) {
           // 自动兑现 - 使用锁定的奖池快照
           const reward = calculateHiLoReward(newStreak, currentBetTier.maxStreak, effectivePrizePool);
           setGameState('won');
+          setTimeout(() => playCashOutSound(), 500);
           const result: HiLoResult = {
             id: `${Date.now()}-${Math.random()}`,
             betAmount: currentBetTier.betAmount,
@@ -112,6 +142,7 @@ export function HiLoGame() {
         }
       } else {
         // 猜错 - 游戏结束
+        playWrongGuessSound();
         setGameState('lost');
         const result: HiLoResult = {
           id: `${Date.now()}-${Math.random()}`,
@@ -127,11 +158,13 @@ export function HiLoGame() {
       
       setIsRevealing(false);
     }, HILO_CONFIG.animation.flipDuration + HILO_CONFIG.animation.revealDelay);
-  }, [gameState, currentCard, isRevealing, streak, currentBetTier, effectivePrizePool]);
+  }, [gameState, currentCard, isRevealing, streak, currentBetTier, effectivePrizePool, playClickSound, playCardFlipSound, playCorrectGuessSound, playWrongGuessSound, playMilestoneSound, playCashOutSound]);
 
   // 收手兑现
   const cashOut = useCallback(() => {
     if (gameState !== 'playing' || streak <= 0) return;
+    
+    playCashOutSound();
     
     // 使用锁定的奖池快照计算奖励
     const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
@@ -147,17 +180,26 @@ export function HiLoGame() {
       timestamp: Date.now(),
     };
     setResults(prev => [result, ...prev]);
-  }, [gameState, streak, currentBetTier, effectivePrizePool]);
+  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound]);
 
   // 重新开始
   const resetGame = useCallback(() => {
+    playClickSound();
     setGameState('idle');
     setCurrentCard(null);
     setNextCard(null);
     setStreak(0);
     setGuessCorrect(null);
     setPrizePoolSnapshot(null); // 清除快照，下局重新锁定
-  }, []);
+  }, [playClickSound]);
+
+  // 选择门槛处理函数
+  const handleSelectTier = useCallback((index: number, canAfford: boolean) => {
+    if (canAfford) {
+      playSelectTierSound();
+      setSelectedTierIndex(index);
+    }
+  }, [playSelectTierSound]);
 
   const currentReward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
 
@@ -274,7 +316,7 @@ export function HiLoGame() {
                             return (
                               <button
                                 key={tier.id}
-                                onClick={() => canAfford && setSelectedTierIndex(index)}
+                                onClick={() => handleSelectTier(index, canAfford)}
                                 disabled={!canAfford}
                                 className={`
                                   p-3 rounded-xl transition-all text-center
@@ -314,7 +356,7 @@ export function HiLoGame() {
                             return (
                               <button
                                 key={tier.id}
-                                onClick={() => canAfford && setSelectedTierIndex(index)}
+                                onClick={() => handleSelectTier(index, canAfford)}
                                 disabled={!canAfford}
                                 className={`
                                   p-3 rounded-xl transition-all text-center
