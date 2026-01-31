@@ -288,6 +288,7 @@ export function HiLoGame() {
                           {BET_TIERS.slice(0, 3).map((tier, index) => {
                             const canAfford = credits >= tier.betAmount;
                             const isSelected = selectedTierIndex === index;
+                            const maxRewardTier = REWARD_TIERS.find(r => r.streak === tier.maxStreak);
                             
                             return (
                               <button
@@ -315,8 +316,8 @@ export function HiLoGame() {
                                 <div className="text-[#C9A347]/60 text-xs">
                                   {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
                                 </div>
-                                <div className="text-[10px] mt-1" style={{ color: tier.color }}>
-                                  {tier.maxStreak}连胜
+                                <div className="text-[10px] mt-1 text-[#FFD700]">
+                                  最高 {maxRewardTier?.percentage ?? 0}% 奖池
                                 </div>
                               </button>
                             );
@@ -327,6 +328,7 @@ export function HiLoGame() {
                             const index = i + 3;
                             const canAfford = credits >= tier.betAmount;
                             const isSelected = selectedTierIndex === index;
+                            const maxRewardTier = REWARD_TIERS.find(r => r.streak === tier.maxStreak);
                             
                             return (
                               <button
@@ -354,8 +356,8 @@ export function HiLoGame() {
                                 <div className="text-[#C9A347]/60 text-xs">
                                   {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
                                 </div>
-                                <div className="text-[10px] mt-1" style={{ color: tier.color }}>
-                                  {tier.maxStreak}连胜
+                                <div className="text-[10px] mt-1 text-[#FFD700]">
+                                  最高 {maxRewardTier?.percentage ?? 0}% 奖池
                                 </div>
                               </button>
                             );
