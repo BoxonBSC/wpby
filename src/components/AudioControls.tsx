@@ -41,12 +41,14 @@ export function AudioControls() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         onClick={handleMuteClick}
-        className={`
-          p-2 rounded-lg transition-colors
-          ${isMuted 
-            ? 'bg-destructive/20 text-destructive' 
-            : 'bg-muted/50 text-neon-cyan hover:bg-muted'}
-        `}
+        className="p-2 rounded-lg transition-all duration-300"
+        style={{
+          background: isMuted 
+            ? 'rgba(220, 38, 38, 0.2)' 
+            : 'rgba(201, 163, 71, 0.1)',
+          border: `1px solid ${isMuted ? 'rgba(220, 38, 38, 0.4)' : 'rgba(201, 163, 71, 0.3)'}`,
+          color: isMuted ? '#dc2626' : '#C9A347',
+        }}
         title={isMuted ? t('audio.unmute') : t('audio.mute')}
       >
         {isMuted ? (
@@ -65,18 +67,27 @@ export function AudioControls() {
           step="0.1"
           value={volume}
           onChange={(e) => setVolume(parseFloat(e.target.value))}
-          className="w-20 h-2 bg-muted rounded-lg appearance-none cursor-pointer
-            [&::-webkit-slider-thumb]:appearance-none
-            [&::-webkit-slider-thumb]:w-4
-            [&::-webkit-slider-thumb]:h-4
-            [&::-webkit-slider-thumb]:bg-neon-cyan
-            [&::-webkit-slider-thumb]:rounded-full
-            [&::-webkit-slider-thumb]:shadow-[0_0_10px_hsl(180_100%_50%/0.5)]
-            [&::-webkit-slider-thumb]:cursor-pointer
-            [&::-webkit-slider-thumb]:transition-transform
-            [&::-webkit-slider-thumb]:hover:scale-125"
+          className="w-16 h-1.5 rounded-lg appearance-none cursor-pointer"
+          style={{
+            background: `linear-gradient(to right, #C9A347 0%, #C9A347 ${volume * 100}%, rgba(201, 163, 71, 0.2) ${volume * 100}%, rgba(201, 163, 71, 0.2) 100%)`,
+          }}
           disabled={isMuted}
         />
+        <style>{`
+          input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: linear-gradient(135deg, #FFD700 0%, #C9A347 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+            cursor: pointer;
+            transition: transform 0.2s;
+          }
+          input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+          }
+        `}</style>
       </div>
 
       {/* 背景音乐按钮 */}
@@ -85,14 +96,18 @@ export function AudioControls() {
         whileTap={{ scale: 0.95 }}
         onClick={handleMusicToggle}
         disabled={isMuted}
-        className={`
-          p-2 rounded-lg transition-colors relative
-          ${isMuted 
-            ? 'bg-muted/30 text-muted-foreground cursor-not-allowed' 
+        className="p-2 rounded-lg transition-all duration-300 relative"
+        style={{
+          background: isMuted 
+            ? 'rgba(201, 163, 71, 0.05)' 
             : isBgMusicPlaying
-              ? 'bg-neon-purple/20 text-neon-purple neon-border-purple'
-              : 'bg-muted/50 text-muted-foreground hover:text-neon-purple hover:bg-muted'}
-        `}
+              ? 'rgba(255, 215, 0, 0.15)'
+              : 'rgba(201, 163, 71, 0.1)',
+          border: `1px solid ${isMuted ? 'rgba(201, 163, 71, 0.1)' : isBgMusicPlaying ? 'rgba(255, 215, 0, 0.5)' : 'rgba(201, 163, 71, 0.3)'}`,
+          color: isMuted ? 'rgba(201, 163, 71, 0.3)' : isBgMusicPlaying ? '#FFD700' : '#C9A347',
+          boxShadow: isBgMusicPlaying ? '0 0 15px rgba(255, 215, 0, 0.3)' : 'none',
+          cursor: isMuted ? 'not-allowed' : 'pointer',
+        }}
         title={isBgMusicPlaying ? t('audio.bgMusicOff') : t('audio.bgMusicOn')}
       >
         {isBgMusicPlaying ? (
@@ -112,7 +127,8 @@ export function AudioControls() {
             initial={{ scale: 0 }}
             animate={{ scale: [1, 1.5, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
-            className="absolute -top-1 -right-1 w-2 h-2 bg-neon-purple rounded-full"
+            className="absolute -top-1 -right-1 w-2 h-2 rounded-full"
+            style={{ background: '#FFD700', boxShadow: '0 0 8px rgba(255, 215, 0, 0.8)' }}
           />
         )}
       </motion.button>
