@@ -9,13 +9,14 @@ import {
   HiLoResult,
   Card,
   Guess,
+  BET_TIERS,
   generateRandomCard,
   calculateHiLoReward,
   calculateWinProbability,
   getCurrentRewardTier,
+  getBetTier,
 } from '@/config/hilo';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Wallet, ChevronUp, ChevronDown, Equal, HandCoins, Play } from 'lucide-react';
 
 // 模拟数据
@@ -33,32 +34,32 @@ export function HiLoGame() {
   // 玩家状态
   const [credits, setCredits] = useState(MOCK_CREDITS);
   const [prizePool] = useState(MOCK_PRIZE_POOL);
-  const [betAmount, setBetAmount] = useState(HILO_CONFIG.bet.default);
+  const [selectedTierIndex, setSelectedTierIndex] = useState(0);
+  const [currentBetTier, setCurrentBetTier] = useState(BET_TIERS[0]);
   
   // 历史记录
   const [results, setResults] = useState<HiLoResult[]>([]);
-  const [lastGuess, setLastGuess] = useState<Guess | null>(null);
   const [guessCorrect, setGuessCorrect] = useState<boolean | null>(null);
 
   // 开始游戏
   const startGame = useCallback(() => {
-    if (credits < betAmount) return;
+    const tier = BET_TIERS[selectedTierIndex];
+    if (credits < tier.betAmount) return;
     
-    setCredits(prev => prev - betAmount);
+    setCredits(prev => prev - tier.betAmount);
+    setCurrentBetTier(tier);
     setCurrentCard(generateRandomCard());
     setNextCard(null);
     setStreak(0);
     setGameState('playing');
-    setLastGuess(null);
     setGuessCorrect(null);
-  }, [credits, betAmount]);
+  }, [credits, selectedTierIndex]);
 
   // 猜测
   const makeGuess = useCallback((guess: Guess) => {
     if (gameState !== 'playing' || !currentCard || isRevealing) return;
     
     setIsRevealing(true);
-    setLastGuess(guess);
     
     // 生成下一张牌
     const newCard = generateRandomCard();
@@ -79,17 +80,36 @@ export function HiLoGame() {
       setGuessCorrect(correct);
       
       if (correct) {
-        // 猜对
-        setStreak(prev => prev + 1);
-        setCurrentCard(newCard);
-        setNextCard(null);
-        setGameState('playing');
+        const newStreak = streak + 1;
+        setStreak(newStreak);
+        
+        // 检查是否达到门槛上限
+        if (newStreak >= currentBetTier.maxStreak) {
+          // 自动兑现
+          const reward = calculateHiLoReward(newStreak, currentBetTier.maxStreak, prizePool);
+          setGameState('won');
+          const result: HiLoResult = {
+            id: `${Date.now()}-${Math.random()}`,
+            betAmount: currentBetTier.betAmount,
+            betTier: currentBetTier.name,
+            streak: newStreak,
+            bnbWon: reward,
+            cashedOut: true,
+            timestamp: Date.now(),
+          };
+          setResults(prev => [result, ...prev]);
+        } else {
+          setCurrentCard(newCard);
+          setNextCard(null);
+          setGameState('playing');
+        }
       } else {
         // 猜错 - 游戏结束
         setGameState('lost');
         const result: HiLoResult = {
           id: `${Date.now()}-${Math.random()}`,
-          betAmount,
+          betAmount: currentBetTier.betAmount,
+          betTier: currentBetTier.name,
           streak,
           bnbWon: 0,
           cashedOut: false,
@@ -100,25 +120,26 @@ export function HiLoGame() {
       
       setIsRevealing(false);
     }, HILO_CONFIG.animation.flipDuration + HILO_CONFIG.animation.revealDelay);
-  }, [gameState, currentCard, isRevealing, betAmount, streak]);
+  }, [gameState, currentCard, isRevealing, streak, currentBetTier, prizePool]);
 
   // 收手兑现
   const cashOut = useCallback(() => {
     if (gameState !== 'playing' || streak <= 0) return;
     
-    const reward = calculateHiLoReward(streak, prizePool);
+    const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, prizePool);
     setGameState('won');
     
     const result: HiLoResult = {
       id: `${Date.now()}-${Math.random()}`,
-      betAmount,
+      betAmount: currentBetTier.betAmount,
+      betTier: currentBetTier.name,
       streak,
       bnbWon: reward,
       cashedOut: true,
       timestamp: Date.now(),
     };
     setResults(prev => [result, ...prev]);
-  }, [gameState, streak, prizePool, betAmount]);
+  }, [gameState, streak, currentBetTier, prizePool]);
 
   // 重新开始
   const resetGame = useCallback(() => {
@@ -126,12 +147,10 @@ export function HiLoGame() {
     setCurrentCard(null);
     setNextCard(null);
     setStreak(0);
-    setLastGuess(null);
     setGuessCorrect(null);
   }, []);
 
-  const currentReward = calculateHiLoReward(streak, prizePool);
-  const currentTier = getCurrentRewardTier(streak);
+  const currentReward = calculateHiLoReward(streak, currentBetTier.maxStreak, prizePool);
 
   // 计算概率显示
   const higherProb = currentCard ? (calculateWinProbability(currentCard.value, 'higher') * 100).toFixed(1) : '0';
@@ -163,7 +182,11 @@ export function HiLoGame() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* 左侧 - 奖励阶梯 */}
           <div className="lg:col-span-3">
-            <RewardLadder currentStreak={streak} prizePool={prizePool} />
+            <RewardLadder 
+              currentStreak={streak} 
+              prizePool={prizePool} 
+              currentBetTier={currentBetTier}
+            />
           </div>
 
           {/* 中间 - 游戏区 */}
@@ -183,11 +206,13 @@ export function HiLoGame() {
                   animate={{ opacity: 1, y: 0 }}
                   className="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full"
                   style={{
-                    background: 'linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, rgba(201, 163, 71, 0.2) 100%)',
-                    border: '1px solid rgba(255, 215, 0, 0.4)',
+                    background: `linear-gradient(90deg, ${currentBetTier.color}30 0%, transparent 100%)`,
+                    border: `1px solid ${currentBetTier.color}60`,
                   }}
                 >
-                  <span className="text-[#FFD700] font-bold">连胜 {streak} 次</span>
+                  <span className="font-bold" style={{ color: currentBetTier.color }}>
+                    连胜 {streak}/{currentBetTier.maxStreak}
+                  </span>
                   <span className="text-[#C9A347] ml-2">| {currentReward.toFixed(4)} BNB</span>
                 </motion.div>
               )}
@@ -240,37 +265,62 @@ export function HiLoGame() {
 
               {/* 控制区 */}
               <div className="mt-8">
-                {/* 闲置状态 - 下注 */}
+                {/* 闲置状态 - 选择门槛 */}
                 {gameState === 'idle' && (
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[#C9A347]/60 text-sm mb-2 block">下注金额</label>
-                      <Input
-                        type="number"
-                        value={betAmount}
-                        onChange={(e) => setBetAmount(Number(e.target.value))}
-                        className="bg-black/30 border-[#C9A347]/20 text-[#C9A347]"
-                      />
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {HILO_CONFIG.bet.presets.map((preset) => (
-                          <button
-                            key={preset}
-                            onClick={() => setBetAmount(preset)}
-                            className="px-3 py-1 rounded-lg text-xs font-bold bg-[#C9A347]/10 text-[#C9A347]/70 hover:bg-[#C9A347]/20"
-                          >
-                            {(preset / 1000)}K
-                          </button>
-                        ))}
+                      <label className="text-[#C9A347]/60 text-sm mb-3 block">选择门槛等级</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {BET_TIERS.map((tier, index) => {
+                          const canAfford = credits >= tier.betAmount;
+                          const isSelected = selectedTierIndex === index;
+                          
+                          return (
+                            <button
+                              key={tier.id}
+                              onClick={() => canAfford && setSelectedTierIndex(index)}
+                              disabled={!canAfford}
+                              className={`
+                                p-4 rounded-xl transition-all text-center
+                                ${canAfford ? 'hover:scale-105' : 'opacity-40 cursor-not-allowed'}
+                              `}
+                              style={{
+                                background: isSelected 
+                                  ? `linear-gradient(135deg, ${tier.color}30 0%, ${tier.color}10 100%)`
+                                  : 'rgba(0,0,0,0.3)',
+                                border: `2px solid ${isSelected ? tier.color : 'rgba(201, 163, 71, 0.2)'}`,
+                                boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
+                              }}
+                            >
+                              <div 
+                                className="font-bold text-lg"
+                                style={{ color: tier.color }}
+                              >
+                                {tier.name}
+                              </div>
+                              <div className="text-[#C9A347]/60 text-sm">
+                                {(tier.betAmount / 1000)}K 凭证
+                              </div>
+                              <div className="text-xs mt-1" style={{ color: tier.color }}>
+                                最高 {tier.maxStreak} 连胜
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                     
                     <Button
                       onClick={startGame}
-                      disabled={credits < betAmount}
-                      className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#C9A347] to-[#FFD700] text-black hover:from-[#FFD700] hover:to-[#C9A347]"
+                      disabled={credits < BET_TIERS[selectedTierIndex].betAmount}
+                      className="w-full h-14 text-lg font-bold"
+                      style={{
+                        background: `linear-gradient(135deg, ${BET_TIERS[selectedTierIndex].color} 0%, ${BET_TIERS[selectedTierIndex].color}CC 100%)`,
+                        color: '#000',
+                      }}
                     >
                       <Play className="w-5 h-5 mr-2" />
-                      开始游戏
+                      开始游戏 ({(BET_TIERS[selectedTierIndex].betAmount / 1000)}K)
                     </Button>
                   </div>
                 )}
@@ -342,7 +392,11 @@ export function HiLoGame() {
                     
                     <Button
                       onClick={resetGame}
-                      className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#C9A347] to-[#FFD700] text-black"
+                      className="w-full h-14 text-lg font-bold"
+                      style={{
+                        background: `linear-gradient(135deg, ${currentBetTier.color} 0%, ${currentBetTier.color}CC 100%)`,
+                        color: '#000',
+                      }}
                     >
                       <Play className="w-5 h-5 mr-2" />
                       再来一局
