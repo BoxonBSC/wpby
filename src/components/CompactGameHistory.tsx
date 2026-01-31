@@ -19,7 +19,7 @@ interface HistoryItem {
   prizeColor: string;
 }
 
-const VISIBLE_COUNT = 8; // 每次显示8条
+const VISIBLE_COUNT = 12; // 每次显示12条，铺满侧边栏
 const ROTATE_INTERVAL = 5000; // 每5秒轮动一次
 
 // 根据符号判断中奖类型
@@ -133,7 +133,7 @@ export function CompactGameHistory() {
         </div>
       </div>
 
-      <div className="space-y-1.5 flex-1 overflow-hidden">
+      <div className="space-y-1.5 flex-1 overflow-hidden min-h-0">
         <AnimatePresence mode="popLayout">
           {displayHistory.map((item, index) => {
             const content = (
