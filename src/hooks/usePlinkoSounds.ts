@@ -63,45 +63,48 @@ export function usePlinkoSounds() {
     noise.stop(ctx.currentTime + 0.15);
   }, [getAudioContext, createGain]);
 
-  // 碰撞音效 - 金属撞击声
+  // 碰撞音效 - 金属撞击声（增强版）
   const playCollisionSound = useCallback((intensity: number = 0.5) => {
     if (isMutedRef.current) return;
     
     const ctx = getAudioContext();
-    const gain = createGain(ctx);
-    gain.gain.value *= 0.15 * intensity;
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = volumeRef.current * 0.6 * intensity;
+    masterGain.connect(ctx.destination);
 
-    // 金属撞击音
-    const frequencies = [2000, 3000, 4500];
+    // 金属撞击音 - 更清脆响亮
+    const frequencies = [1800, 2800, 4200];
     frequencies.forEach((freq, i) => {
       const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq + Math.random() * 500, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(freq * 0.5, ctx.currentTime + 0.05);
+      osc.type = i === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq + Math.random() * 300, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.6, ctx.currentTime + 0.08);
       
       const oscGain = ctx.createGain();
-      oscGain.gain.setValueAtTime(0.3 / (i + 1), ctx.currentTime);
-      oscGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03 + i * 0.01);
+      oscGain.gain.setValueAtTime(0.5 / (i + 1), ctx.currentTime);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06 + i * 0.02);
       
       osc.connect(oscGain);
-      oscGain.connect(gain);
+      oscGain.connect(masterGain);
       osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.05);
+      osc.stop(ctx.currentTime + 0.1);
     });
-  }, [getAudioContext, createGain]);
+  }, [getAudioContext]);
 
-  // 落槽音效 - 根据倍率变化
+  // 落槽音效 - 根据倍率变化（增强版）
   const playSlotSound = useCallback((multiplier: number) => {
     if (isMutedRef.current) return;
     
     const ctx = getAudioContext();
-    const gain = createGain(ctx);
+    const masterGain = ctx.createGain();
     
     // 根据倍率决定音效特性
     const isBigWin = multiplier >= 10;
-    const baseFreq = isBigWin ? 600 : 400;
+    const isMediumWin = multiplier >= 3;
+    const baseFreq = isBigWin ? 600 : isMediumWin ? 500 : 400;
     
-    gain.gain.value *= isBigWin ? 0.5 : 0.3;
+    masterGain.gain.value = volumeRef.current * (isBigWin ? 0.8 : isMediumWin ? 0.6 : 0.5);
+    masterGain.connect(ctx.destination);
 
     // 主音调
     const osc = ctx.createOscillator();
@@ -110,23 +113,40 @@ export function usePlinkoSounds() {
     
     if (isBigWin) {
       // 上升音效
-      osc.frequency.linearRampToValueAtTime(baseFreq * 2, ctx.currentTime + 0.2);
+      osc.frequency.linearRampToValueAtTime(baseFreq * 2, ctx.currentTime + 0.25);
+    } else if (isMediumWin) {
+      osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, ctx.currentTime + 0.15);
     } else {
       osc.frequency.linearRampToValueAtTime(baseFreq * 0.8, ctx.currentTime + 0.1);
     }
     
-    osc.connect(gain);
-    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (isBigWin ? 0.3 : 0.15));
+    const oscGain = ctx.createGain();
+    oscGain.gain.setValueAtTime(0.8, ctx.currentTime);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (isBigWin ? 0.35 : 0.2));
+    
+    osc.connect(oscGain);
+    oscGain.connect(masterGain);
     
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + (isBigWin ? 0.3 : 0.15));
+    osc.stop(ctx.currentTime + (isBigWin ? 0.35 : 0.2));
     
-    // 大奖额外音效
-    if (isBigWin) {
-      playWinSound(multiplier);
+    // 添加和声
+    if (isMediumWin) {
+      const harmony = ctx.createOscillator();
+      harmony.type = 'sine';
+      harmony.frequency.setValueAtTime(baseFreq * 1.5, ctx.currentTime);
+      harmony.frequency.linearRampToValueAtTime(baseFreq * 2, ctx.currentTime + 0.2);
+      
+      const harmonyGain = ctx.createGain();
+      harmonyGain.gain.setValueAtTime(0.3, ctx.currentTime);
+      harmonyGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      
+      harmony.connect(harmonyGain);
+      harmonyGain.connect(masterGain);
+      harmony.start(ctx.currentTime);
+      harmony.stop(ctx.currentTime + 0.2);
     }
-  }, [getAudioContext, createGain]);
+  }, [getAudioContext]);
 
   // 大奖音效 - 华丽的庆祝声
   const playWinSound = useCallback((multiplier: number) => {
