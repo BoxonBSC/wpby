@@ -446,28 +446,25 @@ export function useAudio() {
     playTone(900, 0.03, 'triangle', 0.02, 0.15);
   }, [isMuted, playTone]);
 
-  // 背景音乐 - 优雅赌场氛围
+  // 背景音乐 - 拉斯维加斯赌场爵士风格
   const startBgMusic = useCallback(() => {
     if (isMuted || isBgMusicPlaying) return;
     
     const ctx = getAudioContext();
     
     const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(volume * 0.12, ctx.currentTime);
+    masterGain.gain.setValueAtTime(volume * 0.15, ctx.currentTime);
     masterGain.connect(ctx.destination);
     bgMusicGain.current = masterGain;
-    
-    // 优雅的低音线
+
+    // ==== 1. 爵士低音 Walking Bass ====
     const bassOsc = ctx.createOscillator();
     const bassGain = ctx.createGain();
     const bassFilter = ctx.createBiquadFilter();
     
-    bassOsc.type = 'sine';
-    bassOsc.frequency.setValueAtTime(65.41, ctx.currentTime); // C2
-    
+    bassOsc.type = 'triangle';
     bassFilter.type = 'lowpass';
-    bassFilter.frequency.setValueAtTime(150, ctx.currentTime);
-    
+    bassFilter.frequency.setValueAtTime(200, ctx.currentTime);
     bassGain.gain.setValueAtTime(0.5, ctx.currentTime);
     
     bassOsc.connect(bassFilter);
@@ -476,73 +473,173 @@ export function useAudio() {
     bassOsc.start();
     bgMusicOscillators.current.push(bassOsc);
     
-    // 低音变化
-    const bassNotes = [65.41, 65.41, 87.31, 65.41, 98.00, 65.41, 87.31, 73.42]; // C2 progression
+    // 爵士Walking Bass音型 (Am7 - D7 - Gmaj7 - Cmaj7 - Fmaj7 - Bm7b5 - E7 - Am)
+    const bassNotes = [
+      110.00, 123.47, 130.81, 146.83,  // Am walking
+      146.83, 164.81, 174.61, 196.00,  // D7 walking
+      196.00, 220.00, 246.94, 261.63,  // G walking
+      261.63, 293.66, 329.63, 349.23,  // C walking
+      174.61, 196.00, 220.00, 246.94,  // F walking
+      123.47, 138.59, 155.56, 164.81,  // Bm7b5 walking
+      164.81, 185.00, 207.65, 220.00,  // E7 walking
+      110.00, 123.47, 130.81, 146.83,  // Am回到开头
+    ];
     let bassIndex = 0;
     const bassInterval = setInterval(() => {
-      if (!isBgMusicPlaying) return;
       bassOsc.frequency.setValueAtTime(bassNotes[bassIndex % bassNotes.length], ctx.currentTime);
       bassIndex++;
-    }, 800);
+    }, 350);
     bgMusicIntervals.current.push(bassInterval);
+
+    // ==== 2. 爵士钢琴和弦 ====
+    const playJazzChord = (freqs: number[], time: number) => {
+      freqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, time);
+        
+        // 添加轻微颤音模拟钢琴
+        const vibrato = ctx.createOscillator();
+        const vibratoGain = ctx.createGain();
+        vibrato.frequency.setValueAtTime(5, time);
+        vibratoGain.gain.setValueAtTime(2, time);
+        vibrato.connect(vibratoGain);
+        vibratoGain.connect(osc.frequency);
+        vibrato.start(time);
+        vibrato.stop(time + 1.2);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1200, time);
+        
+        gain.gain.setValueAtTime(0, time);
+        gain.gain.linearRampToValueAtTime(0.12, time + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.03, time + 0.8);
+        gain.gain.linearRampToValueAtTime(0, time + 1.2);
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGain);
+        
+        osc.start(time);
+        osc.stop(time + 1.2);
+      });
+    };
     
-    // 温暖的和弦垫音
-    const padFreqs = [261.63, 329.63, 392.00]; // C4, E4, G4 - C major
-    padFreqs.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
+    // 爵士和弦进行 (ii-V-I 变体)
+    const jazzChords = [
+      [220.00, 277.18, 329.63, 415.30],  // Am9
+      [293.66, 369.99, 440.00, 554.37],  // D9
+      [196.00, 246.94, 293.66, 369.99],  // Gmaj7
+      [261.63, 329.63, 392.00, 493.88],  // Cmaj9
+      [174.61, 220.00, 261.63, 329.63],  // Fmaj7
+      [246.94, 311.13, 369.99, 440.00],  // Bm7b5
+      [329.63, 415.30, 493.88, 622.25],  // E7#9
+      [220.00, 261.63, 329.63, 392.00],  // Am7
+    ];
+    let chordIndex = 0;
+    const chordInterval = setInterval(() => {
+      playJazzChord(jazzChords[chordIndex % jazzChords.length], ctx.currentTime);
+      chordIndex++;
+    }, 2800);
+    bgMusicIntervals.current.push(chordInterval);
+    playJazzChord(jazzChords[0], ctx.currentTime);
+
+    // ==== 3. 爵士刷子鼓组 ====
+    const playBrushDrum = () => {
+      // Hi-hat刷子声
+      const noise = ctx.createBufferSource();
+      const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseBuffer.length; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      noise.buffer = noiseBuffer;
       
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      const noiseGain = ctx.createGain();
+      const noiseFilter = ctx.createBiquadFilter();
       
-      // 轻微颤音
-      const lfo = ctx.createOscillator();
-      const lfoGain = ctx.createGain();
-      lfo.frequency.setValueAtTime(3 + i * 0.5, ctx.currentTime);
-      lfoGain.gain.setValueAtTime(1.5, ctx.currentTime);
-      lfo.connect(lfoGain);
-      lfoGain.connect(osc.frequency);
-      lfo.start();
-      bgMusicOscillators.current.push(lfo);
+      noiseFilter.type = 'highpass';
+      noiseFilter.frequency.setValueAtTime(8000, ctx.currentTime);
       
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, ctx.currentTime);
+      noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
       
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(masterGain);
       
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(masterGain);
-      osc.start();
-      bgMusicOscillators.current.push(osc);
-    });
+      noise.start();
+    };
     
-    // 优雅的琶音
-    const arpNotes = [523.25, 659.25, 783.99, 1046.50, 783.99, 659.25];
-    let arpIndex = 0;
-    const arpInterval = setInterval(() => {
-      if (!isBgMusicPlaying) return;
+    // 刷子节奏
+    const drumInterval = setInterval(() => {
+      playBrushDrum();
+    }, 350);
+    bgMusicIntervals.current.push(drumInterval);
+
+    // ==== 4. 低沉底鼓 ====
+    const playKick = () => {
+      const kick = ctx.createOscillator();
+      const kickGain = ctx.createGain();
       
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      kick.type = 'sine';
+      kick.frequency.setValueAtTime(80, ctx.currentTime);
+      kick.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.15);
       
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(arpNotes[arpIndex % arpNotes.length], ctx.currentTime);
+      kickGain.gain.setValueAtTime(0.25, ctx.currentTime);
+      kickGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
       
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      kick.connect(kickGain);
+      kickGain.connect(masterGain);
       
-      osc.connect(gain);
-      gain.connect(masterGain);
+      kick.start();
+      kick.stop(ctx.currentTime + 0.15);
+    };
+    
+    const kickInterval = setInterval(() => {
+      playKick();
+    }, 1400);
+    bgMusicIntervals.current.push(kickInterval);
+
+    // ==== 5. 偶尔的钢琴即兴 ====
+    const playPianoLick = () => {
+      const licks = [
+        [523.25, 587.33, 659.25, 783.99],           // 上行
+        [783.99, 698.46, 659.25, 587.33, 523.25],   // 下行
+        [523.25, 659.25, 523.25, 783.99],           // 跳跃
+        [659.25, 622.25, 587.33, 523.25],           // 蓝调
+      ];
+      const lick = licks[Math.floor(Math.random() * licks.length)];
       
-      osc.start();
-      osc.stop(ctx.currentTime + 0.4);
-      
-      arpIndex++;
-    }, 400);
-    bgMusicIntervals.current.push(arpInterval);
+      lick.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+        
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.1);
+        gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + i * 0.1 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.25);
+        
+        osc.connect(gain);
+        gain.connect(masterGain);
+        
+        osc.start(ctx.currentTime + i * 0.1);
+        osc.stop(ctx.currentTime + i * 0.1 + 0.25);
+      });
+    };
+    
+    // 随机钢琴即兴 (每8-15秒)
+    const lickInterval = setInterval(() => {
+      if (Math.random() > 0.4) {
+        playPianoLick();
+      }
+    }, 8000 + Math.random() * 7000);
+    bgMusicIntervals.current.push(lickInterval);
     
     setIsBgMusicPlaying(true);
   }, [isMuted, isBgMusicPlaying, volume]);
