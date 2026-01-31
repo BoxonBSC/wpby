@@ -36,22 +36,77 @@ export function Navbar() {
           <Link to="/" className="flex items-center gap-3">
             <motion.div
               className="relative"
-              whileHover={{ scale: 1.1 }}
+              style={{ perspective: '600px' }}
+              whileHover={{ scale: 1.15 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
-              <motion.img
-                src={aceCardIcon}
-                alt="王牌博弈"
-                className="w-10 h-10 object-contain"
+              <motion.div
+                className="relative"
                 style={{
-                  filter: 'drop-shadow(0 0 10px rgba(201, 163, 71, 0.6))',
+                  transformStyle: 'preserve-3d',
                 }}
                 animate={{ 
-                  filter: [
-                    'drop-shadow(0 0 10px rgba(201, 163, 71, 0.6))',
-                    'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))',
-                    'drop-shadow(0 0 10px rgba(201, 163, 71, 0.6))',
-                  ]
+                  rotateY: [0, 180, 360],
+                }}
+                transition={{ 
+                  duration: 4, 
+                  repeat: Infinity, 
+                  ease: "easeInOut",
+                  times: [0, 0.5, 1],
+                }}
+              >
+                {/* 正面 */}
+                <motion.img
+                  src={aceCardIcon}
+                  alt="王牌博弈"
+                  className="w-10 h-10 object-contain"
+                  style={{
+                    backfaceVisibility: 'hidden',
+                    filter: 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.8))',
+                  }}
+                  animate={{ 
+                    filter: [
+                      'drop-shadow(0 0 15px rgba(201, 163, 71, 0.6))',
+                      'drop-shadow(0 0 25px rgba(255, 215, 0, 1))',
+                      'drop-shadow(0 0 15px rgba(201, 163, 71, 0.6))',
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                {/* 背面 */}
+                <div
+                  className="absolute inset-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{
+                    backfaceVisibility: 'hidden',
+                    transform: 'rotateY(180deg)',
+                    background: 'linear-gradient(135deg, #C9A347 0%, #8B7230 50%, #C9A347 100%)',
+                    border: '2px solid #FFD700',
+                    boxShadow: '0 0 20px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.3)',
+                  }}
+                >
+                  <span 
+                    className="text-xl font-bold"
+                    style={{ 
+                      color: '#0f0c07',
+                      textShadow: '0 0 5px rgba(255, 215, 0, 0.5)',
+                    }}
+                  >
+                    ♠
+                  </span>
+                </div>
+              </motion.div>
+              
+              {/* 光晕效果 */}
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%)',
+                  filter: 'blur(8px)',
+                  zIndex: -1,
+                }}
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.5, 0.8, 0.5],
                 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               />
