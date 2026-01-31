@@ -1,4 +1,5 @@
 import { ThemeType, THEME_COLORS, WheelSector } from './types';
+import { withAlpha } from './color';
 
 interface WheelSectorsProps {
   sectors: WheelSector[];
@@ -6,12 +7,6 @@ interface WheelSectorsProps {
   size: number;
   winningSector: string | null;
 }
-
-const hsla = (hsl: string, alpha: number) => {
-  if (hsl.startsWith('hsla(')) return hsl;
-  if (!hsl.startsWith('hsl(')) return hsl;
-  return hsl.replace(/^hsl\(/, 'hsla(').replace(/\)$/, `, ${alpha})`);
-};
 
 // Classic casino look: bright/dark alternating sectors (theme-aware).
 const getSectorBaseColor = (theme: ThemeType, index: number, colors: (typeof THEME_COLORS)[ThemeType]) => {
@@ -87,9 +82,9 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               id={`sector-grad-${index}`} 
               x1="0%" y1="0%" x2="100%" y2="100%"
             >
-              <stop offset="0%" stopColor={hsla(baseColor, 0.98)} />
-              <stop offset="45%" stopColor={hsla(baseColor, 0.88)} />
-              <stop offset="100%" stopColor={hsla(baseColor, 0.72)} />
+              <stop offset="0%" stopColor={withAlpha(baseColor, 0.98)} />
+              <stop offset="45%" stopColor={withAlpha(baseColor, 0.88)} />
+              <stop offset="100%" stopColor={withAlpha(baseColor, 0.72)} />
             </linearGradient>
           );
         })}
@@ -113,7 +108,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
             <path
               d={createSectorPath(startAngle, endAngle)}
               fill={`url(#sector-grad-${index})`}
-              stroke={hsla(colors.accent, 0.28)}
+              stroke={withAlpha(colors.accent, 0.28)}
               strokeWidth="1.2"
             />
             
@@ -121,7 +116,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
             <path
               d={createSectorPath(startAngle, endAngle)}
               fill="none"
-              stroke={hsla('hsl(var(--foreground))', 0.08)}
+              stroke={withAlpha('hsl(var(--foreground))', 0.08)}
               strokeWidth="1"
             />
 
@@ -156,7 +151,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y + 2})`}
-              fill={hsla('hsl(var(--foreground))', 0.92)}
+              fill={withAlpha('hsl(var(--foreground))', 0.92)}
               fontSize="10"
               fontWeight="700"
               fontFamily="'Cinzel', serif"
@@ -207,7 +202,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
         cy={centerY - 8}
         rx={12}
         ry={8}
-        fill={hsla('hsl(var(--foreground))', 0.22)}
+        fill={withAlpha('hsl(var(--foreground))', 0.22)}
       />
       
       {/* 中心文字 */}
@@ -216,7 +211,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
         y={centerY - 6}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill={hsla('hsl(var(--foreground))', 0.92)}
+        fill={withAlpha('hsl(var(--foreground))', 0.92)}
         fontSize="11"
         fontWeight="700"
         fontFamily="'Cinzel', serif"

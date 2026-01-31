@@ -1,17 +1,11 @@
 import { motion } from 'framer-motion';
 import { ThemeType, THEME_COLORS } from './types';
+import { withAlpha } from './color';
 
 interface CasinoPointerProps {
   isSpinning: boolean;
   theme: ThemeType;
 }
-
-const hsla = (hsl: string, alpha: number) => {
-  // Convert `hsl(h, s%, l%)` -> `hsla(h, s%, l%, a)`
-  if (hsl.startsWith('hsla(')) return hsl;
-  if (!hsl.startsWith('hsl(')) return hsl;
-  return hsl.replace(/^hsl\(/, 'hsla(').replace(/\)$/, `, ${alpha})`);
-};
 
 /**
  * Classic casino "flapper" pointer (fixed, wheel spins underneath).
@@ -32,7 +26,7 @@ export function CasinoPointer({ isSpinning, theme }: CasinoPointerProps) {
             : { rotate: 0 }
         }
         transition={isSpinning ? { duration: 0.22, repeat: Infinity } : { duration: 0.2 }}
-        style={{ filter: `drop-shadow(0 0 18px ${hsla(colors.glow, 0.35)})` }}
+        style={{ filter: `drop-shadow(0 0 18px ${withAlpha(colors.glow, 0.35)})` }}
       >
         <svg width="78" height="92" viewBox="0 0 78 92" aria-hidden="true">
           <defs>
@@ -52,7 +46,7 @@ export function CasinoPointer({ isSpinning, theme }: CasinoPointerProps) {
           <path
             d="M18 10 C24 2, 54 2, 60 10 L68 24 C70 28, 68 34, 62 34 H16 C10 34, 8 28, 10 24 Z"
             fill={`url(#pointer-metal-${theme})`}
-            stroke={hsla(colors.accent, 0.35)}
+            stroke={withAlpha(colors.accent, 0.35)}
             strokeWidth="1"
           />
 
@@ -72,14 +66,14 @@ export function CasinoPointer({ isSpinning, theme }: CasinoPointerProps) {
           <path
             d="M39 30 L57 38 L39 82 L21 38 Z"
             fill={`url(#pointer-flapper-${theme})`}
-            stroke={hsla(colors.accent, 0.45)}
+            stroke={withAlpha(colors.accent, 0.45)}
             strokeWidth="1"
           />
 
           {/* Flapper highlight */}
           <path
             d="M39 34 L50 40 L39 76 L28 40 Z"
-            fill={hsla('hsl(var(--foreground))', 0.16)}
+            fill={withAlpha('hsl(var(--foreground))', 0.16)}
           />
 
           {/* Tip gem */}

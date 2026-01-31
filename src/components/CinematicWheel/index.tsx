@@ -9,12 +9,7 @@ import { WheelPegs } from './WheelPegs';
 import { ParticleExplosion } from './ParticleExplosion';
 import { useWallet } from '@/contexts/WalletContext';
 import { toast } from '@/hooks/use-toast';
-
-const hsla = (hsl: string, alpha: number) => {
-  if (hsl.startsWith('hsla(')) return hsl;
-  if (!hsl.startsWith('hsl(')) return hsl;
-  return hsl.replace(/^hsl\(/, 'hsla(').replace(/\)$/, `, ${alpha})`);
-};
+import { withAlpha } from './color';
 
 export function CinematicWheel({ 
   sectors, 
@@ -166,7 +161,7 @@ export function CinematicWheel({
           style={{
             width: wheelSize + 200,
             height: wheelSize + 200,
-            background: `radial-gradient(circle, ${hsla(colors.glow, 0.12)} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${withAlpha(colors.glow, 0.12)} 0%, transparent 70%)`,
           }}
           animate={{
             opacity: [0.5, 0.8, 0.5],
@@ -208,7 +203,7 @@ export function CinematicWheel({
               height: wheelSize,
               left: 20,
               top: 30,
-              background: `radial-gradient(ellipse, ${hsla('hsl(var(--background))', 0.7)} 0%, transparent 70%)`,
+              background: `radial-gradient(ellipse, ${withAlpha('hsl(var(--background))', 0.7)} 0%, transparent 70%)`,
               filter: 'blur(20px)',
               transform: 'rotateX(-8deg) translateZ(-50px)',
             }}
@@ -222,7 +217,7 @@ export function CinematicWheel({
               height: wheelSize + 30,
               left: 5,
               top: 5,
-              background: `conic-gradient(from 0deg, ${hsla(colors.gradient[0], 0.35)}, ${hsla(colors.gradient[1], 0.18)}, ${hsla(colors.gradient[0], 0.35)}, ${hsla(colors.gradient[1], 0.18)}, ${hsla(colors.gradient[0], 0.35)})`,
+              background: `conic-gradient(from 0deg, ${withAlpha(colors.gradient[0], 0.35)}, ${withAlpha(colors.gradient[1], 0.18)}, ${withAlpha(colors.gradient[0], 0.35)}, ${withAlpha(colors.gradient[1], 0.18)}, ${withAlpha(colors.gradient[0], 0.35)})`,
               filter: 'blur(1px)',
             }}
           />
@@ -276,7 +271,7 @@ export function CinematicWheel({
               <motion.div
                 className="absolute inset-0 rounded-full pointer-events-none"
                 style={{
-                  background: `radial-gradient(circle, transparent 30%, ${hsla(colors.glow, 0.08)} 100%)`,
+                  background: `radial-gradient(circle, transparent 30%, ${withAlpha(colors.glow, 0.08)} 100%)`,
                   filter: 'blur(3px)',
                   zIndex: 20,
                 }}
@@ -307,8 +302,8 @@ export function CinematicWheel({
             height: 56,
             borderRadius: 18,
             background: `linear-gradient(180deg, hsl(var(--muted)) 0%, hsl(var(--background)) 100%)`,
-            border: `1px solid ${hsla(colors.accent, 0.25)}`,
-            boxShadow: `0 14px 28px ${hsla('hsl(var(--background))', 0.55)}, inset 0 1px 0 ${hsla('hsl(var(--foreground))', 0.06)}`,
+            border: `1px solid ${withAlpha(colors.accent, 0.25)}`,
+            boxShadow: `0 14px 28px ${withAlpha('hsl(var(--background))', 0.55)}, inset 0 1px 0 ${withAlpha('hsl(var(--foreground))', 0.06)}`,
             zIndex: 5,
           }}
         />
