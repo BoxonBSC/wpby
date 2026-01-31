@@ -96,7 +96,7 @@ export function PlinkoGame() {
   const handleBallLanded = useCallback((slotIndex: number) => {
     const reward = calculateReward(slotIndex, betAmount, bnbPool);
     
-    // 播放音效
+    // 播放音效 - 根据新的奖励类型
     if (isJackpot(reward.type)) {
       sounds.playJackpotSound();
     } else if (isBigWin(reward.type)) {
@@ -120,16 +120,17 @@ export function PlinkoGame() {
 
     setResults(prev => [result, ...prev]);
     
-    // 更新凭证和BNB奖池
+    // 更新凭证和BNB奖池（演示模式）
     if (!isConnected) {
-      setDemoCredits(prev => prev + reward.amount);
-      // 模拟BNB奖池变化
+      // 模拟BNB奖池变化 - 中奖时减少奖池
       if (reward.bnbAmount > 0) {
         setBnbPool(prev => Math.max(0.1, prev - reward.bnbAmount));
       }
+      // 模拟交易税补充奖池（每次投注补充少量）
+      setBnbPool(prev => prev + 0.001);
     }
 
-    // 显示大奖特效（BNB奖励或凭证奖励）
+    // 显示大奖特效
     if (isBigWin(reward.type)) {
       setLastWin({ 
         label: reward.label, 
