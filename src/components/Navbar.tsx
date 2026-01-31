@@ -4,6 +4,7 @@ import { Gamepad2, History, FileText, Menu, X, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { AudioControls } from './AudioControls';
 import { useLanguage } from '@/contexts/LanguageContext';
+import cardIcon from '@/assets/card-icon.png';
 
 export function Navbar() {
   const location = useLocation();
@@ -26,13 +27,13 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <motion.span
+            <motion.img
+              src={cardIcon}
+              alt="王牌博弈"
+              className="w-8 h-8 object-contain"
               animate={{ rotateY: [0, 180, 360] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="text-2xl"
-            >
-              🃏
-            </motion.span>
+            />
             <span className="font-display text-xl neon-text-cyan hidden sm:block tracking-wide">
               王牌博弈
             </span>
