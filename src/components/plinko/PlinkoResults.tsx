@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { PlinkoResult, getSlotColor } from '@/config/plinko';
-import { TrendingUp, TrendingDown, History } from 'lucide-react';
+import { PlinkoResult, SLOT_REWARDS, isWin, isBigWin, isJackpot } from '@/config/plinko';
+import { TrendingUp, TrendingDown, History, Trophy, Star } from 'lucide-react';
 
 interface PlinkoResultsProps {
   results: PlinkoResult[];
@@ -19,6 +19,10 @@ export function PlinkoResults({ results, totalWin, totalBet }: PlinkoResultsProp
   const profit = totalWin - totalBet;
   const profitPercent = totalBet > 0 ? ((profit / totalBet) * 100).toFixed(1) : '0';
   const isProfit = profit >= 0;
+
+  // 统计中奖次数
+  const winCount = results.filter(r => isWin(r.rewardType)).length;
+  const jackpotCount = results.filter(r => isJackpot(r.rewardType)).length;
 
   return (
     <div 
@@ -87,9 +91,11 @@ export function PlinkoResults({ results, totalWin, totalBet }: PlinkoResultsProp
         <div className="space-y-2 max-h-full overflow-y-auto pr-2 custom-scrollbar">
           <AnimatePresence mode="popLayout">
             {results.slice(0, 30).map((result, index) => {
-              const color = hexToRgb(getSlotColor(result.multiplier));
-              const isWin = result.winAmount > result.betAmount;
-              const isBigWin = result.multiplier >= 10;
+              const rewardConfig = SLOT_REWARDS[result.slotIndex];
+              const color = hexToRgb(rewardConfig?.color || 0x444444);
+              const hasWon = isWin(result.rewardType);
+              const isBig = isBigWin(result.rewardType);
+              const isJackpotWin = isJackpot(result.rewardType);
               
               return (
                 <motion.div
@@ -100,15 +106,15 @@ export function PlinkoResults({ results, totalWin, totalBet }: PlinkoResultsProp
                   transition={{ duration: 0.3, delay: index * 0.02 }}
                   className="flex items-center justify-between p-3 rounded-xl relative overflow-hidden"
                   style={{
-                    background: isBigWin 
+                    background: isBig 
                       ? `linear-gradient(135deg, ${color}15 0%, transparent 100%)`
                       : 'rgba(0, 0, 0, 0.3)',
-                    border: `1px solid ${isBigWin ? `${color}40` : 'rgba(201, 163, 71, 0.1)'}`,
-                    boxShadow: isBigWin ? `0 0 20px ${color}20` : 'none',
+                    border: `1px solid ${isBig ? `${color}40` : 'rgba(201, 163, 71, 0.1)'}`,
+                    boxShadow: isBig ? `0 0 20px ${color}20` : 'none',
                   }}
                 >
                   {/* 大奖闪光效果 */}
-                  {isBigWin && (
+                  {isBig && (
                     <motion.div
                       className="absolute inset-0 opacity-20"
                       style={{
@@ -119,18 +125,22 @@ export function PlinkoResults({ results, totalWin, totalBet }: PlinkoResultsProp
                     />
                   )}
                   
-                  {/* 倍率标签 */}
-                  <div
-                    className="px-3 py-1.5 rounded-lg font-bold text-sm relative z-10"
-                    style={{ 
-                      backgroundColor: `${color}25`,
-                      color: color,
-                      boxShadow: `0 0 15px ${color}30`,
-                      minWidth: '60px',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {result.multiplier}x
+                  {/* 奖励标签 */}
+                  <div className="flex items-center gap-2 relative z-10">
+                    {isJackpotWin && <Trophy className="w-4 h-4 text-[#FF4444]" />}
+                    {isBig && !isJackpotWin && <Star className="w-4 h-4 text-[#FF8800]" />}
+                    <div
+                      className="px-3 py-1.5 rounded-lg font-bold text-xs relative z-10"
+                      style={{ 
+                        backgroundColor: `${color}25`,
+                        color: color,
+                        boxShadow: `0 0 15px ${color}30`,
+                        minWidth: '70px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {result.rewardLabel}
+                    </div>
                   </div>
 
                   {/* 下注 → 赢得 */}
@@ -139,19 +149,19 @@ export function PlinkoResults({ results, totalWin, totalBet }: PlinkoResultsProp
                       {result.betAmount.toLocaleString()}
                     </span>
                     <span className="text-[#C9A347]/30 mx-2">→</span>
-                    <span className={`font-bold text-sm ${isWin ? 'text-green-400' : 'text-red-400'}`}>
+                    <span className={`font-bold text-sm ${hasWon ? 'text-green-400' : 'text-red-400'}`}>
                       {result.winAmount.toLocaleString()}
                     </span>
                   </div>
 
                   {/* 盈亏 */}
                   <div 
-                    className={`text-xs font-bold px-2 py-1 rounded relative z-10 ${isWin ? 'text-green-400' : 'text-red-400'}`}
+                    className={`text-xs font-bold px-2 py-1 rounded relative z-10 ${hasWon ? 'text-green-400' : 'text-red-400'}`}
                     style={{
-                      background: isWin ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 0, 0, 0.1)',
+                      background: hasWon ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 0, 0, 0.1)',
                     }}
                   >
-                    {isWin ? '+' : ''}{(result.winAmount - result.betAmount).toLocaleString()}
+                    {hasWon ? '+' : ''}{(result.winAmount - result.betAmount).toLocaleString()}
                   </div>
                 </motion.div>
               );
@@ -177,7 +187,10 @@ export function PlinkoResults({ results, totalWin, totalBet }: PlinkoResultsProp
         <div className="mt-4 pt-4 border-t border-[#C9A347]/10">
           <div className="flex justify-between text-xs text-[#C9A347]/50">
             <span>游戏次数: {results.length}</span>
-            <span>最高倍率: {Math.max(...results.map(r => r.multiplier))}x</span>
+            <span>中奖次数: {winCount}</span>
+            {jackpotCount > 0 && (
+              <span className="text-[#FF4444]">🏆 大奖: {jackpotCount}</span>
+            )}
           </div>
         </div>
       )}
