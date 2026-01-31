@@ -270,43 +270,85 @@ export function HiLoGame() {
                   <div className="space-y-4">
                     <div>
                       <label className="text-[#C9A347]/60 text-sm mb-3 block">选择门槛等级</label>
-                      <div className="grid grid-cols-3 gap-3">
-                        {BET_TIERS.map((tier, index) => {
-                          const canAfford = credits >= tier.betAmount;
-                          const isSelected = selectedTierIndex === index;
-                          
-                          return (
-                            <button
-                              key={tier.id}
-                              onClick={() => canAfford && setSelectedTierIndex(index)}
-                              disabled={!canAfford}
-                              className={`
-                                p-4 rounded-xl transition-all text-center
-                                ${canAfford ? 'hover:scale-105' : 'opacity-40 cursor-not-allowed'}
-                              `}
-                              style={{
-                                background: isSelected 
-                                  ? `linear-gradient(135deg, ${tier.color}30 0%, ${tier.color}10 100%)`
-                                  : 'rgba(0,0,0,0.3)',
-                                border: `2px solid ${isSelected ? tier.color : 'rgba(201, 163, 71, 0.2)'}`,
-                                boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
-                              }}
-                            >
-                              <div 
-                                className="font-bold text-lg"
-                                style={{ color: tier.color }}
+                      {/* 5列布局 - 第一行3个，第二行2个居中 */}
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-3">
+                          {BET_TIERS.slice(0, 3).map((tier, index) => {
+                            const canAfford = credits >= tier.betAmount;
+                            const isSelected = selectedTierIndex === index;
+                            
+                            return (
+                              <button
+                                key={tier.id}
+                                onClick={() => canAfford && setSelectedTierIndex(index)}
+                                disabled={!canAfford}
+                                className={`
+                                  p-3 rounded-xl transition-all text-center
+                                  ${canAfford ? 'hover:scale-105' : 'opacity-40 cursor-not-allowed'}
+                                `}
+                                style={{
+                                  background: isSelected 
+                                    ? `linear-gradient(135deg, ${tier.color}30 0%, ${tier.color}10 100%)`
+                                    : 'rgba(0,0,0,0.3)',
+                                  border: `2px solid ${isSelected ? tier.color : 'rgba(201, 163, 71, 0.2)'}`,
+                                  boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
+                                }}
                               >
-                                {tier.name}
-                              </div>
-                              <div className="text-[#C9A347]/60 text-sm">
-                                {(tier.betAmount / 1000)}K 凭证
-                              </div>
-                              <div className="text-xs mt-1" style={{ color: tier.color }}>
-                                最高 {tier.maxStreak} 连胜
-                              </div>
-                            </button>
-                          );
-                        })}
+                                <div 
+                                  className="font-bold text-base"
+                                  style={{ color: tier.color }}
+                                >
+                                  {tier.name}
+                                </div>
+                                <div className="text-[#C9A347]/60 text-xs">
+                                  {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
+                                </div>
+                                <div className="text-[10px] mt-1" style={{ color: tier.color }}>
+                                  {tier.maxStreak}连胜
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 max-w-[66%] mx-auto">
+                          {BET_TIERS.slice(3).map((tier, i) => {
+                            const index = i + 3;
+                            const canAfford = credits >= tier.betAmount;
+                            const isSelected = selectedTierIndex === index;
+                            
+                            return (
+                              <button
+                                key={tier.id}
+                                onClick={() => canAfford && setSelectedTierIndex(index)}
+                                disabled={!canAfford}
+                                className={`
+                                  p-3 rounded-xl transition-all text-center
+                                  ${canAfford ? 'hover:scale-105' : 'opacity-40 cursor-not-allowed'}
+                                `}
+                                style={{
+                                  background: isSelected 
+                                    ? `linear-gradient(135deg, ${tier.color}30 0%, ${tier.color}10 100%)`
+                                    : 'rgba(0,0,0,0.3)',
+                                  border: `2px solid ${isSelected ? tier.color : 'rgba(201, 163, 71, 0.2)'}`,
+                                  boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
+                                }}
+                              >
+                                <div 
+                                  className="font-bold text-base"
+                                  style={{ color: tier.color }}
+                                >
+                                  {tier.name}
+                                </div>
+                                <div className="text-[#C9A347]/60 text-xs">
+                                  {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
+                                </div>
+                                <div className="text-[10px] mt-1" style={{ color: tier.color }}>
+                                  {tier.maxStreak}连胜
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                     
@@ -320,7 +362,9 @@ export function HiLoGame() {
                       }}
                     >
                       <Play className="w-5 h-5 mr-2" />
-                      开始游戏 ({(BET_TIERS[selectedTierIndex].betAmount / 1000)}K)
+                      开始游戏 ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
+                        ? `${BET_TIERS[selectedTierIndex].betAmount / 1000000}M` 
+                        : `${BET_TIERS[selectedTierIndex].betAmount / 1000}K`})
                     </Button>
                   </div>
                 )}
