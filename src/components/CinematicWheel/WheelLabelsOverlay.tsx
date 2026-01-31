@@ -20,7 +20,12 @@ const formatPoolPercent = (poolPercent: number) => {
  * Renders sector labels as regular HTML, positioned over the wheel.
  */
 export function WheelLabelsOverlay({ sectors, theme, size }: WheelLabelsOverlayProps) {
+  // Use the selected theme for layout, but force a high-contrast gold text color for readability.
+  // This is HTML (not SVG), so CSS variables are safe and consistent across browsers.
   const colors = THEME_COLORS[theme];
+  const goldText = withAlpha('hsl(var(--gold))', 0.98);
+  const outline = withAlpha('hsl(var(--background))', 0.92);
+  const shadow = withAlpha('hsl(0, 0%, 0%)', 0.92);
 
   const cx = size / 2;
   const cy = size / 2;
@@ -51,7 +56,7 @@ export function WheelLabelsOverlay({ sectors, theme, size }: WheelLabelsOverlayP
               textAlign: 'center',
               fontFamily: 'Cinzel, serif',
               color: 'white',
-              textShadow: `0 2px 6px ${withAlpha('hsl(0, 0%, 0%)', 0.85)}`,
+              textShadow: `0 2px 10px ${shadow}`,
             }}
           >
             <div style={{ fontSize: 20, lineHeight: '20px', marginBottom: 2 }}>{sector.emoji}</div>
@@ -60,8 +65,8 @@ export function WheelLabelsOverlay({ sectors, theme, size }: WheelLabelsOverlayP
                 fontSize: 13,
                 fontWeight: 800,
                 letterSpacing: '0.06em',
-                color: withAlpha(colors.accent, 0.98),
-                WebkitTextStroke: `2px ${withAlpha('hsl(0, 0%, 0%)', 0.85)}`,
+                color: goldText,
+                WebkitTextStroke: `2px ${outline}`,
               }}
             >
               {sector.label}
@@ -73,9 +78,9 @@ export function WheelLabelsOverlay({ sectors, theme, size }: WheelLabelsOverlayP
                 fontWeight: 900,
                 color:
                   sector.poolPercent > 0
-                    ? withAlpha(colors.glow, 0.98)
+                    ? goldText
                     : withAlpha('hsl(0, 0%, 70%)', 0.95),
-                WebkitTextStroke: `2px ${withAlpha('hsl(0, 0%, 0%)', 0.85)}`,
+                WebkitTextStroke: `2px ${outline}`,
               }}
             >
               {formatPoolPercent(sector.poolPercent)}
