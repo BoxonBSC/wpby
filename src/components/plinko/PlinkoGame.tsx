@@ -4,10 +4,13 @@ import { PlinkoCanvas } from './PlinkoCanvas';
 import { PlinkoControls } from './PlinkoControls';
 import { PlinkoResults } from './PlinkoResults';
 import { SoundControls } from './SoundControls';
-import { PlinkoResult, MULTIPLIER_TABLE } from '@/config/plinko';
+import { PlinkoResult, SLOT_REWARDS, calculateReward, isJackpot, isBigWin } from '@/config/plinko';
 import { useWallet } from '@/contexts/WalletContext';
 import { usePlinkoSounds } from '@/hooks/usePlinkoSounds';
-import { Sparkles, Crown, Star } from 'lucide-react';
+import { Sparkles, Crown, Star, Coins } from 'lucide-react';
+
+// 模拟奖池（实际应从合约读取）
+const DEMO_PRIZE_POOL = 10000000; // 1000万凭证
 
 // 背景粒子
 function BackgroundParticles() {
@@ -57,9 +60,10 @@ export function PlinkoGame() {
   const [results, setResults] = useState<PlinkoResult[]>([]);
   const [dropTrigger, setDropTrigger] = useState(0);
   const [showWinOverlay, setShowWinOverlay] = useState(false);
-  const [lastWin, setLastWin] = useState<{ multiplier: number; amount: number } | null>(null);
+  const [lastWin, setLastWin] = useState<{ label: string; amount: number; isJackpot: boolean } | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.5);
+  const [prizePool, setPrizePool] = useState(DEMO_PRIZE_POOL);
 
   const [demoCredits, setDemoCredits] = useState(100000);
   const credits = isConnected ? gameCredits : demoCredits;
@@ -81,46 +85,53 @@ export function PlinkoGame() {
     setVolume(vol);
   }, [sounds]);
 
-  // 碰撞音效回调 - 增加音量
+  // 碰撞音效回调
   const handleCollision = useCallback(() => {
     sounds.playCollisionSound(0.5 + Math.random() * 0.5);
   }, [sounds]);
 
   // 处理球落入槽位
   const handleBallLanded = useCallback((slotIndex: number) => {
-    const multiplier = MULTIPLIER_TABLE[slotIndex] || 1;
-    const winAmount = Math.floor(betAmount * multiplier);
+    const reward = calculateReward(slotIndex, betAmount, prizePool);
+    const rewardConfig = SLOT_REWARDS[slotIndex];
     
-    // 播放落槽音效
-    sounds.playSlotSound(multiplier);
-    
-    // 大奖庆祝音效（10倍以上）
-    if (multiplier >= 10) {
-      sounds.playWinSound(multiplier);
-    }
-    
-    // 超级大奖（41倍以上）
-    if (multiplier >= 41) {
+    // 播放音效
+    if (isJackpot(reward.type)) {
       sounds.playJackpotSound();
+    } else if (isBigWin(reward.type)) {
+      sounds.playWinSound(50);
+    } else if (reward.amount > 0) {
+      sounds.playSlotSound(2);
+    } else {
+      sounds.playSlotSound(0);
     }
     
     const result: PlinkoResult = {
       id: `${Date.now()}_${Math.random()}`,
       betAmount,
-      multiplier,
-      winAmount,
+      winAmount: reward.amount,
+      rewardType: reward.type,
+      rewardLabel: reward.label,
       slotIndex,
       timestamp: Date.now(),
     };
 
     setResults(prev => [result, ...prev]);
     
+    // 更新凭证和奖池
     if (!isConnected) {
-      setDemoCredits(prev => prev + winAmount);
+      setDemoCredits(prev => prev + reward.amount);
+      // 模拟奖池变化：投注80%进入奖池，中奖从奖池扣除
+      setPrizePool(prev => prev + Math.floor(betAmount * 0.8) - reward.amount);
     }
 
-    if (multiplier >= 10) {
-      setLastWin({ multiplier, amount: winAmount });
+    // 显示大奖特效
+    if (isBigWin(reward.type) && reward.amount > 0) {
+      setLastWin({ 
+        label: reward.label, 
+        amount: reward.amount,
+        isJackpot: isJackpot(reward.type)
+      });
       setShowWinOverlay(true);
       setTimeout(() => setShowWinOverlay(false), 2500);
     }
@@ -131,7 +142,7 @@ export function PlinkoGame() {
     if (pendingDrops.current <= 0) {
       setIsDropping(false);
     }
-  }, [betAmount, isConnected, sounds]);
+  }, [betAmount, isConnected, prizePool, sounds]);
 
   // 执行投球
   const executeDrop = useCallback(() => {
@@ -240,6 +251,24 @@ export function PlinkoGame() {
             onVolumeChange={handleVolumeChange}
           />
         </div>
+        
+        {/* 奖池显示 */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mt-4 inline-flex items-center gap-2 px-6 py-2 rounded-full"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255, 0, 0, 0.2) 0%, rgba(255, 100, 0, 0.1) 100%)',
+            border: '1px solid rgba(255, 68, 68, 0.4)',
+            boxShadow: '0 0 30px rgba(255, 68, 68, 0.2)',
+          }}
+        >
+          <Coins className="w-5 h-5 text-[#FF4444]" />
+          <span className="text-[#FF4444]/80 text-sm">当前奖池</span>
+          <span className="text-[#FF4444] font-bold text-lg">
+            {prizePool.toLocaleString()}
+          </span>
+        </motion.div>
       </motion.div>
 
       {/* 主游戏区域 */}
@@ -301,7 +330,9 @@ export function PlinkoGame() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center"
             style={{
-              background: 'radial-gradient(circle at center, rgba(201, 163, 71, 0.2) 0%, rgba(0, 0, 0, 0.8) 70%)',
+              background: lastWin.isJackpot 
+                ? 'radial-gradient(circle at center, rgba(255, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.9) 70%)'
+                : 'radial-gradient(circle at center, rgba(201, 163, 71, 0.2) 0%, rgba(0, 0, 0, 0.8) 70%)',
               backdropFilter: 'blur(8px)',
             }}
           >
@@ -325,7 +356,7 @@ export function PlinkoGame() {
                 transition={{ duration: 1.5, ease: 'easeOut' }}
               >
                 <Star 
-                  className="text-[#FFD700]" 
+                  className={lastWin.isJackpot ? 'text-[#FF4444]' : 'text-[#FFD700]'}
                   style={{ 
                     width: 10 + Math.random() * 20,
                     height: 10 + Math.random() * 20,
@@ -348,31 +379,33 @@ export function PlinkoGame() {
                 }}
                 transition={{ duration: 0.5, repeat: Infinity }}
               >
-                <Sparkles className="w-20 h-20 text-[#FFD700] mx-auto mb-4" />
+                <Sparkles className={`w-20 h-20 mx-auto mb-4 ${lastWin.isJackpot ? 'text-[#FF4444]' : 'text-[#FFD700]'}`} />
               </motion.div>
               
               <motion.div 
-                className="text-7xl md:text-8xl font-bold mb-4"
+                className="text-5xl md:text-6xl font-bold mb-4"
                 style={{
-                  background: 'linear-gradient(135deg, #FFD700 0%, #FFF 50%, #FFD700 100%)',
+                  background: lastWin.isJackpot 
+                    ? 'linear-gradient(135deg, #FF4444 0%, #FFF 50%, #FF4444 100%)'
+                    : 'linear-gradient(135deg, #FFD700 0%, #FFF 50%, #FFD700 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.8))',
+                  filter: `drop-shadow(0 0 30px ${lastWin.isJackpot ? 'rgba(255, 68, 68, 0.8)' : 'rgba(255, 215, 0, 0.8)'})`,
                 }}
                 animate={{
                   textShadow: [
-                    '0 0 20px rgba(255, 215, 0, 0.5)',
-                    '0 0 60px rgba(255, 215, 0, 1)',
-                    '0 0 20px rgba(255, 215, 0, 0.5)',
+                    `0 0 20px ${lastWin.isJackpot ? 'rgba(255, 68, 68, 0.5)' : 'rgba(255, 215, 0, 0.5)'}`,
+                    `0 0 60px ${lastWin.isJackpot ? 'rgba(255, 68, 68, 1)' : 'rgba(255, 215, 0, 1)'}`,
+                    `0 0 20px ${lastWin.isJackpot ? 'rgba(255, 68, 68, 0.5)' : 'rgba(255, 215, 0, 0.5)'}`,
                   ],
                 }}
                 transition={{ duration: 0.5, repeat: Infinity }}
               >
-                {lastWin.multiplier}x
+                {lastWin.label}
               </motion.div>
               
               <motion.div 
-                className="text-4xl text-[#FFD700] font-bold"
+                className={`text-4xl font-bold ${lastWin.isJackpot ? 'text-[#FF4444]' : 'text-[#FFD700]'}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -386,7 +419,7 @@ export function PlinkoGame() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               >
-                恭喜获得大奖！
+                {lastWin.isJackpot ? '🎉 恭喜中得大奖！🎉' : '恭喜获奖！'}
               </motion.div>
             </motion.div>
           </motion.div>

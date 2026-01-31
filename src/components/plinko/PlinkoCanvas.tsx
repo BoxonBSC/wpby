@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import * as PIXI from 'pixi.js';
 import Matter from 'matter-js';
-import { PLINKO_CONFIG, MULTIPLIER_TABLE, getSlotColor } from '@/config/plinko';
+import { PLINKO_CONFIG, SLOT_REWARDS, getSlotColor } from '@/config/plinko';
 
 interface PlinkoCanvasProps {
   width: number;
@@ -155,7 +155,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
 
     const slots: Matter.Body[] = [];
     const slotWidth = game.pegSpacing;
-    // 使用组件级计算的 slotY，确保在画布内
     
     const slotsContainer = new PIXI.Container();
     app.stage.addChild(slotsContainer);
@@ -183,8 +182,8 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       }
       
       if (i < cols) {
-        const multiplier = MULTIPLIER_TABLE[i] || 1;
-        const color = getSlotColor(multiplier);
+        const reward = SLOT_REWARDS[i];
+        const color = reward?.color || 0x444444;
         
         const slotGfx = new PIXI.Graphics();
         
@@ -209,9 +208,13 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
         
         slotsContainer.addChild(slotGfx);
         
+        // 显示奖励标签
+        const label = reward?.label || '';
+        const isPoolReward = reward?.poolPercent !== undefined;
+        
         const textStyle = new PIXI.TextStyle({
           fontFamily: 'Arial, sans-serif',
-          fontSize: multiplier >= 100 ? 11 : 13,
+          fontSize: label.length > 5 ? 9 : 11,
           fill: color,
           fontWeight: 'bold',
           dropShadow: true,
@@ -221,7 +224,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
           dropShadowDistance: 0,
         });
         
-        const text = new PIXI.Text(`${multiplier}x`, textStyle);
+        const text = new PIXI.Text(label, textStyle);
         text.anchor.set(0.5);
         text.x = offsetX + i * slotWidth + slotWidth / 2;
         text.y = slotY + 25;
@@ -295,8 +298,8 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
                             pair.bodyB.label === 'ball' ? pair.bodyB : null;
             
             if (ballBody) {
-              const multiplier = MULTIPLIER_TABLE[slotIndex] || 1;
-              const color = getSlotColor(multiplier);
+              const reward = SLOT_REWARDS[slotIndex];
+              const color = reward?.color || 0x444444;
               
               for (let j = 0; j < 20; j++) {
                 const angle = (Math.PI * 2 / 20) * j + Math.random() * 0.5;
