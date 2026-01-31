@@ -34,9 +34,27 @@ export function Navbar() {
               animate={{ rotateY: [0, 180, 360] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-            <span className="font-display text-xl neon-text-cyan hidden sm:block tracking-wide">
+            <motion.span 
+              className="font-display text-xl hidden sm:block tracking-widest font-bold"
+              style={{
+                background: 'linear-gradient(135deg, #FFD700 0%, #C9A347 50%, #FFD700 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: '0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(201, 163, 71, 0.3)',
+                filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.4))',
+              }}
+              animate={{
+                textShadow: [
+                  '0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(201, 163, 71, 0.3)',
+                  '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(201, 163, 71, 0.5)',
+                  '0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(201, 163, 71, 0.3)',
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
               王牌博弈
-            </span>
+            </motion.span>
           </Link>
 
           {/* Desktop Nav */}
