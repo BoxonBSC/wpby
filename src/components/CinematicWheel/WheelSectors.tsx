@@ -139,37 +139,62 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               filter="url(#glow-line)"
             />
 
-            {/* 文字 */}
+            {/* Emoji */}
             <text
               x={textPos.x}
-              y={textPos.y - 8}
+              y={textPos.y - 18}
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y})`}
               style={{
-                fill: 'rgba(255,255,255,0.9)',
-                fontSize: '22px',
+                fill: 'rgba(255,255,255,0.95)',
+                fontSize: '20px',
                 textShadow: '0 2px 4px rgba(0,0,0,0.8)',
               }}
             >
               {sector.emoji}
             </text>
+            
+            {/* 奖励名称 */}
             <text
               x={textPos.x}
-              y={textPos.y + 12}
+              y={textPos.y}
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y})`}
               className="font-display"
               style={{
-                fill: 'rgba(255,255,255,0.85)',
-                fontSize: '10px',
-                fontWeight: '600',
-                letterSpacing: '0.05em',
+                fill: 'rgba(255,255,255,0.95)',
+                fontSize: '9px',
+                fontWeight: '700',
+                letterSpacing: '0.08em',
                 textShadow: '0 1px 3px rgba(0,0,0,0.9)',
               }}
             >
               {sector.label}
+            </text>
+            
+            {/* 奖励比例 */}
+            <text
+              x={textPos.x}
+              y={textPos.y + 14}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y})`}
+              className="font-display"
+              style={{
+                fill: sector.poolPercent > 0 ? '#FFD700' : 'rgba(255,255,255,0.5)',
+                fontSize: sector.poolPercent >= 0.1 ? '11px' : '9px',
+                fontWeight: '800',
+                letterSpacing: '0.05em',
+                textShadow: sector.poolPercent > 0 
+                  ? '0 0 8px rgba(255,215,0,0.8), 0 1px 2px rgba(0,0,0,0.9)' 
+                  : '0 1px 2px rgba(0,0,0,0.9)',
+              }}
+            >
+              {sector.poolPercent > 0 
+                ? `${(sector.poolPercent * 100).toFixed(sector.poolPercent >= 0.01 ? 0 : 1)}%` 
+                : '—'}
             </text>
           </g>
         );
