@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlinkoCanvas } from './PlinkoCanvas';
 import { PlinkoControls } from './PlinkoControls';
 import { PlinkoResults } from './PlinkoResults';
+import { SoundControls } from './SoundControls';
 import { PlinkoResult, MULTIPLIER_TABLE } from '@/config/plinko';
 import { useWallet } from '@/contexts/WalletContext';
+import { usePlinkoSounds } from '@/hooks/usePlinkoSounds';
 import { Sparkles, Crown, Star } from 'lucide-react';
 
 // 背景粒子
@@ -46,6 +48,7 @@ function BackgroundParticles() {
 
 export function PlinkoGame() {
   const { gameCredits, isConnected } = useWallet();
+  const sounds = usePlinkoSounds();
   
   const [betAmount, setBetAmount] = useState(10000);
   const [autoDropCount, setAutoDropCount] = useState(0);
@@ -55,6 +58,8 @@ export function PlinkoGame() {
   const [dropTrigger, setDropTrigger] = useState(0);
   const [showWinOverlay, setShowWinOverlay] = useState(false);
   const [lastWin, setLastWin] = useState<{ multiplier: number; amount: number } | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.5);
 
   const [demoCredits, setDemoCredits] = useState(100000);
   const credits = isConnected ? gameCredits : demoCredits;
@@ -65,9 +70,34 @@ export function PlinkoGame() {
   const totalWin = results.reduce((sum, r) => sum + r.winAmount, 0);
   const totalBet = results.reduce((sum, r) => sum + r.betAmount, 0);
 
+  // 音量控制
+  const handleToggleMute = useCallback(() => {
+    const newMuted = sounds.toggleMute();
+    setIsMuted(newMuted);
+  }, [sounds]);
+
+  const handleVolumeChange = useCallback((vol: number) => {
+    sounds.setVolume(vol);
+    setVolume(vol);
+  }, [sounds]);
+
+  // 碰撞音效回调
+  const handleCollision = useCallback(() => {
+    sounds.playCollisionSound(0.3 + Math.random() * 0.4);
+  }, [sounds]);
+
+  // 处理球落入槽位
   const handleBallLanded = useCallback((slotIndex: number) => {
     const multiplier = MULTIPLIER_TABLE[slotIndex] || 1;
     const winAmount = Math.floor(betAmount * multiplier);
+    
+    // 播放落槽音效
+    sounds.playSlotSound(multiplier);
+    
+    // 超级大奖
+    if (multiplier >= 41) {
+      sounds.playJackpotSound();
+    }
     
     const result: PlinkoResult = {
       id: `${Date.now()}_${Math.random()}`,
@@ -96,17 +126,22 @@ export function PlinkoGame() {
     if (pendingDrops.current <= 0) {
       setIsDropping(false);
     }
-  }, [betAmount, isConnected]);
+  }, [betAmount, isConnected, sounds]);
 
+  // 执行投球
   const executeDrop = useCallback(() => {
     if (!isConnected) {
       setDemoCredits(prev => prev - betAmount);
     }
+    sounds.playDropSound();
     setDropTrigger(prev => prev + 1);
-  }, [betAmount, isConnected]);
+  }, [betAmount, isConnected, sounds]);
 
+  // 开始投球
   const handleDrop = useCallback(() => {
     if (credits < betAmount) return;
+    
+    sounds.playClickSound();
     
     const totalDrops = autoDropCount > 0 ? autoDropCount : 1;
     pendingDrops.current = totalDrops;
@@ -114,8 +149,9 @@ export function PlinkoGame() {
     setIsDropping(true);
     
     executeDrop();
-  }, [credits, betAmount, autoDropCount, executeDrop]);
+  }, [credits, betAmount, autoDropCount, executeDrop, sounds]);
 
+  // 自动投球
   useEffect(() => {
     if (isDropping && remainingDrops > 1 && credits >= betAmount) {
       autoDropTimer.current = setTimeout(() => {
@@ -129,6 +165,17 @@ export function PlinkoGame() {
       }
     };
   }, [isDropping, remainingDrops, credits, betAmount, executeDrop]);
+
+  // 按钮点击音效
+  const handleBetChange = useCallback((amount: number) => {
+    sounds.playClickSound();
+    setBetAmount(amount);
+  }, [sounds]);
+
+  const handleAutoDropChange = useCallback((count: number) => {
+    sounds.playClickSound();
+    setAutoDropCount(count);
+  }, [sounds]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0806] via-[#12100a] to-[#0a0806] p-4 md:p-8 relative">
@@ -175,9 +222,19 @@ export function PlinkoGame() {
           </motion.div>
         </div>
         
-        <p className="text-[#C9A347]/60 text-lg tracking-widest">
-          — 弹珠落下，财富开启 —
-        </p>
+        <div className="flex items-center justify-center gap-4">
+          <p className="text-[#C9A347]/60 text-lg tracking-widest">
+            — 弹珠落下，财富开启 —
+          </p>
+          
+          {/* 音量控制 */}
+          <SoundControls
+            isMuted={isMuted}
+            volume={volume}
+            onToggleMute={handleToggleMute}
+            onVolumeChange={handleVolumeChange}
+          />
+        </div>
       </motion.div>
 
       {/* 主游戏区域 */}
@@ -191,9 +248,9 @@ export function PlinkoGame() {
           <PlinkoControls
             credits={credits}
             betAmount={betAmount}
-            onBetChange={setBetAmount}
+            onBetChange={handleBetChange}
             autoDropCount={autoDropCount}
-            onAutoDropChange={setAutoDropCount}
+            onAutoDropChange={handleAutoDropChange}
             onDrop={handleDrop}
             isDropping={isDropping}
             remainingDrops={remainingDrops}
@@ -211,6 +268,7 @@ export function PlinkoGame() {
             width={600}
             height={620}
             onBallLanded={handleBallLanded}
+            onCollision={handleCollision}
             dropBallTrigger={dropTrigger}
           />
         </motion.div>
