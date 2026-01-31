@@ -7,17 +7,18 @@ interface WheelSectorsProps {
   winningSector: string | null;
 }
 
-// 拉斯维加斯豪华赌场配色
-const SECTOR_COLORS = [
-  '#C9A347', // Gold
-  '#4A0E1E', // Wine Red
-  '#B8860B', // Dark Gold
-  '#2D1810', // Deep Brown
-  '#8B7355', // Bronze
-  '#3D1C28', // Dark Wine
-  '#A67B5B', // Light Bronze
-  '#1A0D12', // Near Black
-];
+const hsla = (hsl: string, alpha: number) => {
+  if (hsl.startsWith('hsla(')) return hsl;
+  if (!hsl.startsWith('hsl(')) return hsl;
+  return hsl.replace(/^hsl\(/, 'hsla(').replace(/\)$/, `, ${alpha})`);
+};
+
+// Classic casino look: bright/dark alternating sectors (theme-aware).
+const getSectorBaseColor = (theme: ThemeType, index: number, colors: (typeof THEME_COLORS)[ThemeType]) => {
+  const bright = theme === 'gold' ? 'hsl(var(--gold))' : colors.primary;
+  const dark = theme === 'gold' ? 'hsl(var(--ruby-dark))' : 'hsl(var(--background))';
+  return index % 2 === 0 ? bright : dark;
+};
 
 export function WheelSectors({ sectors, theme, size, winningSector }: WheelSectorsProps) {
   const colors = THEME_COLORS[theme];
@@ -79,23 +80,23 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
       <defs>
         {/* 扇区渐变 */}
         {sectors.map((_, index) => {
-          const baseColor = SECTOR_COLORS[index % SECTOR_COLORS.length];
+          const baseColor = getSectorBaseColor(theme, index, colors);
           return (
             <linearGradient 
               key={`grad-${index}`} 
               id={`sector-grad-${index}`} 
               x1="0%" y1="0%" x2="100%" y2="100%"
             >
-              <stop offset="0%" stopColor={baseColor} stopOpacity="1" />
-              <stop offset="50%" stopColor={baseColor} stopOpacity="0.9" />
-              <stop offset="100%" stopColor={baseColor} stopOpacity="0.7" />
+              <stop offset="0%" stopColor={hsla(baseColor, 0.98)} />
+              <stop offset="45%" stopColor={hsla(baseColor, 0.88)} />
+              <stop offset="100%" stopColor={hsla(baseColor, 0.72)} />
             </linearGradient>
           );
         })}
         
         {/* 文字阴影滤镜 */}
         <filter id="text-shadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#000" floodOpacity="0.9"/>
+          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="hsl(var(--background))" floodOpacity="0.9"/>
         </filter>
       </defs>
 
@@ -105,7 +106,6 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
         const endAngle = (index + 1) * sectorAngle;
         const textPos = getTextPosition(startAngle, endAngle);
         const isWinning = winningSector === sector.id;
-        const sectorColor = SECTOR_COLORS[index % SECTOR_COLORS.length];
 
         return (
           <g key={sector.id}>
@@ -113,16 +113,15 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
             <path
               d={createSectorPath(startAngle, endAngle)}
               fill={`url(#sector-grad-${index})`}
-              stroke={colors.accent}
-              strokeWidth="1"
-              strokeOpacity="0.3"
+              stroke={hsla(colors.accent, 0.28)}
+              strokeWidth="1.2"
             />
             
             {/* 扇区高亮边 */}
             <path
               d={createSectorPath(startAngle, endAngle)}
               fill="none"
-              stroke="rgba(255,255,255,0.1)"
+              stroke={hsla('hsl(var(--foreground))', 0.08)}
               strokeWidth="1"
             />
 
@@ -131,9 +130,9 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               <path
                 d={createSectorPath(startAngle, endAngle)}
                 fill="none"
-                stroke={colors.accent}
+                stroke={colors.glow}
                 strokeWidth="3"
-                opacity="0.8"
+                opacity="0.9"
               />
             )}
 
@@ -157,7 +156,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y + 2})`}
-              fill="#FFFFFF"
+              fill={hsla('hsl(var(--foreground))', 0.92)}
               fontSize="10"
               fontWeight="700"
               fontFamily="'Cinzel', serif"
@@ -174,7 +173,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y + 16})`}
-              fill={sector.poolPercent > 0 ? '#FFD700' : '#888888'}
+              fill={sector.poolPercent > 0 ? 'hsl(var(--gold-bright))' : 'hsl(var(--muted-foreground))'}
               fontSize={sector.poolPercent >= 0.1 ? '11' : '9'}
               fontWeight="800"
               fontFamily="'Cinzel', serif"
@@ -208,7 +207,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
         cy={centerY - 8}
         rx={12}
         ry={8}
-        fill="rgba(255,255,255,0.25)"
+        fill={hsla('hsl(var(--foreground))', 0.22)}
       />
       
       {/* 中心文字 */}
@@ -217,7 +216,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
         y={centerY - 6}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill="rgba(255,255,255,0.9)"
+        fill={hsla('hsl(var(--foreground))', 0.92)}
         fontSize="11"
         fontWeight="700"
         fontFamily="'Cinzel', serif"
