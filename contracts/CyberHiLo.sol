@@ -147,6 +147,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     event CreditsUsed(address indexed player, uint256 amount);
     event EmergencyPrizeRescued(address indexed player, address indexed recipient, uint256 amount);  // 新增：紧急救援
     event GameTimedOut(address indexed player, address indexed caller, uint8 streak, uint256 releasedLock);  // 游戏超时强制结束
+    event PoolInsufficientForceSettled(address indexed player, uint8 streak, uint256 available, uint256 needed);  // 奖池不足强制结算
     
     constructor(
         address _vrfCoordinator,
@@ -373,10 +374,30 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
             // 动态锁定：更新锁定金额到新连胜级别
             uint256 newLockAmount = calculateReward(newStreak, session.prizePoolSnapshot);
             uint256 oldLockAmount = playerLockedReward[request.player];
+            
             if (newLockAmount > oldLockAmount) {
                 uint256 additionalLock = newLockAmount - oldLockAmount;
-                playerLockedReward[request.player] = newLockAmount;
-                totalLockedRewards += additionalLock;
+                
+                // 安全检查：确保有足够的可用奖池进行额外锁定
+                uint256 availableForLock = address(this).balance > totalLockedRewards 
+                    ? address(this).balance - totalLockedRewards 
+                    : 0;
+                
+                if (availableForLock >= additionalLock) {
+                    // 奖池充足，正常增加锁定
+                    playerLockedReward[request.player] = newLockAmount;
+                    totalLockedRewards += additionalLock;
+                } else {
+                    // 奖池不足（可能被其他玩家锁定），强制提现当前收益
+                    // 更新最大连胜记录
+                    if (session.currentStreak > playerStats[request.player].maxStreak) {
+                        playerStats[request.player].maxStreak = session.currentStreak;
+                    }
+                    emit GuessResult(request.player, requestId, oldCard, newCard, true, session.currentStreak, 0);
+                    emit PoolInsufficientForceSettled(request.player, session.currentStreak, availableForLock, additionalLock);
+                    _cashOut(request.player);
+                    return;
+                }
             }
             
             // 更新最大连胜记录
