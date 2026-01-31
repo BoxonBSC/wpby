@@ -2,86 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Vegas Luxury Casino Design System */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Cinzel:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
+/* Cyberpunk Design System - Neon colors, dark theme */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Vegas Color Palette */
-    --vegas-black: 30 30% 3%;
-    --vegas-gold: 43 62% 53%;
-    --vegas-wine: 345 68% 18%;
-    --vegas-platinum: 0 0% 88%;
-    
-    /* Gold Variations */
-    --gold: 43 62% 53%;
-    --gold-light: 43 70% 68%;
-    --gold-dark: 43 55% 38%;
-    --gold-muted: 43 35% 45%;
-    --gold-bright: 45 100% 55%;
-    
-    /* Rich Accent Colors */
-    --ruby: 345 68% 35%;
-    --ruby-light: 345 75% 45%;
-    --ruby-dark: 345 68% 18%;
-    --emerald: 160 70% 35%;
-    --sapphire: 220 80% 50%;
-    --diamond: 0 0% 88%;
-    
-    /* Dark Luxurious Background */
-    --background: 30 30% 3%;
-    --foreground: 43 30% 88%;
-
-    --card: 30 25% 6%;
-    --card-foreground: 43 30% 90%;
-
-    --popover: 30 20% 8%;
-    --popover-foreground: 43 30% 90%;
-
-    --primary: 43 62% 53%;
-    --primary-foreground: 30 30% 3%;
-
-    --secondary: 345 68% 25%;
-    --secondary-foreground: 43 30% 90%;
-
-    --muted: 30 15% 12%;
-    --muted-foreground: 43 20% 55%;
-
-    --accent: 345 68% 35%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 100% 45%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 43 25% 18%;
-    --input: 30 20% 10%;
-    --ring: 43 62% 53%;
-
-    --radius: 0.5rem;
-
-    /* Luxury Glow Effects */
-    --glow-gold: 0 0 20px hsl(43 62% 53% / 0.5), 0 0 40px hsl(43 62% 53% / 0.3);
-    --glow-wine: 0 0 20px hsl(345 68% 35% / 0.5), 0 0 40px hsl(345 68% 35% / 0.3);
-    --glow-platinum: 0 0 15px hsl(0 0% 88% / 0.4), 0 0 30px hsl(0 0% 88% / 0.2);
-
-    /* Sidebar */
-    --sidebar-background: 30 25% 5%;
-    --sidebar-foreground: 43 30% 90%;
-    --sidebar-primary: 43 62% 53%;
-    --sidebar-primary-foreground: 30 30% 3%;
-    --sidebar-accent: 345 68% 35%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 43 25% 18%;
-    --sidebar-ring: 43 62% 53%;
-
-    /* Legacy neon colors for compatibility */
+    /* Cyberpunk Neon Colors */
     --neon-blue: 195 100% 50%;
     --neon-purple: 280 100% 60%;
     --neon-pink: 320 100% 60%;
     --neon-cyan: 180 100% 50%;
     --neon-green: 150 100% 50%;
-    --neon-yellow: 43 62% 53%;
+    --neon-yellow: 50 100% 50%;
     --neon-orange: 25 100% 55%;
+    
+    /* Dark Background Palette */
+    --background: 240 20% 4%;
+    --foreground: 195 100% 90%;
+
+    --card: 240 15% 8%;
+    --card-foreground: 195 100% 90%;
+
+    --popover: 240 15% 10%;
+    --popover-foreground: 195 100% 90%;
+
+    --primary: 195 100% 50%;
+    --primary-foreground: 240 20% 4%;
+
+    --secondary: 280 100% 60%;
+    --secondary-foreground: 240 20% 4%;
+
+    --muted: 240 15% 15%;
+    --muted-foreground: 195 50% 60%;
+
+    --accent: 320 100% 60%;
+    --accent-foreground: 240 20% 4%;
+
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 195 50% 20%;
+    --input: 240 15% 12%;
+    --ring: 195 100% 50%;
+
+    --radius: 0.5rem;
+
+    /* Glow Effects */
+    --glow-blue: 0 0 20px hsl(195 100% 50% / 0.5), 0 0 40px hsl(195 100% 50% / 0.3);
+    --glow-purple: 0 0 20px hsl(280 100% 60% / 0.5), 0 0 40px hsl(280 100% 60% / 0.3);
+    --glow-pink: 0 0 20px hsl(320 100% 60% / 0.5), 0 0 40px hsl(320 100% 60% / 0.3);
+    --glow-cyan: 0 0 20px hsl(180 100% 50% / 0.5), 0 0 40px hsl(180 100% 50% / 0.3);
+
+    /* Sidebar */
+    --sidebar-background: 240 15% 6%;
+    --sidebar-foreground: 195 100% 90%;
+    --sidebar-primary: 195 100% 50%;
+    --sidebar-primary-foreground: 240 20% 4%;
+    --sidebar-accent: 280 100% 60%;
+    --sidebar-accent-foreground: 240 20% 4%;
+    --sidebar-border: 195 50% 20%;
+    --sidebar-ring: 195 100% 50%;
   }
 }
 
@@ -92,72 +72,371 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Cormorant Garamond', serif;
-    background-color: #0f0c07;
+    font-family: 'Rajdhani', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', 'Cinzel', serif;
+    font-family: 'Orbitron', sans-serif;
   }
 }
 
 @layer components {
-  /* Display Fonts */
-  .font-display {
-    font-family: 'Playfair Display', 'Cinzel', serif;
+  /* Neon Text Effects */
+  .neon-text-blue {
+    color: hsl(var(--neon-blue));
+    text-shadow: var(--glow-blue);
   }
 
-  .font-cinzel {
-    font-family: 'Cinzel', serif;
+  .neon-text-purple {
+    color: hsl(var(--neon-purple));
+    text-shadow: var(--glow-purple);
   }
 
-  /* Gold Embossed Title Effect */
-  .title-embossed {
-    font-family: 'Playfair Display', serif;
-    background: linear-gradient(
-      135deg,
-      #E8D5A3 0%,
-      #C9A347 25%,
-      #FFE4A0 50%,
-      #C9A347 75%,
-      #8B7432 100%
+  .neon-text-pink {
+    color: hsl(var(--neon-pink));
+    text-shadow: var(--glow-pink);
+  }
+
+  .neon-text-cyan {
+    color: hsl(var(--neon-cyan));
+    text-shadow: var(--glow-cyan);
+  }
+
+  /* Neon Border Effects */
+  .neon-border {
+    border: 1px solid hsl(var(--neon-blue));
+    box-shadow: var(--glow-blue), inset 0 0 20px hsl(var(--neon-blue) / 0.1);
+  }
+
+  .neon-border-purple {
+    border: 1px solid hsl(var(--neon-purple));
+    box-shadow: var(--glow-purple), inset 0 0 20px hsl(var(--neon-purple) / 0.1);
+  }
+
+  .neon-border-pink {
+    border: 1px solid hsl(var(--neon-pink));
+    box-shadow: var(--glow-pink), inset 0 0 20px hsl(var(--neon-pink) / 0.1);
+  }
+
+  .neon-border-cyan {
+    border: 1px solid hsl(var(--neon-cyan));
+    box-shadow: var(--glow-cyan), inset 0 0 20px hsl(var(--neon-cyan) / 0.1);
+  }
+
+  .neon-border-yellow {
+    border: 1px solid hsl(var(--neon-yellow));
+    box-shadow: 0 0 20px hsl(var(--neon-yellow) / 0.5), 0 0 40px hsl(var(--neon-yellow) / 0.3), inset 0 0 20px hsl(var(--neon-yellow) / 0.1);
+  }
+
+  .neon-border-green {
+    border: 1px solid hsl(var(--neon-green));
+    box-shadow: 0 0 20px hsl(var(--neon-green) / 0.5), 0 0 40px hsl(var(--neon-green) / 0.3), inset 0 0 20px hsl(var(--neon-green) / 0.1);
+  }
+
+  /* Cyberpunk Button */
+  .cyber-button {
+    @apply relative overflow-hidden px-8 py-4 font-bold uppercase tracking-wider;
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(135deg, hsl(var(--neon-blue) / 0.2), hsl(var(--neon-purple) / 0.2));
+    border: 2px solid hsl(var(--neon-blue));
+    box-shadow: var(--glow-blue);
+    transition: all 0.3s ease;
+  }
+
+  .cyber-button:hover {
+    background: linear-gradient(135deg, hsl(var(--neon-blue) / 0.4), hsl(var(--neon-purple) / 0.4));
+    box-shadow: 0 0 30px hsl(var(--neon-blue) / 0.8), 0 0 60px hsl(var(--neon-blue) / 0.4);
+    transform: translateY(-2px);
+  }
+
+  .cyber-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Cyberpunk Card */
+  .cyber-card {
+    @apply relative p-6 rounded-lg;
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(240 15% 12%) 100%);
+    border: 1px solid hsl(var(--neon-blue) / 0.3);
+    box-shadow: 
+      0 0 20px hsl(var(--neon-blue) / 0.1),
+      inset 0 1px 0 hsl(var(--neon-blue) / 0.2);
+  }
+
+  /* Glitch Effect */
+  .glitch {
+    position: relative;
+    animation: glitch 2s infinite;
+  }
+
+  @keyframes glitch {
+    0%, 90%, 100% {
+      transform: translate(0);
+    }
+    92% {
+      transform: translate(-2px, 2px);
+    }
+    94% {
+      transform: translate(2px, -2px);
+    }
+    96% {
+      transform: translate(-2px, -2px);
+    }
+    98% {
+      transform: translate(2px, 2px);
+    }
+  }
+
+  /* Grid Background */
+  .cyber-grid {
+    background-image: 
+      linear-gradient(hsl(var(--neon-blue) / 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--neon-blue) / 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Scanline Effect */
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 0% / 0.1) 2px,
+      hsl(0 0% 0% / 0.1) 4px
     );
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: none;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 20px rgba(201, 163, 71, 0.3));
+    pointer-events: none;
   }
 
-  /* Gold Text Effects */
-  .text-gold {
-    color: #C9A347;
+  /* Neon Pulse Animation */
+  @keyframes neon-pulse {
+    0%, 100% {
+      opacity: 1;
+      filter: brightness(1);
+    }
+    50% {
+      opacity: 0.8;
+      filter: brightness(1.2);
+    }
   }
 
-  .text-vegas-gold {
-    color: #C9A347;
+  .neon-pulse {
+    animation: neon-pulse 2s ease-in-out infinite;
   }
 
-  .text-gold-gradient {
-    background: linear-gradient(
-      135deg,
-      #E8D5A3 0%,
-      #C9A347 50%,
-      #8B7432 100%
+  /* Slot Reel Styles */
+  .slot-reel {
+    background: linear-gradient(180deg, 
+      hsl(240 20% 2%) 0%, 
+      hsl(240 15% 8%) 10%, 
+      hsl(240 15% 12%) 50%, 
+      hsl(240 15% 8%) 90%, 
+      hsl(240 20% 2%) 100%
     );
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    border: 2px solid hsl(var(--neon-purple) / 0.5);
+    box-shadow: 
+      inset 0 0 30px hsl(var(--neon-purple) / 0.2),
+      0 0 20px hsl(var(--neon-purple) / 0.3);
+  }
+
+  /* Win Animation */
+  @keyframes win-flash {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--neon-yellow) / 0.5);
+    }
+    50% {
+      box-shadow: 0 0 60px hsl(var(--neon-yellow) / 1), 0 0 100px hsl(var(--neon-yellow) / 0.5);
+    }
+  }
+
+  .win-animation {
+    animation: win-flash 0.5s ease-in-out infinite;
+  }
+
+  /* Jackpot Celebration */
+  @keyframes jackpot {
+    0% {
+      transform: scale(1) rotate(0deg);
+    }
+    25% {
+      transform: scale(1.1) rotate(-5deg);
+    }
+    50% {
+      transform: scale(1.2) rotate(5deg);
+    }
+    75% {
+      transform: scale(1.1) rotate(-5deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+    }
+  }
+
+  .jackpot {
+    animation: jackpot 0.5s ease-in-out infinite;
+  }
+
+  /* Floating Animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(3deg);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Sparkle Effect */
+  @keyframes sparkle {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1) rotate(180deg);
+    }
+  }
+
+  .sparkle {
+    animation: sparkle 2s ease-in-out infinite;
+  }
+
+  /* Rainbow Glow */
+  @keyframes rainbow-glow {
+    0% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
+    25% { box-shadow: 0 0 20px hsl(var(--neon-purple) / 0.5), 0 0 40px hsl(var(--neon-purple) / 0.3); }
+    50% { box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.5), 0 0 40px hsl(var(--neon-pink) / 0.3); }
+    75% { box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.5), 0 0 40px hsl(var(--neon-cyan) / 0.3); }
+    100% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
+  }
+
+  .rainbow-glow {
+    animation: rainbow-glow 4s linear infinite;
+  }
+
+  /* Shine Effect */
+  @keyframes shine {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .shine-effect {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--neon-yellow) / 0.3) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shine 3s ease-in-out infinite;
+  }
+
+  /* Coin Rain */
+  @keyframes coin-fall {
+    0% {
+      transform: translateY(-100%) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  .coin-rain {
+    animation: coin-fall 3s linear infinite;
+  }
+
+  /* Pulse Ring */
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.8);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  .pulse-ring {
+    animation: pulse-ring 1.5s ease-out infinite;
+  }
+
+  /* Electric Border */
+  @keyframes electric-border {
+    0%, 100% {
+      border-color: hsl(var(--neon-blue));
+      box-shadow: 0 0 10px hsl(var(--neon-blue) / 0.5);
+    }
+    25% {
+      border-color: hsl(var(--neon-cyan));
+      box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.7);
+    }
+    50% {
+      border-color: hsl(var(--neon-purple));
+      box-shadow: 0 0 30px hsl(var(--neon-purple) / 0.7);
+    }
+    75% {
+      border-color: hsl(var(--neon-pink));
+      box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.7);
+    }
+  }
+
+  .electric-border {
+    animation: electric-border 2s linear infinite;
+  }
+
+  /* Bounce In */
+  @keyframes bounce-in {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .bounce-in {
+    animation: bounce-in 0.5s ease-out;
+  }
+
+  /* Text Shimmer */
+  @keyframes text-shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
   }
 
   .text-shimmer {
     background: linear-gradient(
       90deg,
-      #8B7432 0%,
-      #E8D5A3 25%,
-      #C9A347 50%,
-      #E8D5A3 75%,
-      #8B7432 100%
+      hsl(var(--neon-yellow)) 0%,
+      hsl(var(--neon-orange)) 25%,
+      hsl(var(--neon-pink)) 50%,
+      hsl(var(--neon-purple)) 75%,
+      hsl(var(--neon-yellow)) 100%
     );
     background-size: 200% auto;
     background-clip: text;
@@ -166,399 +445,119 @@
     animation: text-shimmer 3s linear infinite;
   }
 
-  @keyframes text-shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-
-  /* Gold Glow Effects */
-  .glow-gold {
-    text-shadow: 0 0 20px rgba(201, 163, 71, 0.5), 0 0 40px rgba(201, 163, 71, 0.3);
-  }
-
-  .glow-gold-box {
-    box-shadow: 0 0 20px rgba(201, 163, 71, 0.5), 0 0 40px rgba(201, 163, 71, 0.3);
-  }
-
-  /* Wine Red Accents */
-  .bg-wine {
-    background-color: #4A0E1E;
-  }
-
-  .text-wine {
-    color: #4A0E1E;
-  }
-
-  .border-wine {
-    border-color: #4A0E1E;
-  }
-
-  /* Platinum Accents */
-  .text-platinum {
-    color: #E0E0E0;
-  }
-
-  .bg-platinum {
-    background-color: #E0E0E0;
-  }
-
-  /* Luxury Border */
-  .border-gold {
-    border: 1px solid #C9A347;
-    box-shadow: 0 0 20px rgba(201, 163, 71, 0.3), inset 0 0 20px rgba(201, 163, 71, 0.05);
-  }
-
-  .border-gold-subtle {
-    border: 1px solid rgba(201, 163, 71, 0.3);
-    box-shadow: 0 0 10px rgba(201, 163, 71, 0.1);
-  }
-
-  /* Brushed Metal Effect */
-  .brushed-metal {
-    background: 
-      repeating-linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.02) 0px,
-        rgba(0, 0, 0, 0.03) 1px,
-        rgba(255, 255, 255, 0.01) 2px,
-        rgba(0, 0, 0, 0.02) 3px
-      ),
-      linear-gradient(
-        135deg,
-        #1a1814 0%,
-        #0f0c07 50%,
-        #1a1814 100%
-      );
-  }
-
-  /* Leather Texture Button */
-  .leather-button {
-    @apply relative overflow-hidden px-8 py-4 font-semibold uppercase tracking-widest rounded-lg;
-    font-family: 'Playfair Display', serif;
-    background: 
-      linear-gradient(135deg, #2a1f1a 0%, #1a1210 50%, #2a1f1a 100%);
-    color: #C9A347;
-    border: 2px solid rgba(201, 163, 71, 0.5);
-    box-shadow: 
-      0 4px 15px rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  /* Glow Button Hover */
+  .glow-hover {
     transition: all 0.3s ease;
   }
 
-  .leather-button::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: 
-      radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-      repeating-linear-gradient(
-        45deg,
-        transparent 0px,
-        rgba(0, 0, 0, 0.1) 1px,
-        transparent 2px,
-        rgba(255, 255, 255, 0.02) 3px
-      );
-    pointer-events: none;
-  }
-
-  .leather-button:hover {
-    transform: translateY(-2px);
-    border-color: #C9A347;
+  .glow-hover:hover {
+    transform: translateY(-3px);
     box-shadow: 
-      0 6px 20px rgba(0, 0, 0, 0.6),
-      0 0 30px rgba(201, 163, 71, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      0 0 20px hsl(var(--neon-blue) / 0.6),
+      0 0 40px hsl(var(--neon-blue) / 0.4),
+      0 0 60px hsl(var(--neon-blue) / 0.2);
   }
 
-  .leather-button:active {
-    transform: translateY(0);
-  }
-
-  .leather-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  /* Crystal Cut Edge */
-  .crystal-edge {
-    position: relative;
-    border: 1px solid transparent;
-    background: 
-      linear-gradient(#0f0c07, #0f0c07) padding-box,
-      linear-gradient(
-        135deg,
-        rgba(224, 224, 224, 0.8) 0%,
-        rgba(201, 163, 71, 0.6) 25%,
-        rgba(224, 224, 224, 0.4) 50%,
-        rgba(201, 163, 71, 0.6) 75%,
-        rgba(224, 224, 224, 0.8) 100%
-      ) border-box;
-  }
-
-  /* Luxury Card */
-  .luxury-card {
-    @apply relative p-6 rounded-xl;
-    background: linear-gradient(
-      135deg,
-      #1a1814 0%,
-      #0f0c07 50%,
-      #15120e 100%
-    );
-    border: 1px solid rgba(201, 163, 71, 0.25);
-    box-shadow: 
-      0 0 30px rgba(201, 163, 71, 0.08),
-      inset 0 1px 0 rgba(201, 163, 71, 0.15),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.5);
-  }
-
-  .luxury-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      rgba(201, 163, 71, 0.4) 0%,
-      transparent 50%,
-      rgba(201, 163, 71, 0.2) 100%
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-
-  /* Vegas Luxury Button */
-  .luxury-button {
-    @apply relative overflow-hidden px-8 py-4 font-semibold uppercase tracking-widest rounded-lg;
-    font-family: 'Playfair Display', serif;
-    background: linear-gradient(
-      135deg,
-      #8B7432 0%,
-      #C9A347 30%,
-      #E8D5A3 50%,
-      #C9A347 70%,
-      #8B7432 100%
-    );
-    color: #0f0c07;
-    border: 2px solid #E8D5A3;
-    box-shadow: 
-      0 0 20px rgba(201, 163, 71, 0.4),
-      inset 0 2px 0 rgba(255, 255, 255, 0.4),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-  }
-
-  .luxury-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 0 40px rgba(201, 163, 71, 0.6),
-      0 0 60px rgba(201, 163, 71, 0.3),
-      inset 0 2px 0 rgba(255, 255, 255, 0.5),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-  }
-
-  .luxury-button:active {
-    transform: translateY(0);
-  }
-
-  .luxury-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  /* Wine Accent Button */
-  .wine-button {
-    @apply relative overflow-hidden px-6 py-3 font-semibold uppercase tracking-wider rounded-lg;
-    font-family: 'Playfair Display', serif;
-    background: linear-gradient(
-      135deg,
-      #3a0a18 0%,
-      #4A0E1E 50%,
-      #3a0a18 100%
-    );
-    color: #E8D5A3;
-    border: 1px solid rgba(201, 163, 71, 0.4);
-    box-shadow: 
-      0 4px 15px rgba(74, 14, 30, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-  }
-
-  .wine-button:hover {
-    background: linear-gradient(
-      135deg,
-      #4A0E1E 0%,
-      #5a1228 50%,
-      #4A0E1E 100%
-    );
-    border-color: #C9A347;
-  }
-
-  /* Ornamental Divider */
-  .ornament {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .ornament::before,
-  .ornament::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(201, 163, 71, 0.5) 50%,
-      transparent 100%
-    );
-  }
-
-  /* Diamond Pattern Background */
-  .luxury-pattern {
-    background-image: 
-      radial-gradient(rgba(201, 163, 71, 0.03) 1px, transparent 1px),
-      radial-gradient(rgba(201, 163, 71, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-position: 0 0, 20px 20px;
-  }
-
-  /* Vignette Effect */
-  .vignette {
-    position: relative;
-  }
-
-  .vignette::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      ellipse at center,
-      transparent 0%,
-      transparent 40%,
-      rgba(15, 12, 7, 0.9) 100%
-    );
-    pointer-events: none;
-  }
-
-  /* Spotlight Effect */
-  .spotlight {
-    position: relative;
-  }
-
-  .spotlight::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200%;
-    height: 100%;
-    background: radial-gradient(
-      ellipse at center top,
-      rgba(201, 163, 71, 0.12) 0%,
-      transparent 60%
-    );
-    pointer-events: none;
-  }
-
-  /* Gold Pulse Animation */
-  @keyframes gold-pulse {
-    0%, 100% {
-      box-shadow: 0 0 20px rgba(201, 163, 71, 0.4);
+  /* Slot Reel Animations - GPU accelerated */
+  @keyframes scan-line {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0.3;
     }
     50% {
-      box-shadow: 0 0 40px rgba(201, 163, 71, 0.7), 0 0 60px rgba(201, 163, 71, 0.4);
-    }
-  }
-
-  .gold-pulse {
-    animation: gold-pulse 2s ease-in-out infinite;
-  }
-
-  /* Spin Glow Animation */
-  @keyframes spin-glow {
-    0% { filter: drop-shadow(0 0 20px rgba(201, 163, 71, 0.5)); }
-    50% { filter: drop-shadow(0 0 40px rgba(201, 163, 71, 0.8)); }
-    100% { filter: drop-shadow(0 0 20px rgba(201, 163, 71, 0.5)); }
-  }
-
-  .spin-glow {
-    animation: spin-glow 1s ease-in-out infinite;
-  }
-
-  /* Floating Animation */
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  /* Particle Effect */
-  @keyframes particle-rise {
-    0% {
-      transform: translateY(0) scale(1);
       opacity: 1;
     }
     100% {
-      transform: translateY(-100px) scale(0);
-      opacity: 0;
+      transform: translateY(200%);
+      opacity: 0.3;
     }
   }
 
-  .particle {
-    animation: particle-rise 2s ease-out infinite;
+  .animate-scan-line {
+    animation: scan-line 0.8s linear infinite;
+    will-change: transform;
   }
 
-  /* Legacy cyber classes for compatibility */
-  .cyber-button {
-    @apply luxury-button;
+  @keyframes flash {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.02);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
   }
 
-  .cyber-card {
-    @apply luxury-card;
+  .animate-flash {
+    animation: flash 0.3s ease-out forwards;
   }
 
-  .cyber-grid {
-    @apply luxury-pattern;
+  /* Slot symbol bounce */
+  @keyframes symbol-bounce {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.15);
+    }
   }
 
-  .neon-text-blue { color: hsl(var(--sapphire)); }
-  .neon-text-purple { color: hsl(280 100% 60%); }
-  .neon-text-pink { color: #4A0E1E; }
-  .neon-text-cyan { color: hsl(180 100% 50%); }
-  .neon-text-green { color: hsl(var(--emerald)); }
-  
-  .neon-border { @apply border-gold-subtle; }
-  .neon-border-purple { @apply border-gold-subtle; }
-  .neon-border-pink { @apply border-gold-subtle; }
-  .neon-border-yellow { @apply border-gold; }
-  .neon-border-green { @apply border-gold-subtle; }
-}
+  .animate-symbol-bounce {
+    animation: symbol-bounce 0.6s ease-in-out infinite;
+  }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-}
+  /* Landing bounce animation */
+  @keyframes landing-bounce {
+    0% {
+      transform: scale(1.05);
+    }
+    30% {
+      transform: scale(0.98);
+    }
+    60% {
+      transform: scale(1.02);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
 
-::-webkit-scrollbar-track {
-  background: #0f0c07;
-}
+  .animate-landing {
+    animation: landing-bounce 0.4s ease-out;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(201, 163, 71, 0.3);
-  border-radius: 4px;
-}
+  /* Reel glow pulse */
+  @keyframes reel-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(195 100% 50% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 35px hsl(195 100% 50% / 0.5);
+    }
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 163, 71, 0.5);
+  .animate-reel-glow {
+    animation: reel-glow 1s ease-in-out infinite;
+  }
+
+  /* Win celebration */
+  @keyframes win-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(50 100% 50% / 0.4);
+      border-color: hsl(50 100% 50% / 0.6);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(50 100% 50% / 0.7);
+      border-color: hsl(50 100% 50% / 1);
+    }
+  }
+
+  .animate-win-pulse {
+    animation: win-pulse 0.5s ease-in-out infinite;
+  }
 }

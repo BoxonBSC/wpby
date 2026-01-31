@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Cinzel', 'serif'],
-        sans: ['Cormorant Garamond', 'serif'],
+        display: ['Orbitron', 'sans-serif'],
+        sans: ['Rajdhani', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -50,29 +50,6 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
-        gold: {
-          DEFAULT: "hsl(var(--gold))",
-          light: "hsl(var(--gold-light))",
-          dark: "hsl(var(--gold-dark))",
-          muted: "hsl(var(--gold-muted))",
-          bright: "hsl(var(--gold-bright))",
-        },
-        ruby: "hsl(var(--ruby))",
-        emerald: "hsl(var(--emerald))",
-        sapphire: "hsl(var(--sapphire))",
-        diamond: "hsl(var(--diamond))",
-        wine: {
-          DEFAULT: "hsl(var(--ruby-dark))",
-          light: "hsl(var(--ruby-light))",
-        },
-        vegas: {
-          black: "#0f0c07",
-          gold: "#C9A347",
-          "gold-light": "#E8D5A3",
-          "gold-dark": "#8B7432",
-          wine: "#4A0E1E",
-          platinum: "#E0E0E0",
         },
         neon: {
           blue: "hsl(var(--neon-blue))",

@@ -1,176 +1,215 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ParticleBackground } from '@/components/ParticleBackground';
-import { LuxuryHeader } from '@/components/LuxuryHeader';
-import { CinematicWheel, ThemeType, WheelSector } from '@/components/CinematicWheel';
-import { LuxuryPrizePool } from '@/components/LuxuryPrizePool';
-import { LuxuryPaytable } from '@/components/LuxuryPaytable';
-import { LuxuryCreditsPanel } from '@/components/LuxuryCreditsPanel';
-import { ThemeSelector } from '@/components/ThemeSelector';
+import { AdvancedSlotMachine } from '@/components/AdvancedSlotMachine';
+import { WalletConnect } from '@/components/WalletConnect';
+import { CompactRewardTiers } from '@/components/CompactRewardTiers';
+import { CompactGameHistory } from '@/components/CompactGameHistory';
+import { FloatingElements } from '@/components/FloatingElements';
 import { JackpotTicker } from '@/components/JackpotTicker';
-import { ContractAddresses } from '@/components/ContractAddresses';
-import { Sparkles, Shield, Zap } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { BET_LEVELS } from '@/config/contracts';
-import { WHEEL_SECTORS } from '@/config/wheelConfig';
+import { CreditsExchange } from '@/components/CreditsExchange';
+import { BurnStats } from '@/components/BurnStats';
 
-// 转换扇区格式
-const cinematicSectors: WheelSector[] = WHEEL_SECTORS.map(sector => ({
-  id: sector.type,
-  label: sector.name,
-  emoji: sector.emoji,
-  probability: sector.probability,
-  poolPercent: sector.poolPercent,
-}));
+import { Navbar } from '@/components/Navbar';
+import { ContractAddresses } from '@/components/ContractAddresses';
+import { Sparkles, Zap, Trophy } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
+  const { t } = useLanguage();
   const isMobile = useIsMobile();
-  const [prizePool] = useState(10.5);
-  const [selectedBet, setSelectedBet] = useState(BET_LEVELS[0].value);
-  const [theme, setTheme] = useState<ThemeType>('gold');
-
-  const handleSpinComplete = (sector: WheelSector, payout: number) => {
-    console.log('Spin complete:', sector, payout);
-  };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* 动态粒子背景 */}
-      <ParticleBackground />
+    <div className="min-h-screen bg-background cyber-grid relative overflow-x-hidden">
+      {/* 扫描线效果 */}
+      <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
       
-      {/* 顶部导航 */}
-      <LuxuryHeader />
+      {/* 背景渐变 */}
+      <div className="fixed inset-0 bg-gradient-to-b from-neon-purple/5 via-transparent to-neon-blue/5 pointer-events-none" />
+      
+      {/* 动态光晕背景 - 手机端简化 */}
+      {!isMobile && (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <motion.div
+            animate={{
+              x: [0, 100, 0],
+              y: [0, 50, 0],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+            className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-purple/10 rounded-full blur-[100px]"
+          />
+          <motion.div
+            animate={{
+              x: [0, -100, 0],
+              y: [0, -50, 0],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-blue/10 rounded-full blur-[100px]"
+          />
+        </div>
+      )}
 
-      {/* 主内容区 */}
-      <main className="relative z-10 pt-20 pb-12 min-h-screen flex flex-col">
-        {/* 滚动中奖播报 */}
+      {/* 浮动装饰元素 - 手机端减少 */}
+      <FloatingElements count={isMobile ? 5 : 10} />
+      
+      <Navbar />
+      
+      <main className="container mx-auto px-2 sm:px-4 pt-16 sm:pt-20 pb-4 sm:pb-8 relative z-10">
+        {/* Hero Section - 手机端更紧凑 */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="px-4 mb-4"
+          className="text-center mb-3 sm:mb-6"
         >
-          <JackpotTicker />
-        </motion.div>
-
-        {/* 主题选择器 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex justify-center mb-6"
-        >
-          <ThemeSelector currentTheme={theme} onThemeChange={setTheme} />
-        </motion.div>
-
-        {/* 手机端布局 */}
-        <div className="lg:hidden flex-1 flex flex-col px-4 space-y-6">
-          {/* 奖池显示 */}
-          <LuxuryPrizePool prizePool={prizePool} />
+          <motion.div
+            animate={{ 
+              textShadow: [
+                '0 0 20px hsl(195 100% 50% / 0.5)',
+                '0 0 40px hsl(195 100% 50% / 0.8)',
+                '0 0 20px hsl(195 100% 50% / 0.5)',
+              ]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-display text-shimmer mb-1 sm:mb-2 flex items-center justify-center gap-2 sm:gap-3">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-neon-yellow" />
+              </motion.div>
+              BURN SLOTS
+              <motion.div
+                animate={{ rotate: [0, -10, 10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-neon-yellow" />
+              </motion.div>
+            </h1>
+          </motion.div>
           
-          {/* 转盘 */}
+          {/* 动态标签 - 手机端隐藏部分 */}
+          <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-2">
+            <motion.span
+              whileHover={{ scale: 1.1 }}
+              className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-display bg-neon-purple/20 text-neon-purple border border-neon-purple/30 flex items-center gap-1"
+            >
+              <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> {t('home.tag.symbols')}
+            </motion.span>
+            <motion.span
+              whileHover={{ scale: 1.1 }}
+              className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-display bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
+            >
+              {t('home.tag.payline')}
+            </motion.span>
+            <motion.span
+              whileHover={{ scale: 1.1 }}
+              className="hidden sm:inline-flex px-3 py-1 rounded-full text-xs font-display bg-neon-pink/20 text-neon-pink border border-neon-pink/30"
+            >
+              {t('home.tag.symbolCount')}
+            </motion.span>
+            <motion.span
+              whileHover={{ scale: 1.1 }}
+              className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-display bg-neon-green/20 text-neon-green border border-neon-green/30 flex items-center gap-1"
+            >
+              <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> {t('home.tag.return')}
+            </motion.span>
+          </div>
+
+          {/* 智能合约地址 - 手机端更紧凑 */}
+          <ContractAddresses />
+
+          {/* 全局统计 - 销毁/奖池/旋转 */}
+          <BurnStats />
+
+          {/* 中奖播报 */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="flex justify-center overflow-visible"
+            transition={{ delay: 0.4 }}
           >
-            <CinematicWheel 
-              sectors={cinematicSectors}
-              prizePool={prizePool}
-              theme={theme}
-              onSpinComplete={handleSpinComplete}
-              demoMode={true}
-            />
+            <JackpotTicker />
+          </motion.div>
+        </motion.div>
+
+        {/* 手机端布局 - 单列 */}
+        <div className="lg:hidden space-y-3">
+          {/* 老虎机 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <AdvancedSlotMachine />
           </motion.div>
           
-          {/* 凭证面板 */}
-          <LuxuryCreditsPanel 
-            selectedBet={selectedBet}
-            onBetChange={setSelectedBet}
-          />
+          {/* 钱包 + 凭证兑换 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="space-y-3"
+          >
+            <WalletConnect />
+            <CreditsExchange />
+          </motion.div>
           
           {/* 赔付表 */}
-          <LuxuryPaytable prizePool={prizePool} />
-        </div>
-
-        {/* 桌面端布局 - 全屏沉浸式 */}
-        <div className="hidden lg:flex flex-1 items-center justify-center px-8 gap-12">
-          {/* 左侧面板 */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="w-80 space-y-6 flex-shrink-0"
-          >
-            <LuxuryPrizePool prizePool={prizePool} />
-            <LuxuryCreditsPanel 
-              selectedBet={selectedBet}
-              onBetChange={setSelectedBet}
-            />
-          </motion.div>
-
-          {/* 中央转盘 */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ 
-              delay: 0.3, 
-              type: 'spring',
-              stiffness: 100,
-            }}
-            className="flex-shrink-0"
-          >
-            <CinematicWheel 
-              sectors={cinematicSectors}
-              prizePool={prizePool}
-              theme={theme}
-              onSpinComplete={handleSpinComplete}
-              demoMode={true}
-            />
-          </motion.div>
-
-          {/* 右侧面板 */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="w-80 flex-shrink-0"
           >
-            <LuxuryPaytable prizePool={prizePool} />
+            <CompactRewardTiers />
           </motion.div>
         </div>
 
-        {/* 底部信息 */}
+        {/* 桌面端布局 - 三栏等高 */}
+        <div className="hidden lg:grid xl:grid-cols-[320px_1fr_300px] lg:grid-cols-[280px_1fr_260px] gap-4 items-stretch">
+          {/* 左侧 - 钱包 + 凭证兑换 + 历史记录 */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-col gap-4"
+          >
+            <WalletConnect />
+            <CreditsExchange />
+            <div className="flex-1">
+              <CompactGameHistory />
+            </div>
+          </motion.div>
+
+          {/* 中间 - 老虎机 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <AdvancedSlotMachine />
+          </motion.div>
+
+          {/* 右侧 - 赔付表 */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <CompactRewardTiers />
+          </motion.div>
+        </div>
+
+
+        {/* Footer */}
         <motion.footer
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-auto pt-8 px-4"
+          transition={{ delay: 0.5 }}
+          className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-muted-foreground"
         >
-          {/* 合约地址 */}
-          <div className="max-w-xl mx-auto mb-6">
-            <ContractAddresses />
+          <div className="neon-border-purple inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-muted/20">
+            <p>{t('footer.onchain')}</p>
+            <p className="mt-0.5 text-[10px] sm:text-xs">{t('footer.poweredBy')}</p>
           </div>
-
-          {/* 特性展示 */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground mb-4">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-primary" />
-              <span>智能合约保障</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-primary" />
-              <span>Chainlink VRF</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span>链上可验证</span>
-            </div>
-          </div>
-
-          <p className="text-center text-xs text-muted-foreground/60">
-            Powered by BNB Chain · 每次旋转结果链上可查
-          </p>
         </motion.footer>
       </main>
     </div>
