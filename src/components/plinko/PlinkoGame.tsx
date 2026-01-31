@@ -8,7 +8,8 @@ import { PlinkoResult, SLOT_REWARDS, calculateReward, isJackpot, isBigWin, isWin
 import { useWallet } from '@/contexts/WalletContext';
 import { usePlinkoSounds } from '@/hooks/usePlinkoSounds';
 import { useCyberPlinko } from '@/hooks/useCyberPlinko';
-import { Sparkles, Crown, Star, Coins, AlertCircle } from 'lucide-react';
+import { Sparkles, Crown, Star, Coins, AlertCircle, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // 背景粒子
 function BackgroundParticles() {
@@ -47,27 +48,8 @@ function BackgroundParticles() {
   );
 }
 
-// 演示模式概率表（18行二项分布）
-const DEMO_SLOT_PROBABILITIES = [
-  0.000001, 0.000019, 0.000181, 0.001087, 0.004621,
-  0.014786, 0.036964, 0.073929, 0.120134, 0.160179,
-  0.176197, 0.160179, 0.120134, 0.073929, 0.036964,
-  0.014786, 0.004621, 0.001087, 0.000181, 0.000019,
-  0.000001,
-];
-
-function simulateDemoResult(): number {
-  const random = Math.random();
-  let cumulative = 0;
-  for (let i = 0; i < DEMO_SLOT_PROBABILITIES.length; i++) {
-    cumulative += DEMO_SLOT_PROBABILITIES[i];
-    if (random < cumulative) return i;
-  }
-  return 10;
-}
-
 export function PlinkoGame() {
-  const { isConnected } = useWallet();
+  const { isConnected, connect } = useWallet();
   const sounds = usePlinkoSounds();
   const plinko = useCyberPlinko();
   
@@ -82,13 +64,10 @@ export function PlinkoGame() {
   const [lastWin, setLastWin] = useState<{ label: string; amount: number; bnbAmount: number; isJackpot: boolean } | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.5);
-  const [demoCredits, setDemoCredits] = useState(100000);
-  const [demoBnbPool, setDemoBnbPool] = useState(5.5);
 
-  // 使用合约数据或演示数据
-  const useContract = isConnected && plinko.isContractDeployed;
-  const credits = useContract ? Math.floor(parseFloat(plinko.gameCredits) * 1) : demoCredits;
-  const bnbPool = useContract ? parseFloat(plinko.availablePool) : demoBnbPool;
+  // 合约数据
+  const credits = Math.floor(parseFloat(plinko.gameCredits) * 1);
+  const bnbPool = parseFloat(plinko.availablePool);
 
   const autoDropTimer = useRef<NodeJS.Timeout | null>(null);
   const pendingDrops = useRef(0);
@@ -96,16 +75,19 @@ export function PlinkoGame() {
   const totalWin = results.reduce((sum, r) => sum + r.winAmount, 0);
   const totalBet = results.reduce((sum, r) => sum + r.betAmount, 0);
 
+  // 检查是否可以游戏
+  const canPlay = isConnected && plinko.isContractDeployed;
+
   // 监听合约结果
   useEffect(() => {
-    if (plinko.lastDropResult && useContract) {
-      const { slotIndex, winAmount, rewardType } = plinko.lastDropResult;
+    if (plinko.lastDropResult) {
+      const { slotIndex } = plinko.lastDropResult;
       
       // 播放动画到指定槽位
       setTargetSlot(slotIndex);
       setDropTrigger(prev => prev + 1);
     }
-  }, [plinko.lastDropResult, useContract]);
+  }, [plinko.lastDropResult]);
 
   // 音量控制
   const handleToggleMute = useCallback(() => {
@@ -148,14 +130,6 @@ export function PlinkoGame() {
     };
 
     setResults(prev => [result, ...prev]);
-    
-    // 演示模式更新
-    if (!useContract) {
-      if (reward.bnbAmount > 0) {
-        setDemoBnbPool(prev => Math.max(0.1, prev - reward.bnbAmount));
-      }
-      setDemoBnbPool(prev => prev + 0.001);
-    }
 
     if (isBigWin(reward.type)) {
       setLastWin({ 
@@ -174,31 +148,22 @@ export function PlinkoGame() {
     if (pendingDrops.current <= 0) {
       setIsDropping(false);
     }
-  }, [betAmount, bnbPool, sounds, useContract]);
+  }, [betAmount, bnbPool, sounds]);
 
-  // 执行投球
+  // 执行投球（合约模式）
   const executeDrop = useCallback(async () => {
-    if (useContract) {
-      // 合约模式：调用合约投球
-      const txHash = await plinko.drop(betAmount);
-      if (!txHash) {
-        setIsDropping(false);
-        return;
-      }
-      // 等待合约返回结果，会触发 lastDropResult 更新
-    } else {
-      // 演示模式：本地模拟
-      setDemoCredits(prev => prev - betAmount);
-      const contractResult = simulateDemoResult();
-      setTargetSlot(contractResult);
-      sounds.playDropSound();
-      setDropTrigger(prev => prev + 1);
+    const txHash = await plinko.drop(betAmount);
+    if (!txHash) {
+      setIsDropping(false);
+      return;
     }
-  }, [betAmount, useContract, plinko, sounds]);
+    sounds.playDropSound();
+    // 等待合约返回结果，会触发 lastDropResult 更新
+  }, [betAmount, plinko, sounds]);
 
   // 开始投球
   const handleDrop = useCallback(async () => {
-    if (credits < betAmount) return;
+    if (!canPlay || credits < betAmount) return;
     
     sounds.playClickSound();
     
@@ -208,14 +173,14 @@ export function PlinkoGame() {
     setIsDropping(true);
     
     await executeDrop();
-  }, [credits, betAmount, autoDropCount, executeDrop, sounds]);
+  }, [canPlay, credits, betAmount, autoDropCount, executeDrop, sounds]);
 
   // 自动投球
   useEffect(() => {
     if (isDropping && remainingDrops > 1 && credits >= betAmount && !plinko.isDropping) {
       autoDropTimer.current = setTimeout(() => {
         executeDrop();
-      }, useContract ? 5000 : 600); // 合约模式等待更长
+      }, 5000); // 合约模式等待VRF回调
     }
 
     return () => {
@@ -223,7 +188,7 @@ export function PlinkoGame() {
         clearTimeout(autoDropTimer.current);
       }
     };
-  }, [isDropping, remainingDrops, credits, betAmount, executeDrop, useContract, plinko.isDropping]);
+  }, [isDropping, remainingDrops, credits, betAmount, executeDrop, plinko.isDropping]);
 
   const handleBetChange = useCallback((amount: number) => {
     sounds.playClickSound();
@@ -310,22 +275,49 @@ export function PlinkoGame() {
             {bnbPool.toFixed(4)} BNB
           </span>
         </motion.div>
-        
-        {/* 合约状态指示 */}
-        {isConnected && !plinko.isContractDeployed && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40"
-          >
-            <AlertCircle className="w-4 h-4 text-yellow-500" />
-            <span className="text-yellow-500 text-sm">合约未部署，当前为演示模式</span>
-          </motion.div>
-        )}
       </motion.div>
 
+      {/* 未连接钱包或合约未部署的提示 */}
+      {!canPlay && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md mx-auto mb-8 relative z-20"
+        >
+          <div 
+            className="p-6 rounded-2xl text-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.15) 0%, rgba(139, 114, 48, 0.1) 100%)',
+              border: '1px solid rgba(201, 163, 71, 0.3)',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-[#C9A347]" />
+            {!isConnected ? (
+              <>
+                <h3 className="text-xl font-bold text-[#C9A347] mb-2">请连接钱包</h3>
+                <p className="text-[#C9A347]/70 mb-4">连接钱包以开始游戏</p>
+                <Button
+                  onClick={() => connect()}
+                  className="bg-gradient-to-r from-[#C9A347] to-[#FFD700] text-black font-bold px-6 py-2"
+                >
+                  <Wallet className="w-4 h-4 mr-2" />
+                  连接钱包
+                </Button>
+              </>
+            ) : !plinko.isContractDeployed ? (
+              <>
+                <h3 className="text-xl font-bold text-[#C9A347] mb-2">合约未部署</h3>
+                <p className="text-[#C9A347]/70">Plinko 合约尚未在当前网络部署</p>
+                <p className="text-[#C9A347]/50 text-sm mt-2">请等待合约部署完成</p>
+              </>
+            ) : null}
+          </div>
+        </motion.div>
+      )}
+
       {/* 主游戏区域 */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] gap-6 relative z-10">
+      <div className={`max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] gap-6 relative z-10 ${!canPlay ? 'opacity-50 pointer-events-none' : ''}`}>
         {/* 左侧控制面板 */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -462,29 +454,6 @@ export function PlinkoGame() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* 演示模式提示 */}
-      {!useContract && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20"
-        >
-          <div 
-            className="px-6 py-3 rounded-2xl flex items-center gap-3"
-            style={{
-              background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.15) 0%, rgba(139, 114, 48, 0.1) 100%)',
-              border: '1px solid rgba(201, 163, 71, 0.3)',
-              backdropFilter: 'blur(10px)',
-            }}
-          >
-            <div className="w-2 h-2 rounded-full bg-[#C9A347] animate-pulse" />
-            <span className="text-[#C9A347]/90 text-sm font-medium">
-              演示模式 - {isConnected ? '合约未部署' : '连接钱包体验真实游戏'}
-            </span>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }
