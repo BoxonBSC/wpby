@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlayingCard } from './PlayingCard';
 import { RewardLadder } from './RewardLadder';
 import { HiLoResults } from './HiLoResults';
+import { CreditsExchange } from '@/components/CreditsExchange';
+import { useWallet } from '@/contexts/WalletContext';
+import { useCyberSlots } from '@/hooks/useCyberSlots';
 import { 
   HILO_CONFIG,
   HiLoGameState,
@@ -26,6 +29,10 @@ const MOCK_CREDITS = 1000000;
 const MOCK_PRIZE_POOL = 10;
 
 export function HiLoGame() {
+  // 钱包和代币状态
+  const { isConnected } = useWallet();
+  const { gameCredits } = useCyberSlots();
+  
   // 音效
   const { 
     playCardFlipSound, 
@@ -497,8 +504,12 @@ export function HiLoGame() {
             </div>
           </div>
 
-          {/* 右侧 - 历史记录 */}
-          <div className="lg:col-span-3">
+          {/* 右侧 - 代币兑换 + 历史记录 */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* 代币兑换入口 */}
+            <CreditsExchange />
+            
+            {/* 历史记录 */}
             <HiLoResults results={results} />
           </div>
         </div>
