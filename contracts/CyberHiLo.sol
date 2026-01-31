@@ -424,7 +424,10 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         
         if (grossPrize > 0) {
             // 确保不超过当前实际奖池（排除其他玩家的锁定）
-            uint256 currentPool = address(this).balance - totalLockedRewards;
+            // 防止下溢：如果 balance < totalLockedRewards，则可用池为 0
+            uint256 currentPool = address(this).balance > totalLockedRewards 
+                ? address(this).balance - totalLockedRewards 
+                : 0;
             if (grossPrize > currentPool) {
                 grossPrize = currentPool;
             }
@@ -493,8 +496,14 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         pendingRequest[msg.sender] = 0;
         req.fulfilled = true;
         
-        // 注意：不释放预锁定奖励，因为游戏仍在进行
-        // 玩家可以继续游戏或提现已有收益
+        // 释放预锁定奖励，防止锁定泄漏
+        uint256 lockedAmount = playerLockedReward[msg.sender];
+        if (lockedAmount > 0) {
+            totalLockedRewards -= lockedAmount;
+            playerLockedReward[msg.sender] = 0;
+        }
+        
+        // 游戏仍保持 active 状态，玩家可以继续游戏或收手
     }
     
     // ============ 查询函数 ============
