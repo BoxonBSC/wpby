@@ -40,34 +40,41 @@ export const PLINKO_CONFIG = {
 };
 
 // ========================================
-// 可持续BNB奖励系统 - 20行高难度模型
+// 超低中奖率可持续BNB奖励系统 - 造富效应模型
 // ========================================
 // 
-// 20行二项分布概率（每边）：
-// 槽位0/20: C(20,0)/2^20 = 0.000095% (百万分之一！)
-// 槽位1/19: C(20,1)/2^20 = 0.0019%
-// 槽位2/18: C(20,2)/2^20 = 0.018%
-// 槽位3/17: C(20,3)/2^20 = 0.109%
-// 槽位4/16: C(20,4)/2^20 = 0.46%
-// 槽位5/15: C(20,5)/2^20 = 1.48%
-// 槽位6/14: C(20,6)/2^20 = 3.70%
-// 槽位7/13: C(20,7)/2^20 = 7.39%
-// 槽位8/12: C(20,8)/2^20 = 12.01%
-// 槽位9/11: C(20,9)/2^20 = 16.02%
-// 槽位10:   C(20,10)/2^20 = 17.62%
+// 设计目标：
+// - 总中奖率：~10%（大部分人不中奖，保护奖池）
+// - 期望消耗：~0.8%/次（奖池可持续运营）
+// - 造富效应：边缘极低概率但超高回报
 //
-// 21槽位分布（对称）：
-// [50%][×][40%][×][30%][×][20%][×][10%][×][3%][×][10%][×][20%][×][30%][×][40%][×][50%]
+// 20行二项分布概率（每边）：
+// 槽位0/20: 0.0001%  → 50% BNB 超级大奖
+// 槽位1/19: 0.0019%  → 未中奖
+// 槽位2/18: 0.018%   → 30% BNB 大奖
+// 槽位3/17: 0.109%   → 未中奖
+// 槽位4/16: 0.46%    → 15% BNB 中奖
+// 槽位5/15: 1.48%    → 未中奖
+// 槽位6/14: 3.70%    → 5% BNB 小奖
+// 槽位7/13: 7.39%    → 未中奖
+// 槽位8/12: 12.01%   → 未中奖
+// 槽位9/11: 16.02%   → 未中奖
+// 槽位10:   17.62%   → 未中奖
+//
+// 总中奖率计算：
+// (0.0001% + 0.018% + 0.46% + 3.70%) × 2 = ~8.4%
+//
+// 期望消耗计算：
+// 0.0002%×50% + 0.036%×30% + 0.92%×15% + 7.4%×5%
+// = 0.0001% + 0.011% + 0.14% + 0.37% ≈ 0.52%/次
 
 // 奖励类型
 export type RewardType = 
-  | 'jackpot_50'    // 50% BNB - 超级大奖
-  | 'tier_40'       // 40% BNB - 大奖
-  | 'tier_30'       // 30% BNB - 中大奖
-  | 'tier_20'       // 20% BNB - 中奖
-  | 'tier_10'       // 10% BNB - 小奖
-  | 'tier_3'        // 3% BNB - 安慰奖
-  | 'no_win';       // 未中奖
+  | 'jackpot_50'    // 50% BNB - 超级大奖（百万分之一）
+  | 'tier_30'       // 30% BNB - 大奖（万分之一）
+  | 'tier_15'       // 15% BNB - 中奖（千分之五）
+  | 'tier_5'        // 5% BNB - 小奖（百分之七）
+  | 'no_win';       // 未中奖（百分之九十）
 
 // 槽位奖励配置
 export interface SlotReward {
@@ -78,58 +85,57 @@ export interface SlotReward {
   color: number;           // 显示颜色
 }
 
-// 颜色：红(高) → 橙 → 黄 → 绿(低) → 灰(无)
+// 颜色：红(高) → 橙 → 黄 → 灰(无)
 const COLORS = {
   jackpot_50: 0xFF0000,  // 深红 - 超级大奖
-  tier_40: 0xFF3300,     // 红橙 - 大奖
-  tier_30: 0xFF6600,     // 橙 - 中大奖
-  tier_20: 0xFF9900,     // 橙黄 - 中奖
-  tier_10: 0xFFCC00,     // 黄 - 小奖
-  tier_3: 0xAADD00,      // 绿黄 - 安慰奖
+  tier_30: 0xFF6600,     // 橙 - 大奖
+  tier_15: 0xFFCC00,     // 黄 - 中奖
+  tier_5: 0x00FF88,      // 绿 - 小奖
   no_win: 0x333333,      // 深灰 - 未中奖
 };
 
-// 21个槽位的奖励配置（对称分布，20行）
-// [50%][×][40%][×][30%][×][20%][×][10%][×][3%][×][10%][×][20%][×][30%][×][40%][×][50%]
+// 21个槽位的奖励配置（超低中奖率版本）
+// 只有最边缘的槽位有奖励，中间全部是未中奖
+// [50%][×][30%][×][15%][×][5%][×][×][×][×][×][×][×][5%][×][15%][×][30%][×][50%]
 export const SLOT_REWARDS: SlotReward[] = [
   // 槽位 0 - 最左边缘（概率 0.0001%）
   { type: 'jackpot_50', label: '50%', fullLabel: '🏆 超级大奖 50%', poolPercent: 0.50, color: COLORS.jackpot_50 },
   // 槽位 1 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 2 - 大奖（概率 0.018%）
-  { type: 'tier_40', label: '40%', fullLabel: '🎉 大奖 40%', poolPercent: 0.40, color: COLORS.tier_40 },
+  { type: 'tier_30', label: '30%', fullLabel: '🎉 大奖 30%', poolPercent: 0.30, color: COLORS.tier_30 },
   // 槽位 3 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 4 - 中大奖（概率 0.46%）
-  { type: 'tier_30', label: '30%', fullLabel: '🎊 中大奖 30%', poolPercent: 0.30, color: COLORS.tier_30 },
+  // 槽位 4 - 中奖（概率 0.46%）
+  { type: 'tier_15', label: '15%', fullLabel: '🎊 中奖 15%', poolPercent: 0.15, color: COLORS.tier_15 },
   // 槽位 5 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 6 - 中奖（概率 3.7%）
-  { type: 'tier_20', label: '20%', fullLabel: '🎯 中奖 20%', poolPercent: 0.20, color: COLORS.tier_20 },
+  // 槽位 6 - 小奖（概率 3.7%）
+  { type: 'tier_5', label: '5%', fullLabel: '✨ 小奖 5%', poolPercent: 0.05, color: COLORS.tier_5 },
   // 槽位 7 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 8 - 小奖（概率 12%）
-  { type: 'tier_10', label: '10%', fullLabel: '✨ 小奖 10%', poolPercent: 0.10, color: COLORS.tier_10 },
+  // 槽位 8 - 未中奖
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 9 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 10 - 中间安慰奖（概率 17.6%）
-  { type: 'tier_3', label: '3%', fullLabel: '💫 安慰奖 3%', poolPercent: 0.03, color: COLORS.tier_3 },
+  // 槽位 10 - 中间（概率最高17.6%，但未中奖）
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 11 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 12 - 小奖（概率 12%）
-  { type: 'tier_10', label: '10%', fullLabel: '✨ 小奖 10%', poolPercent: 0.10, color: COLORS.tier_10 },
+  // 槽位 12 - 未中奖
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 13 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 14 - 中奖（概率 3.7%）
-  { type: 'tier_20', label: '20%', fullLabel: '🎯 中奖 20%', poolPercent: 0.20, color: COLORS.tier_20 },
+  // 槽位 14 - 小奖（概率 3.7%）
+  { type: 'tier_5', label: '5%', fullLabel: '✨ 小奖 5%', poolPercent: 0.05, color: COLORS.tier_5 },
   // 槽位 15 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 16 - 中大奖（概率 0.46%）
-  { type: 'tier_30', label: '30%', fullLabel: '🎊 中大奖 30%', poolPercent: 0.30, color: COLORS.tier_30 },
+  // 槽位 16 - 中奖（概率 0.46%）
+  { type: 'tier_15', label: '15%', fullLabel: '🎊 中奖 15%', poolPercent: 0.15, color: COLORS.tier_15 },
   // 槽位 17 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 18 - 大奖（概率 0.018%）
-  { type: 'tier_40', label: '40%', fullLabel: '🎉 大奖 40%', poolPercent: 0.40, color: COLORS.tier_40 },
+  { type: 'tier_30', label: '30%', fullLabel: '🎉 大奖 30%', poolPercent: 0.30, color: COLORS.tier_30 },
   // 槽位 19 - 未中奖
   { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 20 - 最右边缘（概率 0.0001%）
@@ -177,7 +183,7 @@ export function isJackpot(type: RewardType): boolean {
 }
 
 export function isBigWin(type: RewardType): boolean {
-  return type === 'jackpot_50' || type === 'tier_40' || type === 'tier_30';
+  return type === 'jackpot_50' || type === 'tier_30';
 }
 
 export function isWin(type: RewardType): boolean {
@@ -188,11 +194,9 @@ export function isWin(type: RewardType): boolean {
 export function getRewardPercent(type: RewardType): number {
   switch (type) {
     case 'jackpot_50': return 50;
-    case 'tier_40': return 40;
     case 'tier_30': return 30;
-    case 'tier_20': return 20;
-    case 'tier_10': return 10;
-    case 'tier_3': return 3;
+    case 'tier_15': return 15;
+    case 'tier_5': return 5;
     default: return 0;
   }
 }
@@ -228,43 +232,36 @@ export type PlinkoResult = {
 };
 
 // ========================================
-// 经济模型详细说明（20行高难度版）
+// 超低中奖率经济模型（造富效应版）
 // ========================================
 // 
-// 【槽位物理概率】（20行二项分布 - 每边）
-// 槽位0/20: C(20,0)/2^20 = 0.000095% 
-// 槽位1/19: C(20,1)/2^20 = 0.0019%
-// 槽位2/18: C(20,2)/2^20 = 0.018%
-// 槽位3/17: C(20,3)/2^20 = 0.109%
-// 槽位4/16: C(20,4)/2^20 = 0.46%
-// 槽位5/15: C(20,5)/2^20 = 1.48%
-// 槽位6/14: C(20,6)/2^20 = 3.70%
-// 槽位7/13: C(20,7)/2^20 = 7.39%
-// 槽位8/12: C(20,8)/2^20 = 12.01%
-// 槽位9/11: C(20,9)/2^20 = 16.02%
-// 槽位10:   C(20,10)/2^20 = 17.62%
+// 【设计理念】
+// - 大部分人不中奖（保护奖池）
+// - 少数人赢大奖（造富效应吸引玩家）
+// - 奖池可持续运营（期望消耗低于补充速度）
 //
-// 【奖励分布】
-// 50% BNB: 槽位0,20 → 总概率 0.00019% (约52万次中1次！)
-// 40% BNB: 槽位2,18 → 总概率 0.036%
-// 30% BNB: 槽位4,16 → 总概率 0.92%
-// 20% BNB: 槽位6,14 → 总概率 7.4%
-// 10% BNB: 槽位8,12 → 总概率 24%
-// 3% BNB:  槽位10   → 总概率 17.6%
-// 未中奖:  其他槽位  → 总概率 50%
+// 【槽位物理概率】（20行二项分布）
+// 槽位0/20: 0.0001%  → 50% 超级大奖
+// 槽位2/18: 0.018%   → 30% 大奖
+// 槽位4/16: 0.46%    → 15% 中奖
+// 槽位6/14: 3.70%    → 5% 小奖
+// 其他槽位: ~92%     → 未中奖
 //
-// 【期望支出计算】
-// E = 0.00019%×50% + 0.036%×40% + 0.92%×30% + 7.4%×20% + 24%×10% + 17.6%×3%
-// E = 0.000095% + 0.014% + 0.276% + 1.48% + 2.4% + 0.528%
-// E ≈ 4.7% 奖池/次
+// 【关键指标】
+// 总中奖率: ~8.4%（每12人约1人中奖）
+// 期望消耗: ~0.52%/次
 //
-// 【可持续性分析】
-// - 假设日均5000次游戏
-// - 日均奖池消耗: 5000 × 4.7% = 235%
-// - 但50%大奖几乎不可能中，实际消耗会更低
-// - 主要支出来自10%小奖和3%安慰奖
+// 【可持续性分析】（假设日均5000次游戏）
+// 日均奖池消耗: 5000 × 0.52% = 26% 奖池
+// 奖池可支撑: 约4天（不含补充）
+// 若交易税日均补充 10%+ 奖池，系统可持续运营
 //
-// 【关键改进】
-// - 20行 vs 16行：边缘概率从 0.003% 降到 0.0001%
-// - 投球区域从25px缩小到15px，进一步限制横向扩散
-// - 增加物理摩擦，球更难到达边缘
+// 【造富效应】
+// - 50% 大奖：约100万次中1次，但一旦中奖就是半个奖池
+// - 30% 大奖：约5500次中1次
+// - 15% 中奖：约220次中1次
+// - 5% 小奖：约14次中1次
+//
+// 【与老方案对比】
+// 老方案：50%中奖率，4.7%消耗/次，1天抽干奖池
+// 新方案：8.4%中奖率，0.52%消耗/次，可持续运营
