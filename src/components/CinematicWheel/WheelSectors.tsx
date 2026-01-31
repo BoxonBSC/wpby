@@ -17,6 +17,9 @@ const getSectorBaseColor = (theme: ThemeType, index: number, colors: (typeof THE
 
 export function WheelSectors({ sectors, theme, size, winningSector }: WheelSectorsProps) {
   const colors = THEME_COLORS[theme];
+  // Force a high-contrast gold for text to stay readable over dark/light sectors.
+  // (SVG text rendering can vary; keeping this explicit avoids low-contrast theme combos.)
+  const readableText = THEME_COLORS.gold;
   const centerX = size / 2;
   const centerY = size / 2;
   const radius = size / 2 - 15;
@@ -153,7 +156,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y + 2})`}
               // Fallback attribute (some SVG engines prefer attributes over style)
-              fill="#ffffff"
+              fill={readableText.accent}
               fontSize="14"
               fontWeight="700"
               fontFamily="'Cinzel', serif"
@@ -161,7 +164,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               filter="url(#text-shadow)"
               style={{
                 // Avoid CSS variables in SVG styles for cross-browser rendering.
-                fill: withAlpha(colors.accent, 0.98),
+                fill: withAlpha(readableText.accent, 0.98),
                 stroke: withAlpha('hsl(0, 0%, 0%)', 0.85),
                 strokeWidth: 3,
                 paintOrder: 'stroke',
@@ -177,13 +180,16 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y + 16})`}
-              fill="#ffd700"
+              fill={readableText.glow}
               fontSize={sector.poolPercent >= 0.1 ? '14' : '12'}
               fontWeight="800"
               fontFamily="'Cinzel', serif"
               filter="url(#text-shadow)"
               style={{
-                fill: sector.poolPercent > 0 ? withAlpha(colors.glow, 0.98) : withAlpha('hsl(0, 0%, 70%)', 0.95),
+                fill:
+                  sector.poolPercent > 0
+                    ? withAlpha(readableText.glow, 0.98)
+                    : withAlpha('hsl(0, 0%, 70%)', 0.95),
                 stroke: withAlpha('hsl(0, 0%, 0%)', 0.85),
                 strokeWidth: 3,
                 paintOrder: 'stroke',
