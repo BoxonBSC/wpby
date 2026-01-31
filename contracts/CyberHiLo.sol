@@ -487,6 +487,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     
     /**
      * @notice 取消超时的请求
+     * @dev 取消后游戏结束，玩家不获得奖励（防止状态不一致）
      */
     function cancelStuckRequest() external nonReentrant {
         uint256 reqId = pendingRequest[msg.sender];
@@ -506,7 +507,12 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
             playerLockedReward[msg.sender] = 0;
         }
         
-        // 游戏仍保持 active 状态，玩家可以继续游戏或收手
+        // 结束游戏，防止锁定释放后状态不一致
+        GameSession storage session = gameSessions[msg.sender];
+        if (session.active) {
+            session.active = false;
+            emit GameLost(msg.sender, session.currentStreak);
+        }
     }
     
     /**
@@ -775,7 +781,12 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
             playerLockedReward[player] = 0;
         }
         
-        // 游戏保持当前状态，允许玩家提现已有收益
+        // 结束游戏，防止锁定释放后状态不一致
+        GameSession storage session = gameSessions[player];
+        if (session.active) {
+            session.active = false;
+            emit GameLost(player, session.currentStreak);
+        }
     }
     
     // ============ 无withdraw函数 - Owner无法提取资金 ============
