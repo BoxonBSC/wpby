@@ -109,11 +109,14 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
         }}
       >
         <div className="text-[10px] text-[#C9A347]/60 mb-1">最高可赢</div>
-        <div className="text-lg font-bold text-[#FFD700]">
-          {maxPossibleReward.toFixed(4)} BNB
+        <div className="text-xl font-bold text-[#FFD700]">
+          {maxTier?.percentage}% <span className="text-sm text-[#C9A347]/60">奖池</span>
         </div>
-        <div className="text-[10px] text-[#C9A347]/40">
-          {maxTier?.percentage}% 奖池 · {maxTier?.oddsDescription}
+        <div className="text-sm text-[#FFD700]/80">
+          ≈ {maxPossibleReward.toFixed(4)} BNB
+        </div>
+        <div className="text-[10px] text-[#C9A347]/40 mt-1">
+          {maxTier?.oddsDescription}
         </div>
       </div>
 
@@ -191,12 +194,20 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
                     {/* 奖励金额 / 锁定提示 */}
                     <div className="text-right">
                       {isUnlocked ? (
-                        <div 
-                          className="font-bold text-sm"
-                          style={{ color: isActive ? '#FFD700' : 'rgba(255, 215, 0, 0.3)' }}
-                        >
-                          {reward.toFixed(4)}
-                        </div>
+                        <>
+                          <div 
+                            className="font-bold text-sm"
+                            style={{ color: isActive ? '#FFD700' : 'rgba(255, 215, 0, 0.4)' }}
+                          >
+                            {tier.percentage}%
+                          </div>
+                          <div 
+                            className="text-[10px]"
+                            style={{ color: isActive ? '#FFD700' : 'rgba(255, 215, 0, 0.25)' }}
+                          >
+                            ≈{reward.toFixed(4)}
+                          </div>
+                        </>
                       ) : (
                         <div className="flex items-center gap-1 text-[#C9A347]/40">
                           <Lock className="w-3 h-3" />
@@ -238,9 +249,20 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
             <Star className="w-4 h-4" />
             <span className="text-sm">当前可兑现</span>
           </div>
-          <div className="text-xl font-bold text-[#FFD700]">
-            {calculateHiLoReward(currentStreak, currentBetTier.maxStreak, prizePool).toFixed(4)} BNB
-          </div>
+          {(() => {
+            const currentTier = REWARD_TIERS.find(t => t.streak === currentStreak);
+            const reward = calculateHiLoReward(currentStreak, currentBetTier.maxStreak, prizePool);
+            return (
+              <>
+                <div className="text-xl font-bold text-[#FFD700]">
+                  {currentTier?.percentage ?? 0}% <span className="text-sm text-[#C9A347]/60">奖池</span>
+                </div>
+                <div className="text-sm text-[#FFD700]/80">
+                  ≈ {reward.toFixed(4)} BNB
+                </div>
+              </>
+            );
+          })()}
         </motion.div>
       )}
     </div>
