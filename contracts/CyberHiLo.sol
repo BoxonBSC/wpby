@@ -210,6 +210,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     /**
      * @notice 开始新游戏
      * @dev 仅允许 EOA 地址，防止闪电贷和 MEV 机器人攻击
+     * @dev 动态锁定：开始时只锁定第1级奖励，随连胜增加而增加锁定
      */
     function startGame(uint256 betAmount) external nonReentrant whenNotPaused returns (uint8 firstCard) {
         require(msg.sender == tx.origin, "Only EOA allowed");
@@ -220,19 +221,18 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         
         // 获取门槛等级
         uint8 tierIndex = getBetTierIndex(betAmount);
-        uint8 maxStreak = getMaxStreakForTier(tierIndex);
         
-        // 计算该门槛的最大可能奖励（用于预锁定）
+        // 获取当前可用奖池
         uint256 currentPool = getAvailablePool();
-        uint256 maxPossibleReward = calculateReward(maxStreak, currentPool);
-        
-        // 确保可用奖池足够支付最大奖励
-        require(currentPool >= maxPossibleReward, "Pool too low for this tier");
         require(currentPool >= minPrizePool, "Prize pool too low");
         
-        // 预锁定最大可能奖励
-        playerLockedReward[msg.sender] = maxPossibleReward;
-        totalLockedRewards += maxPossibleReward;
+        // 动态锁定：开始时只锁定第1级奖励（0.02%），而不是最大奖励
+        uint256 initialLock = calculateReward(1, currentPool);
+        require(currentPool >= initialLock, "Pool too low");
+        
+        // 预锁定第1级奖励
+        playerLockedReward[msg.sender] = initialLock;
+        totalLockedRewards += initialLock;
         
         // 扣除凭证
         gameCredits[msg.sender] -= betAmount;
@@ -271,6 +271,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     /**
      * @notice 猜测下一张牌
      * @param guessType 0=猜小, 1=猜大, 2=猜相同
+     * @dev 动态锁定：猜测前检查下一级奖励是否有足够奖池
      */
     function guess(uint8 guessType) external nonReentrant whenNotPaused returns (uint256 requestId) {
         require(msg.sender == tx.origin, "Only EOA allowed");
@@ -282,6 +283,22 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         
         uint8 maxStreak = getMaxStreakForTier(session.betTierIndex);
         require(session.currentStreak < maxStreak, "Max streak reached, cash out");
+        
+        // 动态锁定检查：确保奖池足够支付下一级奖励
+        // 计算猜对后可能需要的新锁定金额
+        uint8 potentialNewStreak = session.currentStreak + (guessType == 2 ? 2 : 1);
+        if (potentialNewStreak > maxStreak) {
+            potentialNewStreak = maxStreak;
+        }
+        uint256 potentialNewLock = calculateReward(potentialNewStreak, session.prizePoolSnapshot);
+        uint256 currentLock = playerLockedReward[msg.sender];
+        
+        // 如果需要增加锁定，检查可用奖池是否足够
+        if (potentialNewLock > currentLock) {
+            uint256 additionalLockNeeded = potentialNewLock - currentLock;
+            uint256 availablePool = getAvailablePool();
+            require(availablePool >= additionalLockNeeded, "Pool insufficient for next level, please cash out");
+        }
         
         // 请求VRF随机数
         requestId = s_vrfCoordinator.requestRandomWords(
@@ -352,6 +369,15 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
             }
             session.currentStreak = newStreak;
             session.currentCard = newCard;
+            
+            // 动态锁定：更新锁定金额到新连胜级别
+            uint256 newLockAmount = calculateReward(newStreak, session.prizePoolSnapshot);
+            uint256 oldLockAmount = playerLockedReward[request.player];
+            if (newLockAmount > oldLockAmount) {
+                uint256 additionalLock = newLockAmount - oldLockAmount;
+                playerLockedReward[request.player] = newLockAmount;
+                totalLockedRewards += additionalLock;
+            }
             
             // 更新最大连胜记录
             if (session.currentStreak > playerStats[request.player].maxStreak) {
