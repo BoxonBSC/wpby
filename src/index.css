@@ -560,4 +560,43 @@
   .animate-win-pulse {
     animation: win-pulse 0.5s ease-in-out infinite;
   }
+
+  /* Custom Scrollbar for Plinko */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(201, 163, 71, 0.05);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(201, 163, 71, 0.3);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(201, 163, 71, 0.5);
+  }
+
+  /* Plinko Gold Theme Utils */
+  .plinko-gold-text {
+    background: linear-gradient(135deg, #E8D490 0%, #C9A347 50%, #8B7230 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .plinko-gold-glow {
+    box-shadow: 0 0 40px rgba(201, 163, 71, 0.3), 0 0 80px rgba(201, 163, 71, 0.15);
+  }
+
+  .plinko-panel {
+    background: linear-gradient(180deg, rgba(26, 22, 18, 0.95) 0%, rgba(15, 12, 8, 0.98) 100%);
+    border: 1px solid rgba(201, 163, 71, 0.25);
+    box-shadow: 
+      0 0 40px rgba(201, 163, 71, 0.15),
+      inset 0 1px 0 rgba(201, 163, 71, 0.2),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  }
 }

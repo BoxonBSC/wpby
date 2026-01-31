@@ -1,0 +1,473 @@
+import { useEffect, useRef, useCallback, useState } from 'react';
+import * as PIXI from 'pixi.js';
+import Matter from 'matter-js';
+import { PLINKO_CONFIG, MULTIPLIER_TABLE, getSlotColor } from '@/config/plinko';
+
+interface PlinkoCanvasProps {
+  width: number;
+  height: number;
+  onBallLanded: (slotIndex: number) => void;
+  dropBallTrigger: number;
+}
+
+interface Ball {
+  body: Matter.Body;
+  graphics: PIXI.Graphics;
+  trail: { x: number; y: number; alpha: number }[];
+  id: string;
+  lastCollisionTime: number;
+}
+
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  color: number;
+}
+
+export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: PlinkoCanvasProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const appRef = useRef<PIXI.Application | null>(null);
+  const engineRef = useRef<Matter.Engine | null>(null);
+  const ballsRef = useRef<Ball[]>([]);
+  const particlesRef = useRef<Particle[]>([]);
+  const trailGraphicsRef = useRef<PIXI.Graphics | null>(null);
+  const particleGraphicsRef = useRef<PIXI.Graphics | null>(null);
+  const lastDropTrigger = useRef(0);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const { game, physics, visuals, animation } = PLINKO_CONFIG;
+  
+  const cols = game.rows + 1;
+  const boardWidth = cols * game.pegSpacing;
+  const offsetX = (width - boardWidth) / 2;
+  const offsetY = 80;
+
+  // 创建碰撞粒子
+  const createCollisionParticles = useCallback((x: number, y: number, color: number = visuals.pegGlowColor) => {
+    const count = animation.collisionParticles;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
+      const speed = 2 + Math.random() * 3;
+      particlesRef.current.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        maxLife: 30 + Math.random() * 20,
+        size: 2 + Math.random() * 3,
+        color,
+      });
+    }
+  }, [animation.collisionParticles, visuals.pegGlowColor]);
+
+  // 初始化 PIXI 和 Matter
+  useEffect(() => {
+    if (!containerRef.current || isInitialized) return;
+
+    const app = new PIXI.Application({
+      width,
+      height,
+      backgroundColor: visuals.backgroundColor,
+      antialias: true,
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true,
+    });
+    containerRef.current.appendChild(app.view as HTMLCanvasElement);
+    appRef.current = app;
+
+    // 背景装饰层
+    const bgLayer = new PIXI.Graphics();
+    
+    // 渐变背景
+    for (let i = 0; i < height; i += 2) {
+      const alpha = Math.sin((i / height) * Math.PI) * 0.05;
+      bgLayer.beginFill(visuals.pegColor, alpha);
+      bgLayer.drawRect(0, i, width, 2);
+      bgLayer.endFill();
+    }
+    
+    // 装饰线条
+    bgLayer.lineStyle(1, visuals.pegColor, 0.1);
+    for (let i = 0; i < width; i += 50) {
+      bgLayer.moveTo(i, 0);
+      bgLayer.lineTo(i, height);
+    }
+    for (let i = 0; i < height; i += 50) {
+      bgLayer.moveTo(0, i);
+      bgLayer.lineTo(width, i);
+    }
+    app.stage.addChild(bgLayer);
+
+    // 拖尾层
+    const trailGfx = new PIXI.Graphics();
+    app.stage.addChild(trailGfx);
+    trailGraphicsRef.current = trailGfx;
+
+    // 创建 Matter 引擎
+    const engine = Matter.Engine.create({
+      gravity: physics.gravity,
+    });
+    engineRef.current = engine;
+
+    // 创建钉子
+    const pegs: Matter.Body[] = [];
+
+    for (let row = 0; row < game.rows; row++) {
+      const pegsInRow = row + 3;
+      const rowWidth = (pegsInRow - 1) * game.pegSpacing;
+      const startX = offsetX + (boardWidth - rowWidth) / 2;
+      
+      for (let col = 0; col < pegsInRow; col++) {
+        const x = startX + col * game.pegSpacing;
+        const y = offsetY + row * game.pegSpacing + 40;
+
+        const peg = Matter.Bodies.circle(x, y, game.pegRadius, {
+          isStatic: true,
+          restitution: physics.restitution,
+          friction: physics.friction,
+          label: 'peg',
+        });
+        pegs.push(peg);
+
+        // 高级钉子渲染
+        const pegContainer = new PIXI.Graphics();
+        
+        // 外发光 - 多层
+        for (let g = 3; g >= 0; g--) {
+          pegContainer.beginFill(visuals.pegGlowColor, 0.05 * (4 - g));
+          pegContainer.drawCircle(x, y, game.pegRadius + 8 - g * 2);
+          pegContainer.endFill();
+        }
+        
+        // 金属渐变主体
+        const gradient = [0xE8D490, 0xC9A347, 0x8B7230];
+        gradient.forEach((color, i) => {
+          pegContainer.beginFill(color, 1 - i * 0.2);
+          pegContainer.drawCircle(x - i * 0.5, y - i * 0.5, game.pegRadius - i);
+          pegContainer.endFill();
+        });
+        
+        // 高光
+        pegContainer.beginFill(0xFFFFFF, 0.7);
+        pegContainer.drawCircle(x - 2, y - 2, game.pegRadius * 0.25);
+        pegContainer.endFill();
+        
+        app.stage.addChild(pegContainer);
+      }
+    }
+    
+    Matter.Composite.add(engine.world, pegs);
+
+    // 创建底部槽位
+    const slots: Matter.Body[] = [];
+    const slotWidth = game.pegSpacing;
+    const slotY = offsetY + game.rows * game.pegSpacing + 80;
+    
+    // 槽位背景容器
+    const slotsContainer = new PIXI.Container();
+    app.stage.addChild(slotsContainer);
+    
+    for (let i = 0; i <= cols; i++) {
+      // 槽位分隔墙
+      if (i <= cols) {
+        const wall = Matter.Bodies.rectangle(
+          offsetX + i * slotWidth,
+          slotY + 25,
+          6,
+          50,
+          { isStatic: true, label: 'wall' }
+        );
+        slots.push(wall);
+        
+        // 金属分隔墙
+        const wallGfx = new PIXI.Graphics();
+        
+        // 墙体渐变
+        const wallGradient = [0xE8D490, 0xC9A347, 0x6B5220];
+        wallGradient.forEach((color, idx) => {
+          wallGfx.beginFill(color);
+          wallGfx.drawRect(offsetX + i * slotWidth - 3 + idx, slotY, 6 - idx * 2, 50);
+          wallGfx.endFill();
+        });
+        
+        slotsContainer.addChild(wallGfx);
+      }
+      
+      // 绘制槽位背景和赔率
+      if (i < cols) {
+        const multiplier = MULTIPLIER_TABLE[i] || 1;
+        const color = getSlotColor(multiplier);
+        
+        const slotGfx = new PIXI.Graphics();
+        
+        // 发光背景
+        slotGfx.beginFill(color, 0.15);
+        slotGfx.drawRoundedRect(
+          offsetX + i * slotWidth + 3,
+          slotY,
+          slotWidth - 6,
+          50,
+          4
+        );
+        slotGfx.endFill();
+        
+        // 底部强调
+        slotGfx.beginFill(color, 0.4);
+        slotGfx.drawRect(
+          offsetX + i * slotWidth + 3,
+          slotY + 45,
+          slotWidth - 6,
+          5
+        );
+        slotGfx.endFill();
+        
+        slotsContainer.addChild(slotGfx);
+        
+        // 赔率文字 - 带阴影
+        const textStyle = new PIXI.TextStyle({
+          fontFamily: 'Arial, sans-serif',
+          fontSize: multiplier >= 100 ? 11 : 13,
+          fill: color,
+          fontWeight: 'bold',
+          dropShadow: true,
+          dropShadowColor: color,
+          dropShadowBlur: 4,
+          dropShadowAlpha: 0.5,
+          dropShadowDistance: 0,
+        });
+        
+        const text = new PIXI.Text(`${multiplier}x`, textStyle);
+        text.anchor.set(0.5);
+        text.x = offsetX + i * slotWidth + slotWidth / 2;
+        text.y = slotY + 25;
+        slotsContainer.addChild(text);
+      }
+    }
+    
+    // 底部感应器
+    for (let i = 0; i < cols; i++) {
+      const sensor = Matter.Bodies.rectangle(
+        offsetX + i * slotWidth + slotWidth / 2,
+        slotY + 40,
+        slotWidth - 10,
+        10,
+        { 
+          isStatic: true, 
+          isSensor: true,
+          label: `slot_${i}`,
+        }
+      );
+      slots.push(sensor);
+    }
+    
+    Matter.Composite.add(engine.world, slots);
+
+    // 边界墙
+    const leftWall = Matter.Bodies.rectangle(offsetX - 20, height / 2, 10, height, { isStatic: true });
+    const rightWall = Matter.Bodies.rectangle(offsetX + boardWidth + 20, height / 2, 10, height, { isStatic: true });
+    Matter.Composite.add(engine.world, [leftWall, rightWall]);
+
+    // 粒子层
+    const particleGfx = new PIXI.Graphics();
+    app.stage.addChild(particleGfx);
+    particleGraphicsRef.current = particleGfx;
+
+    // 碰撞检测
+    Matter.Events.on(engine, 'collisionStart', (event) => {
+      event.pairs.forEach((pair) => {
+        const labels = [pair.bodyA.label, pair.bodyB.label];
+        
+        // 球撞击钉子 - 产生粒子
+        if (labels.includes('peg') && labels.includes('ball')) {
+          const pegBody = pair.bodyA.label === 'peg' ? pair.bodyA : pair.bodyB;
+          const ballBody = pair.bodyA.label === 'ball' ? pair.bodyA : pair.bodyB;
+          
+          const ball = ballsRef.current.find(b => b.body === ballBody);
+          if (ball && Date.now() - ball.lastCollisionTime > 50) {
+            createCollisionParticles(pegBody.position.x, pegBody.position.y);
+            ball.lastCollisionTime = Date.now();
+          }
+        }
+        
+        // 检测球落入槽位
+        labels.forEach((label) => {
+          if (label.startsWith('slot_')) {
+            const slotIndex = parseInt(label.split('_')[1]);
+            const ballBody = pair.bodyA.label === 'ball' ? pair.bodyA : 
+                            pair.bodyB.label === 'ball' ? pair.bodyB : null;
+            
+            if (ballBody) {
+              const multiplier = MULTIPLIER_TABLE[slotIndex] || 1;
+              const color = getSlotColor(multiplier);
+              
+              // 落入槽位的爆炸粒子
+              for (let i = 0; i < 20; i++) {
+                createCollisionParticles(ballBody.position.x, ballBody.position.y, color);
+              }
+              
+              setTimeout(() => {
+                const ball = ballsRef.current.find(b => b.body === ballBody);
+                if (ball) {
+                  Matter.Composite.remove(engine.world, ball.body);
+                  app.stage.removeChild(ball.graphics);
+                  ballsRef.current = ballsRef.current.filter(b => b.id !== ball.id);
+                  onBallLanded(slotIndex);
+                }
+              }, 100);
+            }
+          }
+        });
+      });
+    });
+
+    // 渲染循环
+    app.ticker.add(() => {
+      Matter.Engine.update(engine, 1000 / 60);
+      
+      // 清除拖尾层
+      trailGfx.clear();
+      
+      // 更新球位置和拖尾
+      ballsRef.current.forEach((ball) => {
+        const { x, y } = ball.body.position;
+        
+        // 更新拖尾历史
+        ball.trail.unshift({ x, y, alpha: 0.6 });
+        if (ball.trail.length > animation.trailLength) {
+          ball.trail.pop();
+        }
+        
+        // 绘制拖尾
+        ball.trail.forEach((point, i) => {
+          const alpha = point.alpha * (1 - i / ball.trail.length);
+          const size = game.ballRadius * (1 - i / ball.trail.length * 0.5);
+          
+          trailGfx.beginFill(visuals.ballGlowColor, alpha * 0.3);
+          trailGfx.drawCircle(point.x, point.y, size);
+          trailGfx.endFill();
+        });
+        
+        // 更新球位置
+        ball.graphics.clear();
+        
+        // 外发光 - 多层
+        for (let g = 4; g >= 0; g--) {
+          ball.graphics.beginFill(visuals.ballGlowColor, 0.08 * (5 - g));
+          ball.graphics.drawCircle(x, y, game.ballRadius + 12 - g * 2);
+          ball.graphics.endFill();
+        }
+        
+        // 金属球体渐变
+        const ballGradient = [0xFFFFFF, 0xE0E0E0, 0xA0A0A0];
+        ballGradient.forEach((color, i) => {
+          ball.graphics.beginFill(color, 1 - i * 0.15);
+          ball.graphics.drawCircle(x - i * 1, y - i * 1, game.ballRadius - i * 1.5);
+          ball.graphics.endFill();
+        });
+        
+        // 高光
+        ball.graphics.beginFill(0xFFFFFF, 0.9);
+        ball.graphics.drawCircle(x - 3, y - 3, game.ballRadius * 0.25);
+        ball.graphics.endFill();
+        
+        // 次级高光
+        ball.graphics.beginFill(0xFFFFFF, 0.4);
+        ball.graphics.drawCircle(x + 2, y + 2, game.ballRadius * 0.15);
+        ball.graphics.endFill();
+      });
+      
+      // 更新粒子
+      particleGfx.clear();
+      particlesRef.current = particlesRef.current.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.1; // 重力
+        p.vx *= 0.98; // 阻力
+        p.life -= 1 / p.maxLife;
+        
+        if (p.life <= 0) return false;
+        
+        particleGfx.beginFill(p.color, p.life * 0.8);
+        particleGfx.drawCircle(p.x, p.y, p.size * p.life);
+        particleGfx.endFill();
+        
+        return true;
+      });
+    });
+
+    setIsInitialized(true);
+
+    return () => {
+      app.destroy(true, true);
+      Matter.Engine.clear(engine);
+      setIsInitialized(false);
+    };
+  }, [width, height, isInitialized]);
+
+  // 投放新球
+  const dropBall = useCallback(() => {
+    const app = appRef.current;
+    const engine = engineRef.current;
+    if (!app || !engine) return;
+
+    const startX = offsetX + boardWidth / 2 + (Math.random() - 0.5) * game.dropZoneWidth;
+    const startY = 30;
+
+    const ball = Matter.Bodies.circle(startX, startY, game.ballRadius, {
+      restitution: physics.restitution,
+      friction: physics.friction,
+      frictionAir: physics.frictionAir,
+      density: physics.density,
+      label: 'ball',
+    });
+    Matter.Composite.add(engine.world, ball);
+
+    const graphics = new PIXI.Graphics();
+    app.stage.addChild(graphics);
+
+    const ballObj: Ball = {
+      body: ball,
+      graphics,
+      trail: [],
+      id: `ball_${Date.now()}_${Math.random()}`,
+      lastCollisionTime: 0,
+    };
+    
+    ballsRef.current.push(ballObj);
+    
+    // 投放粒子效果
+    createCollisionParticles(startX, startY, visuals.ballGlowColor);
+  }, [offsetX, boardWidth, game, physics, visuals, createCollisionParticles]);
+
+  // 监听投球触发器
+  useEffect(() => {
+    if (dropBallTrigger > lastDropTrigger.current) {
+      dropBall();
+      lastDropTrigger.current = dropBallTrigger;
+    }
+  }, [dropBallTrigger, dropBall]);
+
+  return (
+    <div 
+      ref={containerRef} 
+      className="rounded-2xl overflow-hidden relative"
+      style={{ 
+        width, 
+        height,
+        boxShadow: `
+          0 0 80px rgba(201, 163, 71, 0.4),
+          0 0 120px rgba(201, 163, 71, 0.2),
+          inset 0 0 60px rgba(0, 0, 0, 0.8),
+          inset 0 2px 0 rgba(201, 163, 71, 0.3)
+        `,
+        border: '2px solid rgba(201, 163, 71, 0.4)',
+      }}
+    />
+  );
+}
