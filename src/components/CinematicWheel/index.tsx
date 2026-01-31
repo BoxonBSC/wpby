@@ -6,6 +6,7 @@ import { WheelBackground } from './WheelBackground';
 import { WheelSectors } from './WheelSectors';
 import { CasinoPointer } from './CasinoPointer';
 import { WheelPegs } from './WheelPegs';
+import { WheelLabelsOverlay } from './WheelLabelsOverlay';
 import { ParticleExplosion } from './ParticleExplosion';
 import { useWallet } from '@/contexts/WalletContext';
 import { toast } from '@/hooks/use-toast';
@@ -262,6 +263,9 @@ export function CinematicWheel({
               size={wheelSize}
               winningSector={winningSector?.id || null}
             />
+
+            {/* 文字兜底层（HTML）- 保证在某些浏览器 SVG text 不渲染时仍可见 */}
+            <WheelLabelsOverlay sectors={sectors} theme={theme} size={wheelSize} />
 
             {/* 外圈钉子 - z-index: 15 (跟随轮盘一起转) */}
             <WheelPegs theme={theme} size={wheelSize} count={Math.max(24, sectors.length * 2)} />
