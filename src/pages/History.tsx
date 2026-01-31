@@ -59,7 +59,8 @@ const History = () => {
           <h1 
             className="text-3xl md:text-4xl font-bold mb-2"
             style={{
-              fontFamily: '"Ma Shan Zheng", "Noto Serif SC", cursive',
+              fontFamily: '"Cinzel", "Noto Serif SC", serif',
+              letterSpacing: '0.1em',
               background: 'linear-gradient(135deg, #FFD700 0%, #C9A347 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -67,7 +68,12 @@ const History = () => {
           >
             🃏 战绩殿堂
           </h1>
-          <p className="text-[#C9A347]/60">记录每一次精彩博弈</p>
+          <p 
+            className="text-[#C9A347]/60"
+            style={{ fontFamily: '"Cormorant Garamond", "Noto Serif SC", serif' }}
+          >
+            记录每一次精彩博弈
+          </p>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-6">
@@ -81,7 +87,10 @@ const History = () => {
               border: '1px solid rgba(201, 163, 71, 0.25)',
             }}
           >
-            <h2 className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4">
+            <h2 
+              className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4"
+              style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
+            >
               <Crown className="w-5 h-5" />
               王者榜单
             </h2>
@@ -136,7 +145,10 @@ const History = () => {
               border: '1px solid rgba(201, 163, 71, 0.25)',
             }}
           >
-            <h2 className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4">
+            <h2 
+              className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4"
+              style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
+            >
               <Trophy className="w-5 h-5" />
               最近战绩
             </h2>

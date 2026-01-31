@@ -45,7 +45,8 @@ const Rules = () => {
           <h1 
             className="text-3xl md:text-4xl font-bold mb-2"
             style={{
-              fontFamily: '"Ma Shan Zheng", "Noto Serif SC", cursive',
+              fontFamily: '"Cinzel", "Noto Serif SC", serif',
+              letterSpacing: '0.1em',
               background: 'linear-gradient(135deg, #FFD700 0%, #C9A347 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -53,7 +54,12 @@ const Rules = () => {
           >
             🃏 游戏规则
           </h1>
-          <p className="text-[#C9A347]/60">了解王牌博弈的玩法与奖励</p>
+          <p 
+            className="text-[#C9A347]/60"
+            style={{ fontFamily: '"Cormorant Garamond", "Noto Serif SC", serif' }}
+          >
+            了解王牌博弈的玩法与奖励
+          </p>
         </motion.div>
 
         {/* 游戏简介 */}
@@ -66,7 +72,10 @@ const Rules = () => {
             border: '1px solid rgba(201, 163, 71, 0.25)',
           }}
         >
-          <h2 className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4">
+          <h2 
+            className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4"
+            style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
+          >
             <Zap className="w-5 h-5" />
             什么是王牌博弈？
           </h2>
@@ -111,7 +120,10 @@ const Rules = () => {
               border: '1px solid rgba(201, 163, 71, 0.25)',
             }}
           >
-            <h2 className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4">
+            <h2 
+              className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4"
+              style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
+            >
               <Gamepad2 className="w-5 h-5" />
               如何游玩
             </h2>
@@ -188,7 +200,10 @@ const Rules = () => {
               border: '1px solid rgba(201, 163, 71, 0.25)',
             }}
           >
-            <h2 className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4">
+            <h2 
+              className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4"
+              style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
+            >
               <Crown className="w-5 h-5" />
               门槛等级
             </h2>
@@ -241,7 +256,10 @@ const Rules = () => {
             border: '1px solid rgba(201, 163, 71, 0.25)',
           }}
         >
-          <h2 className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4">
+          <h2 
+            className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4"
+            style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
+          >
             <Trophy className="w-5 h-5" />
             奖励规则
           </h2>
@@ -343,7 +361,10 @@ const Rules = () => {
             border: '1px solid rgba(201, 163, 71, 0.25)',
           }}
         >
-          <h2 className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4">
+          <h2 
+            className="text-xl font-bold text-[#FFD700] flex items-center gap-2 mb-4"
+            style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
+          >
             <Shield className="w-5 h-5" />
             公平性保障
           </h2>
