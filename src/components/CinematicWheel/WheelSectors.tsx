@@ -82,16 +82,17 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               id={`sector-grad-${index}`} 
               x1="0%" y1="0%" x2="100%" y2="100%"
             >
-              <stop offset="0%" stopColor={withAlpha(baseColor, 0.98)} />
-              <stop offset="45%" stopColor={withAlpha(baseColor, 0.88)} />
-              <stop offset="100%" stopColor={withAlpha(baseColor, 0.72)} />
+              <stop offset="0%" style={{ stopColor: withAlpha(baseColor, 0.98) }} />
+              <stop offset="45%" style={{ stopColor: withAlpha(baseColor, 0.88) }} />
+              <stop offset="100%" style={{ stopColor: withAlpha(baseColor, 0.72) }} />
             </linearGradient>
           );
         })}
         
         {/* 文字阴影滤镜 */}
         <filter id="text-shadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="hsl(var(--background))" floodOpacity="0.9"/>
+          {/* Avoid CSS variables in SVG filters for compatibility */}
+          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="black" floodOpacity="0.9"/>
         </filter>
       </defs>
 
@@ -108,16 +109,16 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
             <path
               d={createSectorPath(startAngle, endAngle)}
               fill={`url(#sector-grad-${index})`}
-              stroke={withAlpha(colors.accent, 0.28)}
               strokeWidth="1.2"
+              style={{ stroke: withAlpha(colors.accent, 0.28) }}
             />
             
             {/* 扇区高亮边 */}
             <path
               d={createSectorPath(startAngle, endAngle)}
               fill="none"
-              stroke={withAlpha('hsl(var(--foreground))', 0.08)}
               strokeWidth="1"
+              style={{ stroke: withAlpha('hsl(var(--foreground))', 0.08) }}
             />
 
             {/* 中奖高亮 */}
@@ -138,7 +139,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y - 16})`}
-              fontSize="18"
+              fontSize="22"
               filter="url(#text-shadow)"
             >
               {sector.emoji}
@@ -151,12 +152,20 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y + 2})`}
-              fill={withAlpha('hsl(var(--foreground))', 0.92)}
-              fontSize="10"
+              // Fallback attribute (some SVG engines prefer attributes over style)
+              fill="#ffffff"
+              fontSize="14"
               fontWeight="700"
               fontFamily="'Cinzel', serif"
               letterSpacing="0.05em"
               filter="url(#text-shadow)"
+              style={{
+                // Avoid CSS variables in SVG styles for cross-browser rendering.
+                fill: withAlpha(colors.accent, 0.98),
+                stroke: withAlpha('hsl(0, 0%, 0%)', 0.85),
+                strokeWidth: 3,
+                paintOrder: 'stroke',
+              }}
             >
               {sector.label}
             </text>
@@ -168,11 +177,17 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y + 16})`}
-              fill={sector.poolPercent > 0 ? 'hsl(var(--gold-bright))' : 'hsl(var(--muted-foreground))'}
-              fontSize={sector.poolPercent >= 0.1 ? '11' : '9'}
+              fill="#ffd700"
+              fontSize={sector.poolPercent >= 0.1 ? '14' : '12'}
               fontWeight="800"
               fontFamily="'Cinzel', serif"
               filter="url(#text-shadow)"
+              style={{
+                fill: sector.poolPercent > 0 ? withAlpha(colors.glow, 0.98) : withAlpha('hsl(0, 0%, 70%)', 0.95),
+                stroke: withAlpha('hsl(0, 0%, 0%)', 0.85),
+                strokeWidth: 3,
+                paintOrder: 'stroke',
+              }}
             >
               {formatPoolPercent(sector.poolPercent)}
             </text>
@@ -202,7 +217,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
         cy={centerY - 8}
         rx={12}
         ry={8}
-        fill={withAlpha('hsl(var(--foreground))', 0.22)}
+        style={{ fill: withAlpha(colors.accent, 0.22) }}
       />
       
       {/* 中心文字 */}
@@ -211,11 +226,16 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
         y={centerY - 6}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill={withAlpha('hsl(var(--foreground))', 0.92)}
         fontSize="11"
         fontWeight="700"
         fontFamily="'Cinzel', serif"
         letterSpacing="0.1em"
+        style={{
+          fill: withAlpha(colors.accent, 0.92),
+          stroke: withAlpha('hsl(0, 0%, 0%)', 0.7),
+          strokeWidth: 2,
+          paintOrder: 'stroke',
+        }}
       >
         FORTUNE
       </text>

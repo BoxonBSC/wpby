@@ -8,7 +8,17 @@ export function withAlpha(color: string, alpha: number) {
 
   // `hsl(var(--token))` -> `hsl(var(--token) / a)`
   if (color.startsWith('hsl(var(')) {
-    return color.replace(/\)$/, ` / ${alpha})`);
+    // Already has alpha (space syntax): `hsl(var(--token) / 0.5)`
+    if (color.includes('/')) return color;
+
+    // Exact form: `hsl(var(--token))`
+    const match = color.match(/^hsl\(var\((--[^)]+)\)\)$/);
+    if (match) {
+      return `hsl(var(${match[1]}) / ${alpha})`;
+    }
+
+    // Fallback: try to inject before the final `))`
+    return color.replace(/\)\)$/, ` / ${alpha}))`);
   }
 
   // `hsl(h, s%, l%)` -> `hsla(h, s%, l%, a)`
