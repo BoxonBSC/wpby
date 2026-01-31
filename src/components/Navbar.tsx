@@ -35,20 +35,20 @@ export function Navbar() {
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.span 
-              className="font-display text-xl hidden sm:block tracking-widest font-bold"
+              className="text-2xl hidden sm:block tracking-widest font-bold"
               style={{
+                fontFamily: '"Ma Shan Zheng", "Noto Serif SC", cursive',
                 background: 'linear-gradient(135deg, #FFD700 0%, #C9A347 50%, #FFD700 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
-                textShadow: '0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(201, 163, 71, 0.3)',
-                filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.4))',
+                filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
               }}
               animate={{
-                textShadow: [
-                  '0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(201, 163, 71, 0.3)',
-                  '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(201, 163, 71, 0.5)',
-                  '0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(201, 163, 71, 0.3)',
+                filter: [
+                  'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
+                  'drop-shadow(0 0 20px rgba(255, 215, 0, 0.9))',
+                  'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
                 ]
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
