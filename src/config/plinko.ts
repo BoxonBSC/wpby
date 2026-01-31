@@ -95,49 +95,49 @@ const COLORS = {
 };
 
 // 21个槽位的奖励配置（超低中奖率版本）
-// 只有最边缘的槽位有奖励，中间全部是未中奖
-// [50%][×][30%][×][15%][×][5%][×][×][×][×][×][×][×][5%][×][15%][×][30%][×][50%]
+// 只有边缘槽位有奖励，未中奖槽位不显示标签（更好的视觉体验）
+// [50%][ ][30%][ ][15%][ ][5%][ ][ ][ ][ ][ ][ ][ ][5%][ ][15%][ ][30%][ ][50%]
 export const SLOT_REWARDS: SlotReward[] = [
   // 槽位 0 - 最左边缘（概率 0.0001%）
   { type: 'jackpot_50', label: '50%', fullLabel: '🏆 超级大奖 50%', poolPercent: 0.50, color: COLORS.jackpot_50 },
-  // 槽位 1 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 1 - 未中奖（不显示标签）
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 2 - 大奖（概率 0.018%）
   { type: 'tier_30', label: '30%', fullLabel: '🎉 大奖 30%', poolPercent: 0.30, color: COLORS.tier_30 },
   // 槽位 3 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 4 - 中奖（概率 0.46%）
   { type: 'tier_15', label: '15%', fullLabel: '🎊 中奖 15%', poolPercent: 0.15, color: COLORS.tier_15 },
   // 槽位 5 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 6 - 小奖（概率 3.7%）
   { type: 'tier_5', label: '5%', fullLabel: '✨ 小奖 5%', poolPercent: 0.05, color: COLORS.tier_5 },
   // 槽位 7 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 8 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 9 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 10 - 中间（概率最高17.6%，但未中奖）
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 11 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 12 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 13 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 14 - 小奖（概率 3.7%）
   { type: 'tier_5', label: '5%', fullLabel: '✨ 小奖 5%', poolPercent: 0.05, color: COLORS.tier_5 },
   // 槽位 15 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 16 - 中奖（概率 0.46%）
   { type: 'tier_15', label: '15%', fullLabel: '🎊 中奖 15%', poolPercent: 0.15, color: COLORS.tier_15 },
   // 槽位 17 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 18 - 大奖（概率 0.018%）
   { type: 'tier_30', label: '30%', fullLabel: '🎉 大奖 30%', poolPercent: 0.30, color: COLORS.tier_30 },
   // 槽位 19 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 20 - 最右边缘（概率 0.0001%）
   { type: 'jackpot_50', label: '50%', fullLabel: '🏆 超级大奖 50%', poolPercent: 0.50, color: COLORS.jackpot_50 },
 ];
