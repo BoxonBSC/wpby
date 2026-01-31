@@ -1,96 +1,130 @@
 
-# HiLo 科学奖励阶梯设计
+# CyberHiLo 合约升级计划：添加"猜相同"功能
 
-## 核心修正：按实际65%胜率计算
-
-之前按50%胜率设计不科学，玩家通过策略可达65-70%胜率。
-
----
-
-## 一、5个门槛等级（不变）
-
-| 等级 | 名称 | 下注金额 | 最高连胜 | 颜色 |
-|-----|------|---------|---------|------|
-| 1 | 青铜 | 10K | 5 | #CD7F32 |
-| 2 | 白银 | 50K | 8 | #C0C0C0 |
-| 3 | 黄金 | 200K | 12 | #FFD700 |
-| 4 | 铂金 | 500K | 16 | #E5E4E2 |
-| 5 | 钻石 | 1M | 20 | #00D4FF |
+## 目标
+允许玩家在猜大、猜小之外，选择"猜相同"。如果猜相同且新牌确实相同，算玩家赢；其他情况相同牌仍算输。
 
 ---
 
-## 二、科学奖励阶梯（按65%胜率）
+## 一、智能合约修改 (`contracts/CyberHiLo.sol`)
 
-| 连胜 | 概率(65%) | 奖池% | 区域 | 设计意图 |
-|-----|----------|------|------|---------|
-| 1 | 65% | 0.02% | 常见区 | 给点安慰 |
-| 2 | 42% | 0.05% | 常见区 | 很常见 |
-| 3 | 27% | 0.1% | 常见区 | 四人中一人 |
-| 4 | 18% | 0.15% | 常见区 | 五人中一人 |
-| 5 | 11.6% | 0.25% | 常见区 | 青铜上限，十人中一人 |
-| 6 | 7.5% | 0.4% | 进阶区 | 开始有意思 |
-| 7 | 4.9% | 0.6% | 进阶区 | 二十人中一人 |
-| 8 | 3.2% | 1% | 进阶区 | 白银上限，三十人中一人 |
-| 9 | 2.1% | 1.5% | 进阶区 | 五十人中一人 |
-| 10 | 1.35% | 2.5% | 进阶区 | 百人中一人，开始吸引 |
-| 11 | 0.88% | 4% | 精英区 | 百人中不到一人 |
-| 12 | 0.57% | 6% | 精英区 | 黄金上限，二百人中一人 |
-| 13 | 0.37% | 9% | 精英区 | 三百人中一人 |
-| 14 | 0.24% | 13% | 精英区 | 四百人中一人 |
-| 15 | 0.16% | 18% | 精英区 | 六百人中一人 |
-| 16 | 0.1% | 25% | 传奇区 | 铂金上限，千人中一人 |
-| 17 | 0.065% | 35% | 传奇区 | 千五百人中一人 |
-| 18 | 0.042% | 50% | 传奇区 | 两千人中一人 |
-| 19 | 0.028% | 70% | 传奇区 | 三千人中一人 |
-| 20 | **0.018%** | **100%** | 传奇区 | **四千人中一人，清空奖池** |
+### 1.1 修改 VRFRequest 结构体
+```solidity
+// 当前
+struct VRFRequest {
+    address player;
+    uint8 guessHigh;        // 0=Low, 1=High
+    uint256 timestamp;
+    bool fulfilled;
+}
+
+// 修改为
+struct VRFRequest {
+    address player;
+    uint8 guessType;        // 0=Low, 1=High, 2=Same
+    uint256 timestamp;
+    bool fulfilled;
+}
+```
+
+### 1.2 修改 guess 函数
+```solidity
+// 当前
+function guess(bool guessHigh) external returns (uint256 requestId)
+
+// 修改为
+function guess(uint8 guessType) external returns (uint256 requestId)
+// guessType: 0=猜小, 1=猜大, 2=猜相同
+// 添加验证: require(guessType <= 2, "Invalid guess type")
+```
+
+### 1.3 修改 fulfillRandomWords 胜负判断逻辑
+```solidity
+// 当前逻辑
+bool won;
+if (request.guessHigh == 1) {
+    won = newCard > oldCard;
+} else {
+    won = newCard < oldCard;
+}
+if (newCard == oldCard) {
+    won = false;  // 相同一律算输
+}
+
+// 修改为
+bool won;
+if (request.guessType == 2) {
+    // 猜相同：只有相同才赢
+    won = (newCard == oldCard);
+} else if (request.guessType == 1) {
+    // 猜大：新牌 > 旧牌，相同算输
+    won = (newCard > oldCard);
+} else {
+    // 猜小：新牌 < 旧牌，相同算输
+    won = (newCard < oldCard);
+}
+```
+
+### 1.4 更新事件
+```solidity
+// 修改事件参数名
+event GuessRequested(address indexed player, uint256 indexed requestId, uint8 guessType);
+```
 
 ---
 
-## 三、经济安全分析（1000人/天）
+## 二、前端修改
 
-| 区域 | 预期达成人数 | 平均奖励 | 总支出 |
-|-----|------------|---------|-------|
-| 1-5连胜 | ~500人 | 0.1% | 0.05 BNB |
-| 6-8连胜 | ~100人 | 0.7% | 0.07 BNB |
-| 9-12连胜 | ~20人 | 2% | 0.04 BNB |
-| 13-16连胜 | ~3人 | 15% | 0.045 BNB |
-| 17-20连胜 | ~0.5人 | 50% | 0.025 BNB |
+### 2.1 更新合约 ABI (`src/config/contracts.ts`)
+```typescript
+// 修改 guess 函数签名
+"function guess(uint8 guessType) external returns (uint256 requestId)",
 
-**日总预期支出：~0.23 BNB（2.3%奖池）**
+// 修改事件签名
+"event GuessRequested(address indexed player, uint256 indexed requestId, uint8 guessType)",
+```
 
-如果每天有3%税收入奖池 → 净增长0.7%/天，奖池安全。
+### 2.2 更新 useCyberHiLo Hook (`src/hooks/useCyberHiLo.ts`)
+```typescript
+// 修改 guess 函数参数
+const guess = async (guessType: 'higher' | 'lower' | 'same') => {
+  const typeValue = guessType === 'higher' ? 1 : guessType === 'lower' ? 0 : 2;
+  const tx = await contract.guess(typeValue);
+  // ...
+};
+```
 
----
-
-## 四、技术实现
-
-### 文件修改
-
-1. **`src/config/hilo.ts`**
-   - 扩展 `BET_TIERS` 到5个等级
-   - 扩展 `REWARD_TIERS` 到20连胜
-   - 使用65%胜率计算的概率
-
-2. **`src/components/hilo/HiLoGame.tsx`**
-   - 5列/2行门槛选择器布局
-   - 显示"X人中1人"的概率提示
-
-3. **`src/components/hilo/RewardLadder.tsx`**
-   - 滚动区域显示20级奖励
-   - 颜色区分四个区域
-   - 显示实际概率
+### 2.3 更新 HiLoGame 组件 (`src/components/hilo/HiLoGame.tsx`)
+- 移除 `CONTRACT_DEPLOYED` 时隐藏 "Same" 按钮的逻辑
+- 确保三个按钮都连接到合约的 guess 函数
 
 ---
 
-## 五、关键平衡点
+## 三、概率说明
 
-- **低连胜（1-5）**：65%玩家能达到，但奖励极少（0.02%-0.25%）
-- **中连胜（6-10）**：~10%玩家能达到，奖励开始有吸引力（0.4%-2.5%）
-- **高连胜（11-16）**：~1%玩家能达到，大奖区域（4%-25%）
-- **传奇（17-20）**：<0.1%玩家，真正的大奖（35%-100%）
+| 猜测类型 | 胜利条件 | 最佳概率 | 最差概率 |
+|---------|---------|---------|---------|
+| 猜大 | 新牌 > 当前牌 | ~92% (当前A) | ~8% (当前K) |
+| 猜小 | 新牌 < 当前牌 | ~92% (当前K) | ~8% (当前A) |
+| 猜相同 | 新牌 = 当前牌 | 7.7% (4/52) | 7.7% (固定) |
 
-这样设计让玩家：
-1. 经常能赢一点小钱（心理满足）
-2. 偶尔能赢中等奖励（保持兴趣）
-3. 看到大奖有希望但很难（造梦效应）
-4. 奖池持续增长（经济安全）
+猜相同是高风险高回报的选择，胜率约 7.7%，但可以避免"相同算输"的惩罚。
+
+---
+
+## 四、文件修改清单
+
+| 文件 | 修改内容 |
+|-----|---------|
+| `contracts/CyberHiLo.sol` | VRFRequest结构体、guess函数、fulfillRandomWords逻辑、事件 |
+| `src/config/contracts.ts` | 更新 CYBER_HILO_ABI |
+| `src/hooks/useCyberHiLo.ts` | guess 函数支持三种类型 |
+| `src/components/hilo/HiLoGame.tsx` | 启用 "Same" 按钮的合约调用 |
+
+---
+
+## 五、注意事项
+
+1. **合约需重新部署** - 修改后是新合约
+2. **向后兼容** - 新合约与旧前端不兼容，需同步更新
+3. **奖励不变** - 猜相同成功后的奖励计算逻辑不变，仍按连胜数获得奖池百分比
