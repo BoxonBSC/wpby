@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion';
-import { REWARD_TIERS, getCurrentRewardTier, calculateHiLoReward } from '@/config/hilo';
-import { Trophy, Zap, Star } from 'lucide-react';
+import { REWARD_TIERS, BET_TIERS, getCurrentRewardTier, calculateHiLoReward, BetTier } from '@/config/hilo';
+import { Trophy, Zap, Star, Lock } from 'lucide-react';
 
 interface RewardLadderProps {
   currentStreak: number;
   prizePool: number;
+  currentBetTier: BetTier;
 }
 
-export function RewardLadder({ currentStreak, prizePool }: RewardLadderProps) {
+export function RewardLadder({ currentStreak, prizePool, currentBetTier }: RewardLadderProps) {
   return (
     <div 
       className="rounded-2xl p-4"
@@ -16,16 +17,49 @@ export function RewardLadder({ currentStreak, prizePool }: RewardLadderProps) {
         border: '1px solid rgba(201, 163, 71, 0.25)',
       }}
     >
-      <div className="flex items-center gap-2 mb-4">
-        <Trophy className="w-5 h-5 text-[#C9A347]" />
-        <h3 className="text-[#C9A347] font-bold">奖励阶梯</h3>
+      {/* 当前门槛等级 */}
+      <div 
+        className="flex items-center justify-between p-3 rounded-xl mb-4"
+        style={{
+          background: `linear-gradient(90deg, ${currentBetTier.color}20 0%, transparent 100%)`,
+          border: `1px solid ${currentBetTier.color}40`,
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ background: currentBetTier.color }}
+          >
+            <Trophy className="w-4 h-4 text-black" />
+          </div>
+          <div>
+            <div className="text-sm font-bold" style={{ color: currentBetTier.color }}>
+              {currentBetTier.name}等级
+            </div>
+            <div className="text-xs text-[#C9A347]/60">
+              最高连胜 {currentBetTier.maxStreak} 次
+            </div>
+          </div>
+        </div>
+        <div className="text-right text-xs text-[#C9A347]/60">
+          {(currentBetTier.betAmount / 1000)}K 凭证
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-3">
+        <Star className="w-4 h-4 text-[#C9A347]" />
+        <h3 className="text-[#C9A347] font-bold text-sm">奖励阶梯</h3>
       </div>
 
       <div className="space-y-2">
         {REWARD_TIERS.map((tier, index) => {
-          const isActive = currentStreak >= tier.streak;
-          const isCurrent = currentStreak === tier.streak;
-          const reward = calculateHiLoReward(tier.streak, prizePool);
+          const isUnlocked = tier.streak <= currentBetTier.maxStreak;
+          const isActive = currentStreak >= tier.streak && isUnlocked;
+          const isCurrent = currentStreak === tier.streak && isUnlocked;
+          const reward = calculateHiLoReward(tier.streak, currentBetTier.maxStreak, prizePool);
+
+          // 找到解锁此等级的门槛
+          const requiredTier = BET_TIERS.find(bt => bt.maxStreak >= tier.streak);
 
           return (
             <motion.div
@@ -34,8 +68,9 @@ export function RewardLadder({ currentStreak, prizePool }: RewardLadderProps) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
               className={`
-                relative flex items-center justify-between p-3 rounded-xl transition-all
+                relative flex items-center justify-between p-2.5 rounded-xl transition-all
                 ${isCurrent ? 'ring-2 ring-[#FFD700]' : ''}
+                ${!isUnlocked ? 'opacity-50' : ''}
               `}
               style={{
                 background: isActive 
@@ -48,30 +83,39 @@ export function RewardLadder({ currentStreak, prizePool }: RewardLadderProps) {
               <div className="flex items-center gap-2">
                 <div 
                   className={`
-                    w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+                    w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs
                     ${isActive ? 'bg-[#C9A347] text-black' : 'bg-[#C9A347]/20 text-[#C9A347]/50'}
                   `}
                 >
                   {tier.streak}
                 </div>
                 <div>
-                  <div className={`text-sm font-bold ${isActive ? 'text-[#C9A347]' : 'text-[#C9A347]/40'}`}>
+                  <div className={`text-xs font-bold ${isActive ? 'text-[#C9A347]' : 'text-[#C9A347]/40'}`}>
                     {tier.label}
                   </div>
-                  <div className={`text-xs ${isActive ? 'text-[#C9A347]/60' : 'text-[#C9A347]/30'}`}>
+                  <div className={`text-[10px] ${isActive ? 'text-[#C9A347]/60' : 'text-[#C9A347]/30'}`}>
                     {tier.percentage}% 奖池
                   </div>
                 </div>
               </div>
 
-              {/* 奖励金额 */}
+              {/* 奖励金额 / 锁定提示 */}
               <div className="text-right">
-                <div className={`font-bold ${isActive ? 'text-[#FFD700]' : 'text-[#FFD700]/40'}`}>
-                  {reward.toFixed(4)} BNB
-                </div>
-                <div className={`text-xs ${isActive ? 'text-[#C9A347]/60' : 'text-[#C9A347]/30'}`}>
-                  上限 {tier.maxBNB} BNB
-                </div>
+                {isUnlocked ? (
+                  <>
+                    <div className={`font-bold text-sm ${isActive ? 'text-[#FFD700]' : 'text-[#FFD700]/40'}`}>
+                      {reward.toFixed(4)} BNB
+                    </div>
+                    <div className={`text-[10px] ${isActive ? 'text-[#C9A347]/60' : 'text-[#C9A347]/30'}`}>
+                      上限 {tier.maxBNB} BNB
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-1 text-[#C9A347]/40">
+                    <Lock className="w-3 h-3" />
+                    <span className="text-xs">{requiredTier?.name}</span>
+                  </div>
+                )}
               </div>
 
               {/* 当前指示器 */}
@@ -81,7 +125,7 @@ export function RewardLadder({ currentStreak, prizePool }: RewardLadderProps) {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                 >
-                  <Zap className="w-4 h-4 text-[#FFD700] fill-[#FFD700]" />
+                  <Zap className="w-3 h-3 text-[#FFD700] fill-[#FFD700]" />
                 </motion.div>
               )}
             </motion.div>
@@ -104,11 +148,28 @@ export function RewardLadder({ currentStreak, prizePool }: RewardLadderProps) {
             <Star className="w-4 h-4" />
             <span className="text-sm">当前可兑现</span>
           </div>
-          <div className="text-2xl font-bold text-[#FFD700]">
-            {calculateHiLoReward(currentStreak, prizePool).toFixed(4)} BNB
+          <div className="text-xl font-bold text-[#FFD700]">
+            {calculateHiLoReward(currentStreak, currentBetTier.maxStreak, prizePool).toFixed(4)} BNB
           </div>
         </motion.div>
       )}
+
+      {/* 门槛说明 */}
+      <div className="mt-4 pt-4 border-t border-[#C9A347]/10">
+        <div className="text-xs text-[#C9A347]/40 mb-2">解锁更高奖励</div>
+        <div className="space-y-1">
+          {BET_TIERS.map(tier => (
+            <div 
+              key={tier.id}
+              className="flex items-center justify-between text-xs"
+              style={{ color: tier.color, opacity: tier.betAmount <= currentBetTier.betAmount ? 1 : 0.5 }}
+            >
+              <span>{tier.name}</span>
+              <span>{(tier.betAmount / 1000)}K → {tier.maxStreak}连胜</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
