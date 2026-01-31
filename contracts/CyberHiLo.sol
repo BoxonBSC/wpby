@@ -72,7 +72,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     // ============ VRF配置 ============
     bytes32 public keyHash;
     uint256 public subscriptionId;
-    uint32 public callbackGasLimit = 300000;
+    uint32 public callbackGasLimit = 500000;  // 提高到500K，确保_cashOut有足够gas
     uint16 public requestConfirmations = 3;
     uint32 public numWords = 1;
     bool public useNativePayment = true;
@@ -82,7 +82,11 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     address public operationWallet;
     uint256 public minPrizePool = 0.01 ether;
     address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
-    uint256 public constant REQUEST_TIMEOUT = 1 hours;
+    uint256 public constant REQUEST_TIMEOUT = 30 minutes;  // 降低超时时间
+    
+    // ============ 并发保护：预锁定奖励 ============
+    uint256 public totalLockedRewards;  // 所有活跃游戏的预锁定奖励总和
+    mapping(address => uint256) public playerLockedReward;  // 每个玩家的预锁定奖励
     
     // ============ 统计数据 ============
     uint256 public totalGames;
@@ -134,11 +138,13 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     event PrizeClaimed(address indexed player, uint256 amount);
     event PrizeTransferFailed(address indexed player, uint256 amount);
     event OperationFeeSent(uint256 amount);
+    event OperationFeeTransferFailed(uint256 amount);  // 新增：运营费发送失败
     event PrizePoolFunded(address indexed funder, uint256 amount);
     event ConfigUpdated(string configName);
     event TokensBurned(address indexed player, uint256 amount);
     event CreditsDeposited(address indexed player, uint256 amount);
     event CreditsUsed(address indexed player, uint256 amount);
+    event EmergencyPrizeRescued(address indexed player, address indexed recipient, uint256 amount);  // 新增：紧急救援
     
     constructor(
         address _vrfCoordinator,
@@ -208,22 +214,34 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         require(pendingRequest[msg.sender] == 0, "Pending request exists");
         require(gameCredits[msg.sender] >= betAmount, "Insufficient game credits");
         
+        // 获取门槛等级
+        uint8 tierIndex = getBetTierIndex(betAmount);
+        uint8 maxStreak = getMaxStreakForTier(tierIndex);
+        
+        // 计算该门槛的最大可能奖励（用于预锁定）
         uint256 currentPool = getAvailablePool();
+        uint256 maxPossibleReward = calculateReward(maxStreak, currentPool);
+        
+        // 确保可用奖池足够支付最大奖励
+        require(currentPool >= maxPossibleReward, "Pool too low for this tier");
         require(currentPool >= minPrizePool, "Prize pool too low");
+        
+        // 预锁定最大可能奖励
+        playerLockedReward[msg.sender] = maxPossibleReward;
+        totalLockedRewards += maxPossibleReward;
         
         // 扣除凭证
         gameCredits[msg.sender] -= betAmount;
         emit CreditsUsed(msg.sender, betAmount);
         
-        // 获取门槛等级
-        uint8 tierIndex = getBetTierIndex(betAmount);
-        
-        // 生成首张牌（使用区块数据，因为首张牌不影响胜负）
+        // 生成首张牌（使用区块数据 + 更多熵源）
         firstCard = uint8((uint256(keccak256(abi.encodePacked(
             block.timestamp,
             block.prevrandao,
             msg.sender,
-            totalGames
+            totalGames,
+            blockhash(block.number - 1),
+            gasleft()
         ))) % 13) + 1);
         
         // 创建游戏会话，锁定奖池快照
@@ -349,6 +367,13 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
             uint8 lostStreak = session.currentStreak;
             session.active = false;
             
+            // 释放预锁定的奖励
+            uint256 lockedAmount = playerLockedReward[request.player];
+            if (lockedAmount > 0) {
+                totalLockedRewards -= lockedAmount;
+                playerLockedReward[request.player] = 0;
+            }
+            
             emit GuessResult(request.player, requestId, oldCard, newCard, false, 0, 0);
             emit GameLost(request.player, lostStreak);
         }
@@ -381,6 +406,13 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     function _cashOut(address player) internal {
         GameSession storage session = gameSessions[player];
         
+        // 释放预锁定的奖励
+        uint256 lockedAmount = playerLockedReward[player];
+        if (lockedAmount > 0) {
+            totalLockedRewards -= lockedAmount;
+            playerLockedReward[player] = 0;
+        }
+        
         // 计算奖励（基于开始时锁定的奖池快照）
         uint256 grossPrize = calculateReward(session.currentStreak, session.prizePoolSnapshot);
         uint8 finalStreak = session.currentStreak;
@@ -389,8 +421,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         session.active = false;
         
         if (grossPrize > 0) {
-            // 确保不超过当前实际奖池
-            uint256 currentPool = getAvailablePool();
+            // 确保不超过当前实际奖池（排除其他玩家的锁定）
+            uint256 currentPool = address(this).balance - totalLockedRewards;
             if (grossPrize > currentPool) {
                 grossPrize = currentPool;
             }
@@ -412,6 +444,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
                     emit OperationFeeSent(operationFee);
                 } else {
                     playerPrize += operationFee;
+                    emit OperationFeeTransferFailed(operationFee);
                 }
             }
             
@@ -457,7 +490,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         pendingRequest[msg.sender] = 0;
         req.fulfilled = true;
         
-        // 游戏保持当前状态，玩家可以继续或提现
+        // 注意：不释放预锁定奖励，因为游戏仍在进行
+        // 玩家可以继续游戏或提现已有收益
     }
     
     // ============ 查询函数 ============
@@ -471,11 +505,18 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     }
     
     function getAvailablePool() public view returns (uint256) {
-        return address(this).balance;
+        // 排除已预锁定的奖励，确保并发安全
+        uint256 balance = address(this).balance;
+        if (balance <= totalLockedRewards) return 0;
+        return balance - totalLockedRewards;
     }
     
     function getPrizePool() external view returns (uint256) {
         return address(this).balance;
+    }
+    
+    function getTotalLockedRewards() external view returns (uint256) {
+        return totalLockedRewards;
     }
     
     function getPlayerStats(address player) external view returns (PlayerStats memory) {
@@ -637,6 +678,57 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     
     receive() external payable {
         emit PrizePoolFunded(msg.sender, msg.value);
+    }
+    
+    // ============ 紧急救援函数 ============
+    
+    /**
+     * @notice 紧急救援无法领取的奖励
+     * @dev 仅当玩家地址无法接收BNB时使用（如合约地址无receive函数）
+     * @param player 原奖励所有者地址
+     * @param recipient 接收救援奖励的地址（应为玩家提供的EOA地址）
+     */
+    function emergencyRescuePrize(address player, address recipient) external onlyOwner nonReentrant {
+        uint256 amount = unclaimedPrizes[player];
+        require(amount > 0, "No unclaimed prizes for this player");
+        require(recipient != address(0), "Invalid recipient address");
+        require(recipient != address(this), "Cannot rescue to contract itself");
+        
+        // 清空原玩家的未领取奖励
+        unclaimedPrizes[player] = 0;
+        
+        // 发送到指定接收地址
+        (bool success, ) = recipient.call{value: amount}("");
+        require(success, "Rescue transfer failed");
+        
+        emit EmergencyPrizeRescued(player, recipient, amount);
+    }
+    
+    /**
+     * @notice Owner紧急取消卡住的VRF请求（超时2倍时间）
+     * @dev 用于玩家无法自行取消的情况（如失去私钥）
+     * @param player 被卡住的玩家地址
+     */
+    function ownerCancelStuckRequest(address player) external onlyOwner nonReentrant {
+        uint256 reqId = pendingRequest[player];
+        require(reqId != 0, "No pending request for this player");
+        
+        VRFRequest storage req = vrfRequests[reqId];
+        require(!req.fulfilled, "Request already fulfilled");
+        require(block.timestamp > req.timestamp + REQUEST_TIMEOUT * 2, "Request not stuck long enough");
+        
+        // 标记请求已处理
+        pendingRequest[player] = 0;
+        req.fulfilled = true;
+        
+        // 释放预锁定的奖励
+        uint256 lockedAmount = playerLockedReward[player];
+        if (lockedAmount > 0) {
+            totalLockedRewards -= lockedAmount;
+            playerLockedReward[player] = 0;
+        }
+        
+        // 游戏保持当前状态，允许玩家提现已有收益
     }
     
     // ============ 无withdraw函数 - Owner无法提取资金 ============
