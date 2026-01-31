@@ -343,4 +343,4 @@ export function RouletteWheel({
 
 // Re-export types
 export type { RouletteItem, RouletteWheelProps, SoundEffects } from './types';
-export { THEME_PRESETS } from './types';
+export { THEME_PRESETS, VEGAS_COLORS } from './types';

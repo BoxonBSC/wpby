@@ -31,24 +31,38 @@ export function WheelCanvas({ items, size, rotation, theme, highlightIndex }: Wh
       const midAngle = startAngle + sectorAngle / 2;
       const isHighlighted = highlightIndex === index;
 
-      // Parse HSL color
+      // Use item color or generate based on index
       const baseColor = item.color || `hsl(${(index * 360) / items.length}, 70%, 50%)`;
       
       // Create multi-facet gradient for gem effect
       const gradient = ctx.createRadialGradient(0, 0, innerRadius, 0, 0, outerRadius);
       
-      // Extract HSL values and create variations
-      const hslMatch = baseColor.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
-      if (hslMatch) {
-        const [, h, s, l] = hslMatch.map(Number);
-        gradient.addColorStop(0, `hsl(${h}, ${s}%, ${Math.min(l + 25, 90)}%)`);
-        gradient.addColorStop(0.3, `hsl(${h}, ${s}%, ${l + 10}%)`);
+      // Check if it's a hex color
+      if (baseColor.startsWith('#')) {
+        // Convert hex to RGB and create variations
+        const r = parseInt(baseColor.slice(1, 3), 16);
+        const g = parseInt(baseColor.slice(3, 5), 16);
+        const b = parseInt(baseColor.slice(5, 7), 16);
+        
+        gradient.addColorStop(0, `rgba(${Math.min(r + 60, 255)}, ${Math.min(g + 60, 255)}, ${Math.min(b + 60, 255)}, 1)`);
+        gradient.addColorStop(0.3, `rgba(${Math.min(r + 30, 255)}, ${Math.min(g + 30, 255)}, ${Math.min(b + 30, 255)}, 1)`);
         gradient.addColorStop(0.5, baseColor);
-        gradient.addColorStop(0.7, `hsl(${h}, ${s}%, ${Math.max(l - 10, 10)}%)`);
-        gradient.addColorStop(1, `hsl(${h}, ${Math.max(s - 20, 20)}%, ${Math.max(l - 20, 5)}%)`);
+        gradient.addColorStop(0.7, `rgba(${Math.max(r - 30, 0)}, ${Math.max(g - 30, 0)}, ${Math.max(b - 30, 0)}, 1)`);
+        gradient.addColorStop(1, `rgba(${Math.max(r - 50, 0)}, ${Math.max(g - 50, 0)}, ${Math.max(b - 50, 0)}, 1)`);
       } else {
-        gradient.addColorStop(0, baseColor);
-        gradient.addColorStop(1, baseColor);
+        // Handle HSL colors
+        const hslMatch = baseColor.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+        if (hslMatch) {
+          const [, h, s, l] = hslMatch.map(Number);
+          gradient.addColorStop(0, `hsl(${h}, ${s}%, ${Math.min(l + 25, 90)}%)`);
+          gradient.addColorStop(0.3, `hsl(${h}, ${s}%, ${l + 10}%)`);
+          gradient.addColorStop(0.5, baseColor);
+          gradient.addColorStop(0.7, `hsl(${h}, ${s}%, ${Math.max(l - 10, 10)}%)`);
+          gradient.addColorStop(1, `hsl(${h}, ${Math.max(s - 20, 20)}%, ${Math.max(l - 20, 5)}%)`);
+        } else {
+          gradient.addColorStop(0, baseColor);
+          gradient.addColorStop(1, baseColor);
+        }
       }
 
       // Draw main sector
