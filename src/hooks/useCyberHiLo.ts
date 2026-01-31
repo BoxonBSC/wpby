@@ -68,7 +68,7 @@ export interface VRFWaitingState {
 
 export interface UseCyberHiLoReturn extends HiLoContractState {
   startGame: (betAmount: number) => Promise<number | null>; // 返回首张牌
-  guess: (guessHigh: boolean) => Promise<string | null>;
+  guess: (guessType: 'higher' | 'lower' | 'same') => Promise<string | null>;
   cashOut: () => Promise<boolean>;
   claimPrize: () => Promise<boolean>;
   approveToken: (amount: number) => Promise<boolean>;
@@ -465,7 +465,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
   }, [address, initSignerContracts, refreshUserData]);
 
   // 猜测
-  const guess = useCallback(async (guessHigh: boolean): Promise<string | null> => {
+  const guess = useCallback(async (guessType: 'higher' | 'lower' | 'same'): Promise<string | null> => {
     await initSignerContracts();
     
     if (!signerContractRef.current || !address) {
@@ -484,9 +484,11 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     try {
       const contract = signerContractRef.current;
       
-      console.log('[CyberHiLo] Guessing:', guessHigh ? 'HIGH' : 'LOW');
+      // guessType: 0=猜小, 1=猜大, 2=猜相同
+      const typeValue = guessType === 'higher' ? 1 : guessType === 'lower' ? 0 : 2;
+      console.log('[CyberHiLo] Guessing:', guessType, '-> typeValue:', typeValue);
       
-      const tx = await contract.guess(guessHigh);
+      const tx = await contract.guess(typeValue);
       console.log('[CyberHiLo] Guess tx hash:', tx.hash);
       await tx.wait();
       
