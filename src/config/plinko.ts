@@ -189,13 +189,13 @@ export function getRewardPercent(type: RewardType): number {
   }
 }
 
-// 下注等级（用游戏凭证）
+// 下注等级（用游戏凭证）- 基础2万代币起
 export const PLINKO_BET_LEVELS = [
-  { value: 10000, label: '10K', display: '10,000' },
-  { value: 25000, label: '25K', display: '25,000' },
+  { value: 20000, label: '20K', display: '20,000' },
   { value: 50000, label: '50K', display: '50,000' },
   { value: 100000, label: '100K', display: '100,000' },
-  { value: 250000, label: '250K', display: '250,000' },
+  { value: 200000, label: '200K', display: '200,000' },
+  { value: 500000, label: '500K', display: '500,000' },
 ];
 
 // 自动投球次数选项
