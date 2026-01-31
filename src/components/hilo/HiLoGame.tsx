@@ -155,15 +155,9 @@ export function HiLoGame() {
     playClickSound();
     
     if (CONTRACT_DEPLOYED) {
-      // 真实合约调用
-      const guessHigh = guess === 'higher';
-      if (guess === 'same') {
-        toast({ title: '合约不支持"相同"选项', variant: 'destructive' });
-        return;
-      }
-      
+      // 真实合约调用 - 支持 higher/lower/same
       setIsRevealing(true);
-      const txHash = await contractGuess(guessHigh);
+      const txHash = await contractGuess(guess);
       
       if (!txHash) {
         setIsRevealing(false);
@@ -589,16 +583,14 @@ export function HiLoGame() {
                       </Button>
                     </div>
 
-                    {/* 相同选项 - 仅模拟模式 */}
-                    {!CONTRACT_DEPLOYED && (
-                      <Button
-                        onClick={() => makeGuess('same')}
-                        className="w-full h-12 bg-[#C9A347]/60 hover:bg-[#C9A347]/80"
-                      >
-                        <Equal className="w-5 h-5 mr-2" />
-                        相同 (仅演示)
-                      </Button>
-                    )}
+                    {/* 相同选项 - 高风险高回报 (7.7%胜率) */}
+                    <Button
+                      onClick={() => makeGuess('same')}
+                      className="w-full h-12 bg-[#C9A347]/60 hover:bg-[#C9A347]/80"
+                    >
+                      <Equal className="w-5 h-5 mr-2" />
+                      相同 (7.7%胜率)
+                    </Button>
 
                     {/* 收手按钮 */}
                     {streak > 0 && (() => {

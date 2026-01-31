@@ -114,7 +114,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     
     struct VRFRequest {
         address player;
-        uint8 guessHigh;        // 0=Low, 1=High
+        uint8 guessType;        // 0=Low, 1=High, 2=Same
         uint256 timestamp;
         bool fulfilled;
     }
@@ -127,7 +127,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     
     // ============ 事件 ============
     event GameStarted(address indexed player, uint256 betAmount, uint8 betTierIndex, uint8 firstCard, uint256 prizePoolSnapshot);
-    event GuessRequested(address indexed player, uint256 indexed requestId, uint8 guessHigh);
+    event GuessRequested(address indexed player, uint256 indexed requestId, uint8 guessType);
     event GuessResult(address indexed player, uint256 indexed requestId, uint8 oldCard, uint8 newCard, bool won, uint8 streak, uint256 potentialReward);
     event GameCashedOut(address indexed player, uint256 grossPrize, uint256 playerPrize, uint8 finalStreak);
     event GameLost(address indexed player, uint8 lostAtStreak);
@@ -247,10 +247,12 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     }
     
     /**
-     * @notice 猜测下一张牌大小
-     * @param guessHigh true=猜大, false=猜小
+     * @notice 猜测下一张牌
+     * @param guessType 0=猜小, 1=猜大, 2=猜相同
      */
-    function guess(bool guessHigh) external nonReentrant whenNotPaused returns (uint256 requestId) {
+    function guess(uint8 guessType) external nonReentrant whenNotPaused returns (uint256 requestId) {
+        require(guessType <= 2, "Invalid guess type");
+        
         GameSession storage session = gameSessions[msg.sender];
         require(session.active, "No active game");
         require(pendingRequest[msg.sender] == 0, "Pending request exists");
@@ -274,14 +276,14 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         
         vrfRequests[requestId] = VRFRequest({
             player: msg.sender,
-            guessHigh: guessHigh ? 1 : 0,
+            guessType: guessType,
             timestamp: block.timestamp,
             fulfilled: false
         });
         
         pendingRequest[msg.sender] = requestId;
         
-        emit GuessRequested(msg.sender, requestId, guessHigh ? 1 : 0);
+        emit GuessRequested(msg.sender, requestId, guessType);
         return requestId;
     }
     
@@ -305,17 +307,15 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         
         // 判断胜负
         bool won;
-        if (request.guessHigh == 1) {
-            // 猜大：新牌 > 旧牌
-            won = newCard > oldCard;
+        if (request.guessType == 2) {
+            // 猜相同：只有相同才赢
+            won = (newCard == oldCard);
+        } else if (request.guessType == 1) {
+            // 猜大：新牌 > 旧牌，相同算输
+            won = (newCard > oldCard);
         } else {
-            // 猜小：新牌 < 旧牌
-            won = newCard < oldCard;
-        }
-        
-        // 相同牌视为输
-        if (newCard == oldCard) {
-            won = false;
+            // 猜小：新牌 < 旧牌，相同算输
+            won = (newCard < oldCard);
         }
         
         if (won) {

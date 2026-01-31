@@ -70,7 +70,7 @@ export const CYBER_HILO_ABI = [
   "function gameCredits(address player) external view returns (uint256)",
   // 游戏核心函数
   "function startGame(uint256 betAmount) external returns (uint8 firstCard)",
-  "function guess(bool guessHigh) external returns (uint256 requestId)",
+  "function guess(uint8 guessType) external returns (uint256 requestId)",
   "function cashOut() external",
   "function claimPrize() external",
   "function cancelStuckRequest() external",
@@ -93,7 +93,7 @@ export const CYBER_HILO_ABI = [
   "function getRewardPercentages() external view returns (uint16[20])",
   // 事件
   "event GameStarted(address indexed player, uint256 betAmount, uint8 betTierIndex, uint8 firstCard, uint256 prizePoolSnapshot)",
-  "event GuessRequested(address indexed player, uint256 indexed requestId, uint8 guessHigh)",
+  "event GuessRequested(address indexed player, uint256 indexed requestId, uint8 guessType)",
   "event GuessResult(address indexed player, uint256 indexed requestId, uint8 oldCard, uint8 newCard, bool won, uint8 streak, uint256 potentialReward)",
   "event GameCashedOut(address indexed player, uint256 grossPrize, uint256 playerPrize, uint8 finalStreak)",
   "event GameLost(address indexed player, uint8 lostAtStreak)",
