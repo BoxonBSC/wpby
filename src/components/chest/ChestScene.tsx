@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Environment, OrbitControls, PerspectiveCamera, ContactShadows, Center } from '@react-three/drei';
+import { Environment, OrbitControls, PerspectiveCamera, ContactShadows } from '@react-three/drei';
 import { Chest3D } from './Chest3D';
 import { ChestTier, RewardType } from '@/config/chest';
 
@@ -15,9 +15,7 @@ interface ChestSceneProps {
 export function ChestScene({ tier, isOpening, isOpened, reward, onOpenComplete }: ChestSceneProps) {
   return (
     <div className="w-full h-full min-h-[500px]">
-      <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[0, 1, 4.5]} fov={45} />
-        
+      <Canvas shadows camera={{ position: [0, 0.5, 5], fov: 40 }}>
         {/* 环境光 */}
         <ambientLight intensity={0.4} />
         
@@ -47,8 +45,8 @@ export function ChestScene({ tier, isOpening, isOpened, reward, onOpenComplete }
         <pointLight position={[0, 2, -3]} intensity={0.3} color="#C9A347" />
 
         <Suspense fallback={null}>
-          {/* 居中的宝箱 */}
-          <Center>
+          {/* 宝箱 - 位置居中 */}
+          <group position={[0, -0.3, 0]}>
             <Chest3D
               tier={tier}
               isOpening={isOpening}
@@ -56,11 +54,11 @@ export function ChestScene({ tier, isOpening, isOpened, reward, onOpenComplete }
               reward={reward}
               onOpenComplete={onOpenComplete}
             />
-          </Center>
+          </group>
           
           {/* 地面阴影 */}
           <ContactShadows
-            position={[0, -0.6, 0]}
+            position={[0, -1, 0]}
             opacity={0.6}
             scale={8}
             blur={2.5}
@@ -76,7 +74,7 @@ export function ChestScene({ tier, isOpening, isOpened, reward, onOpenComplete }
         <OrbitControls
           enableZoom={false}
           enablePan={false}
-          minPolarAngle={Math.PI / 4}
+          minPolarAngle={Math.PI / 3}
           maxPolarAngle={Math.PI / 2.2}
           minAzimuthAngle={-Math.PI / 4}
           maxAzimuthAngle={Math.PI / 4}
