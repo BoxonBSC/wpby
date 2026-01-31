@@ -115,9 +115,6 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
         <div className="text-sm text-[#FFD700]/80">
           ≈ {maxPossibleReward.toFixed(4)} BNB
         </div>
-        <div className="text-[10px] text-[#C9A347]/40 mt-1">
-          {maxTier?.oddsDescription}
-        </div>
       </div>
 
       {/* 奖励阶梯标题 */}
@@ -186,7 +183,7 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
                           className="text-[10px]"
                           style={{ color: isActive ? colors.text + '99' : 'rgba(201, 163, 71, 0.3)' }}
                         >
-                          {tier.percentage}% · {tier.oddsDescription}
+                          {tier.percentage}%
                         </div>
                       </div>
                     </div>
