@@ -53,7 +53,11 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
   const cols = game.rows + 1;
   const boardWidth = cols * game.pegSpacing;
   const offsetX = (width - boardWidth) / 2;
-  const offsetY = 80;
+  const offsetY = 50;
+  
+  // 计算槽位位置，确保在画布内
+  const totalBoardHeight = game.rows * game.pegSpacing + 40;
+  const slotY = Math.min(offsetY + totalBoardHeight, height - 70);
 
   // 初始化 PIXI 和 Matter
   useEffect(() => {
@@ -103,6 +107,10 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
 
     const pegs: Matter.Body[] = [];
 
+    // 计算钉子间距以适应画布
+    const availableHeight = slotY - offsetY - 40;
+    const pegVerticalSpacing = Math.min(game.pegSpacing, availableHeight / game.rows);
+    
     for (let row = 0; row < game.rows; row++) {
       const pegsInRow = row + 3;
       const rowWidth = (pegsInRow - 1) * game.pegSpacing;
@@ -110,7 +118,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       
       for (let col = 0; col < pegsInRow; col++) {
         const x = startX + col * game.pegSpacing;
-        const y = offsetY + row * game.pegSpacing + 40;
+        const y = offsetY + row * pegVerticalSpacing + 30;
 
         const peg = Matter.Bodies.circle(x, y, game.pegRadius, {
           isStatic: true,
@@ -147,7 +155,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
 
     const slots: Matter.Body[] = [];
     const slotWidth = game.pegSpacing;
-    const slotY = offsetY + game.rows * game.pegSpacing + 80;
+    // 使用组件级计算的 slotY，确保在画布内
     
     const slotsContainer = new PIXI.Container();
     app.stage.addChild(slotsContainer);
