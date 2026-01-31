@@ -15,8 +15,8 @@ interface HistoryItem {
   txHash?: string;
 }
 
-const VISIBLE_COUNT = 5; // 每次显示5条
-const ROTATE_INTERVAL = 4000; // 每4秒轮动一次
+const VISIBLE_COUNT = 8; // 每次显示8条
+const ROTATE_INTERVAL = 5000; // 每5秒轮动一次
 
 export function CompactGameHistory() {
   const { recentWins } = useCyberSlots();
@@ -95,29 +95,31 @@ export function CompactGameHistory() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ delay: index * 0.05, duration: 0.3 }}
+                transition={{ delay: index * 0.03, duration: 0.25 }}
                 className={`
-                  flex items-center gap-2 p-2 rounded-lg text-xs
+                  p-2 rounded-lg text-xs
                   ${item.isWin ? 'neon-border bg-neon-green/5' : 'border border-border bg-muted/20'}
                   ${item.txHash ? 'cursor-pointer hover:bg-neon-green/10 transition-colors' : ''}
                 `}
               >
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <User className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  <span className="text-muted-foreground truncate">
-                    {item.address}
-                  </span>
-                </div>
-                <div className="text-sm flex-shrink-0">
-                  {item.result}
-                </div>
-                <div className="text-right flex-shrink-0">
+                {/* 第一行：地址 + 金额 */}
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <User className="w-3 h-3 text-neon-cyan flex-shrink-0" />
+                    <span className="text-neon-cyan font-mono text-[11px]">
+                      {item.address}
+                    </span>
+                  </div>
                   {item.isWin && (
                     <div className="flex items-center gap-1 text-neon-yellow">
                       <Trophy className="w-3 h-3" />
-                      <span className="font-display">+{item.winAmount.toFixed(4)}</span>
+                      <span className="font-display text-[11px]">+{item.winAmount.toFixed(4)}</span>
                     </div>
                   )}
+                </div>
+                {/* 第二行：符号结果 */}
+                <div className="text-center text-sm">
+                  {item.result}
                 </div>
               </motion.div>
             );
