@@ -23,15 +23,77 @@ export function Navbar() {
 
   return (
     <nav 
-      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl"
+      className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: 'linear-gradient(180deg, rgba(15, 12, 7, 0.95) 0%, rgba(15, 12, 7, 0.85) 100%)',
-        borderBottom: '1px solid rgba(201, 163, 71, 0.3)',
-        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(201, 163, 71, 0.2) inset',
+        background: 'linear-gradient(180deg, #1a1510 0%, #0f0c07 100%)',
+        borderBottom: '3px solid transparent',
+        borderImage: 'linear-gradient(90deg, transparent 0%, #C9A347 20%, #FFD700 50%, #C9A347 80%, transparent 100%) 1',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(201, 163, 71, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.5)',
       }}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      {/* 顶部金边装饰线 */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-[2px]"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, rgba(201, 163, 71, 0.5) 20%, rgba(255, 215, 0, 0.8) 50%, rgba(201, 163, 71, 0.5) 80%, transparent 100%)',
+        }}
+      />
+      
+      {/* 皮革纹理背景 */}
+      <div 
+        className="absolute inset-0 opacity-30 pointer-events-none"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 2px,
+              rgba(201, 163, 71, 0.03) 2px,
+              rgba(201, 163, 71, 0.03) 4px
+            ),
+            repeating-linear-gradient(
+              -45deg,
+              transparent,
+              transparent 2px,
+              rgba(139, 114, 48, 0.03) 2px,
+              rgba(139, 114, 48, 0.03) 4px
+            )
+          `,
+        }}
+      />
+      
+      {/* 左右角装饰 */}
+      <div 
+        className="absolute top-1/2 -translate-y-1/2 left-4 w-8 h-8 hidden lg:block"
+        style={{
+          background: 'radial-gradient(circle, rgba(201, 163, 71, 0.3) 0%, transparent 70%)',
+        }}
+      >
+        <div 
+          className="absolute inset-1 rounded-full"
+          style={{
+            border: '1px solid rgba(201, 163, 71, 0.4)',
+            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%)',
+          }}
+        />
+      </div>
+      <div 
+        className="absolute top-1/2 -translate-y-1/2 right-4 w-8 h-8 hidden lg:block"
+        style={{
+          background: 'radial-gradient(circle, rgba(201, 163, 71, 0.3) 0%, transparent 70%)',
+        }}
+      >
+        <div 
+          className="absolute inset-1 rounded-full"
+          style={{
+            border: '1px solid rgba(201, 163, 71, 0.4)',
+            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%)',
+          }}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 relative">
+        <div className="flex items-center justify-between h-18 py-2">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
             <motion.div
@@ -162,27 +224,48 @@ export function Navbar() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="relative px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300"
+                  className="relative px-5 py-2.5 flex items-center gap-2 transition-all duration-300 group"
                   style={{
                     fontFamily: '"Cinzel", "Noto Serif SC", serif',
-                    fontSize: '0.9rem',
+                    fontSize: '0.85rem',
                     fontWeight: 700,
-                    letterSpacing: '0.12em',
-                    color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.8)',
-                    textShadow: isActive ? '0 0 20px rgba(255, 215, 0, 0.7)' : 'none',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.85)',
+                    textShadow: isActive ? '0 0 20px rgba(255, 215, 0, 0.8)' : 'none',
                   }}
                 >
                   <item.icon className="w-4 h-4" />
                   {item.label}
+                  
+                  {/* 底部装饰线 */}
+                  <motion.div
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px]"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
+                    }}
+                    initial={{ width: 0 }}
+                    animate={{ width: isActive ? '80%' : 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  
+                  {/* Hover 效果 */}
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{
+                      background: 'radial-gradient(ellipse at center, rgba(201, 163, 71, 0.1) 0%, transparent 70%)',
+                    }}
+                  />
+                  
                   {isActive && (
                     <motion.div
                       layoutId="activeNav"
-                      className="absolute inset-0 rounded-lg"
+                      className="absolute inset-0"
                       style={{ 
                         zIndex: -1,
-                        background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.15) 0%, rgba(255, 215, 0, 0.1) 100%)',
-                        border: '1px solid rgba(201, 163, 71, 0.4)',
-                        boxShadow: '0 0 15px rgba(201, 163, 71, 0.2), inset 0 1px 0 rgba(255, 215, 0, 0.2)',
+                        background: 'linear-gradient(180deg, rgba(201, 163, 71, 0.08) 0%, rgba(255, 215, 0, 0.05) 100%)',
+                        borderTop: '1px solid rgba(201, 163, 71, 0.3)',
+                        borderBottom: '1px solid rgba(201, 163, 71, 0.2)',
                       }}
                     />
                   )}
@@ -242,30 +325,56 @@ export function Navbar() {
           height: isMobileMenuOpen ? 'auto' : 0,
           opacity: isMobileMenuOpen ? 1 : 0,
         }}
-        className="md:hidden overflow-hidden"
+        className="md:hidden overflow-hidden relative"
         style={{
-          background: 'rgba(15, 12, 7, 0.98)',
-          borderTop: '1px solid rgba(201, 163, 71, 0.2)',
+          background: 'linear-gradient(180deg, #1a1510 0%, #0f0c07 100%)',
+          borderTop: '2px solid rgba(201, 163, 71, 0.4)',
         }}
       >
-        <div className="container mx-auto px-4 py-2">
-          {navItems.map((item) => {
+        {/* 移动端菜单皮革纹理 */}
+        <div 
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage: `
+              repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(201, 163, 71, 0.05) 2px,
+                rgba(201, 163, 71, 0.05) 4px
+              )
+            `,
+          }}
+        />
+        
+        <div className="container mx-auto px-4 py-3 relative">
+          {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300"
+                className="flex items-center gap-3 px-4 py-3.5 transition-all duration-300 relative"
                 style={{
                   fontFamily: '"Cinzel", "Noto Serif SC", serif',
                   fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.8)',
-                  background: isActive ? 'rgba(201, 163, 71, 0.1)' : 'transparent',
-                  textShadow: isActive ? '0 0 15px rgba(255, 215, 0, 0.6)' : 'none',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.85)',
+                  textShadow: isActive ? '0 0 15px rgba(255, 215, 0, 0.7)' : 'none',
+                  borderBottom: index < navItems.length - 1 ? '1px solid rgba(201, 163, 71, 0.15)' : 'none',
                 }}
               >
+                {isActive && (
+                  <div 
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6"
+                    style={{
+                      background: 'linear-gradient(180deg, #FFD700 0%, #C9A347 100%)',
+                      boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
+                    }}
+                  />
+                )}
                 <item.icon className="w-5 h-5" />
                 {item.label}
               </Link>
