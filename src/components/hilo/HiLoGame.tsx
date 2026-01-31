@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlayingCard } from './PlayingCard';
 import { RewardLadder } from './RewardLadder';
 import { HiLoResults } from './HiLoResults';
+import { VRFWaitingOverlay } from './VRFWaitingOverlay';
 import { CreditsExchange } from '@/components/CreditsExchange';
 import { useWallet } from '@/contexts/WalletContext';
 import { useCyberHiLo } from '@/hooks/useCyberHiLo';
@@ -50,10 +51,12 @@ export function HiLoGame() {
     unclaimedPrize,
     isPlaying: contractIsPlaying,
     isWaitingVRF,
+    vrfState,
     startGame: contractStartGame,
     guess: contractGuess,
     cashOut: contractCashOut,
     claimPrize,
+    cancelStuckRequest,
     calculatePotentialReward,
     refreshData,
     error: contractError,
@@ -386,20 +389,15 @@ export function HiLoGame() {
                 minHeight: '500px',
               }}
             >
-              {/* VRF等待提示 */}
-              {isWaitingVRF && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 bg-black/60 rounded-2xl flex items-center justify-center z-10"
-                >
-                  <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: '#FFD700' }} />
-                    <div className="text-[#FFD700] text-lg font-bold">等待链上确认...</div>
-                    <div className="text-[#C9A347]/60 text-sm mt-2">VRF正在生成随机数</div>
-                  </div>
-                </motion.div>
-              )}
+              {/* VRF等待状态覆盖层 */}
+              <VRFWaitingOverlay
+                isVisible={isWaitingVRF}
+                requestId={vrfState.requestId}
+                startTime={vrfState.startTime}
+                pollCount={vrfState.pollCount}
+                onCancel={cancelStuckRequest}
+                onRefresh={refreshData}
+              />
               
               {/* 连胜显示 */}
               {gameState === 'playing' && streak > 0 && (() => {
