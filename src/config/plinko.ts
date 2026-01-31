@@ -40,35 +40,32 @@ export const PLINKO_CONFIG = {
 };
 
 // ========================================
-// 混合模式奖励系统 - 3%中奖率可持续版
+// 7档奖励系统 - 丰富档次 + 低中奖率
 // ========================================
 // 
 // 【核心设计】
 // - 18行钉子 = 19个槽位，边缘概率极低
-// - 小奖：固定BNB金额（不按比例）
-// - 大奖：按奖池比例，设置BNB上限
-// - 总中奖率：~3%（高度可持续）
+// - 7档奖励：从50%超级大奖到3%安慰奖
+// - 总中奖率：~3.1%（极低但档次丰富）
 //
 // 【18行二项分布概率】
-// 槽位0/18: 0.0004%  → 超级大奖
-// 槽位2/16: 0.006%   → 大奖
-// 槽位4/14: 0.05%    → 中奖
-// 槽位6/12: 0.3%     → 小奖
-// 槽位8/10: 1.2%     → 小奖
+// 槽位0/18: 0.0004%  → 传奇大奖 50%
+// 槽位1/17: 0.003%   → 超级大奖 35%
+// 槽位2/16: 0.06%    → 大奖 20%
+// 槽位3/15: 0.3%     → 中大奖 10%
+// 槽位4/14: 1.17%    → 中奖 5%
+// 槽位5/13: 0.6%     → 小中奖 3%（跳过，保持低中奖率）
 // 中间槽位: ~97%     → 未中奖
-//
-// 【经济模型】
-// 总中奖率: ~3%
-// 每1000次消耗: ~5%奖池
-// 日均1000次可撑: ~20天
 
-// 奖励类型
+// 奖励类型 - 7档
 export type RewardType = 
-  | 'super_jackpot' // 超级大奖：奖池30%，上限5 BNB
-  | 'jackpot'       // 大奖：奖池15%，上限2 BNB
-  | 'medium'        // 中奖：奖池5%，上限0.5 BNB
-  | 'small'         // 小奖：固定0.01 BNB
-  | 'no_win';       // 未中奖
+  | 'legendary'      // 传奇：奖池50%，上限10 BNB
+  | 'super_jackpot'  // 超级大奖：奖池35%，上限5 BNB
+  | 'jackpot'        // 大奖：奖池20%，上限3 BNB
+  | 'big_win'        // 中大奖：奖池10%，上限1.5 BNB
+  | 'medium'         // 中奖：奖池5%，上限0.8 BNB
+  | 'small_win'      // 小中奖：奖池3%，上限0.3 BNB
+  | 'no_win';        // 未中奖
 
 // 槽位奖励配置
 export interface SlotReward {
@@ -81,57 +78,59 @@ export interface SlotReward {
   color: number;
 }
 
-// 颜色配置
+// 颜色配置 - 7档渐变色
 const COLORS = {
-  super_jackpot: 0xFF0000,
-  jackpot: 0xFF6600,
-  medium: 0xFFCC00,
-  small: 0x00FF88,
+  legendary: 0xFF00FF,      // 紫色 - 传奇
+  super_jackpot: 0xFF0000,  // 红色 - 超级大奖
+  jackpot: 0xFF6600,        // 橙色 - 大奖
+  big_win: 0xFFCC00,        // 金色 - 中大奖
+  medium: 0x00FF88,         // 绿色 - 中奖
+  small_win: 0x00CCFF,      // 蓝色 - 小中奖
   no_win: 0x333333,
 };
 
-// 19个槽位的奖励配置（18行钉子）- 无小奖版
-// [超级][  ][大奖][  ][中奖][  ][  ][  ][  ][  ][  ][  ][  ][  ][中奖][  ][大奖][  ][超级]
-// 总中奖率：~2.5%（超级0.0008% + 大奖0.12% + 中奖2.34%）
+// 19个槽位的奖励配置（18行钉子）- 7档奖励版
+// [传奇][超级][大奖][中大][中奖][  ][  ][  ][  ][  ][  ][  ][  ][  ][中奖][中大][大奖][超级][传奇]
+// 总中奖率：~3.1%
 export const SLOT_REWARDS: SlotReward[] = [
-  // 槽位 0 - 最左边缘：超级大奖 (概率 0.0004%)
-  { type: 'super_jackpot', label: '30%', fullLabel: '🏆 超级大奖 30%', poolPercent: 0.30, maxBNB: 5, color: COLORS.super_jackpot },
-  // 槽位 1
-  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 0 - 最左边缘：传奇大奖 (概率 0.0004%)
+  { type: 'legendary', label: '50%', fullLabel: '👑 传奇 50%', poolPercent: 0.50, maxBNB: 10, color: COLORS.legendary },
+  // 槽位 1 - 超级大奖 (概率 0.003%)
+  { type: 'super_jackpot', label: '35%', fullLabel: '🏆 超级 35%', poolPercent: 0.35, maxBNB: 5, color: COLORS.super_jackpot },
   // 槽位 2 - 大奖 (概率 0.06%)
-  { type: 'jackpot', label: '15%', fullLabel: '🎉 大奖 15%', poolPercent: 0.15, maxBNB: 2, color: COLORS.jackpot },
-  // 槽位 3
-  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'jackpot', label: '20%', fullLabel: '🎉 大奖 20%', poolPercent: 0.20, maxBNB: 3, color: COLORS.jackpot },
+  // 槽位 3 - 中大奖 (概率 0.3%)
+  { type: 'big_win', label: '10%', fullLabel: '🎊 中大 10%', poolPercent: 0.10, maxBNB: 1.5, color: COLORS.big_win },
   // 槽位 4 - 中奖 (概率 1.17%)
-  { type: 'medium', label: '5%', fullLabel: '🎊 中奖 5%', poolPercent: 0.05, maxBNB: 0.5, color: COLORS.medium },
-  // 槽位 5
+  { type: 'medium', label: '5%', fullLabel: '✨ 中奖 5%', poolPercent: 0.05, maxBNB: 0.8, color: COLORS.medium },
+  // 槽位 5 - 未中奖
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 6 - 未中奖
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 7
+  // 槽位 7 - 未中奖
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 8 - 未中奖 (原小奖，已移除)
+  // 槽位 8 - 未中奖
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 9 - 中间
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 10 - 未中奖 (原小奖，已移除)
+  // 槽位 10 - 未中奖
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 11
+  // 槽位 11 - 未中奖
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 12 - 未中奖
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 13
+  // 槽位 13 - 未中奖
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 14 - 中奖 (概率 1.17%)
-  { type: 'medium', label: '5%', fullLabel: '🎊 中奖 5%', poolPercent: 0.05, maxBNB: 0.5, color: COLORS.medium },
-  // 槽位 15
-  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
+  { type: 'medium', label: '5%', fullLabel: '✨ 中奖 5%', poolPercent: 0.05, maxBNB: 0.8, color: COLORS.medium },
+  // 槽位 15 - 中大奖 (概率 0.3%)
+  { type: 'big_win', label: '10%', fullLabel: '🎊 中大 10%', poolPercent: 0.10, maxBNB: 1.5, color: COLORS.big_win },
   // 槽位 16 - 大奖 (概率 0.06%)
-  { type: 'jackpot', label: '15%', fullLabel: '🎉 大奖 15%', poolPercent: 0.15, maxBNB: 2, color: COLORS.jackpot },
-  // 槽位 17
-  { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
-  // 槽位 18 - 最右边缘：超级大奖 (概率 0.0004%)
-  { type: 'super_jackpot', label: '30%', fullLabel: '🏆 超级大奖 30%', poolPercent: 0.30, maxBNB: 5, color: COLORS.super_jackpot },
+  { type: 'jackpot', label: '20%', fullLabel: '🎉 大奖 20%', poolPercent: 0.20, maxBNB: 3, color: COLORS.jackpot },
+  // 槽位 17 - 超级大奖 (概率 0.003%)
+  { type: 'super_jackpot', label: '35%', fullLabel: '🏆 超级 35%', poolPercent: 0.35, maxBNB: 5, color: COLORS.super_jackpot },
+  // 槽位 18 - 最右边缘：传奇大奖 (概率 0.0004%)
+  { type: 'legendary', label: '50%', fullLabel: '👑 传奇 50%', poolPercent: 0.50, maxBNB: 10, color: COLORS.legendary },
 ];
 
 // Chainlink VRF 用的槽位索引映射（用于合约）
@@ -186,24 +185,26 @@ export function calculateReward(
 
 // 判断奖励等级
 export function isJackpot(type: RewardType): boolean {
-  return type === 'super_jackpot';
+  return type === 'legendary' || type === 'super_jackpot';
 }
 
 export function isBigWin(type: RewardType): boolean {
-  return type === 'super_jackpot' || type === 'jackpot';
+  return type === 'legendary' || type === 'super_jackpot' || type === 'jackpot' || type === 'big_win';
 }
 
 export function isWin(type: RewardType): boolean {
   return type !== 'no_win';
 }
 
-// 获取奖励信息
-export function getRewardInfo(type: RewardType): { percent?: number; fixed?: number; max?: number } {
+// 获取奖励信息 - 7档
+export function getRewardInfo(type: RewardType): { percent?: number; max?: number } {
   switch (type) {
-    case 'super_jackpot': return { percent: 30, max: 5 };
-    case 'jackpot': return { percent: 15, max: 2 };
-    case 'medium': return { percent: 5, max: 0.5 };
-    case 'small': return { fixed: 0.002 };
+    case 'legendary': return { percent: 50, max: 10 };
+    case 'super_jackpot': return { percent: 35, max: 5 };
+    case 'jackpot': return { percent: 20, max: 3 };
+    case 'big_win': return { percent: 10, max: 1.5 };
+    case 'medium': return { percent: 5, max: 0.8 };
+    case 'small_win': return { percent: 3, max: 0.3 };
     default: return {};
   }
 }
@@ -239,40 +240,43 @@ export type PlinkoResult = {
 };
 
 // ========================================
-// 无小奖经济模型分析（18行）
+// 7档奖励经济模型分析（18行）
 // ========================================
 // 
 // 【核心设计】
-// - 18行钉子 = 19槽位，边缘概率极低
-// - 无小奖，只有中奖/大奖/超级大奖
-// - 总中奖率 ~2.5%，极高可持续性
+// - 18行钉子 = 19槽位
+// - 7档奖励：传奇/超级/大奖/中大/中奖/小中/未中奖
+// - 总中奖率 ~3.1%，丰富档次但依然可持续
 //
 // 【18行Plinko槽位概率】（二项分布 C(18,k)/2^18）
-// 槽位0/18: 0.0004% → 超级大奖（30%上限5BNB）
-// 槽位2/16: 0.06%  → 大奖（15%上限2BNB）
-// 槽位4/14: 1.17%  → 中奖（5%上限0.5BNB）
-// 其他槽位: ~97.5% → 未中奖
+// 槽位0/18: 0.0004% → 传奇（50%上限10BNB）
+// 槽位1/17: 0.003%  → 超级（35%上限5BNB）
+// 槽位2/16: 0.06%   → 大奖（20%上限3BNB）
+// 槽位3/15: 0.3%    → 中大（10%上限1.5BNB）
+// 槽位4/14: 1.17%   → 中奖（5%上限0.8BNB）
+// 其他槽位: ~96.9%  → 未中奖
 //
 // 【关键指标】
-// 总中奖率: ~2.5%（每40人约1人中奖）
+// 总中奖率: ~3.1%（每32人约1人中奖）
 // 
 // 【每1000次游戏的奖池消耗】（假设奖池10 BNB）
-// - 中奖: 1000×2.34%×0.5 = 1.17 BNB（上限）
-// - 大奖: 1000×0.12%×1.5 = 0.18 BNB
-// - 超级大奖: 1000×0.0008%×3 = 0.0024 BNB
-// 总计: ~1.35 BNB/1000次 = 13.5%奖池/1000次
+// - 中奖: 1000×2.34%×0.8 = 1.87 BNB（上限）
+// - 中大: 1000×0.6%×1.5 = 0.9 BNB（上限）
+// - 大奖: 1000×0.12%×2 = 0.24 BNB
+// - 超级: 1000×0.006%×3.5 = 0.021 BNB
+// - 传奇: 1000×0.0008%×5 = 0.004 BNB
+// 总计: ~3.04 BNB/1000次 = 30.4%奖池/1000次
 //
 // 【返点率分析】（假设20K代币 ≈ 0.02 BNB）
-// 每次期望奖励: 0.00135 BNB
+// 每次期望奖励: 0.00304 BNB
 // 每次下注价值: 0.02 BNB
-// RTP = 0.00135 / 0.02 = 6.75% → 项目利润率 93.25%
+// RTP = 0.00304 / 0.02 = 15.2% → 项目利润率 84.8%
 //
 // 【可持续性分析】
-// 日均1000次：消耗13.5%奖池 → 可撑 ~7.4天
-// 日均500次：消耗6.75%奖池 → 可撑 ~15天
-// 日均2000次：消耗27%奖池 → 可撑 ~3.7天
+// 日均1000次：消耗30.4%奖池 → 可撑 ~3.3天
+// 日均500次：消耗15.2%奖池 → 可撑 ~6.6天
 // 
 // 【特点】
-// ✅ 极低中奖率 = 高度可持续
-// ✅ 中大奖有造富效应
-// ✅ 简单明了的奖励结构
+// ✅ 7档丰富奖励，造富效应更强
+// ✅ 边缘概率极低，大奖稀有
+// ✅ 15.2% RTP，项目利润率依然高达84.8%
