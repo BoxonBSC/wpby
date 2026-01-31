@@ -81,84 +81,77 @@ export function CreditsExchange() {
         boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.1)',
       }}
     >
-      {/* 标题栏 */}
+      {/* 标题栏 - 紧凑型 */}
       <div 
-        className="px-4 py-3 flex items-center gap-2"
+        className="px-3 py-2 flex items-center justify-between"
         style={{
           background: 'linear-gradient(90deg, rgba(255, 107, 53, 0.15) 0%, rgba(201, 163, 71, 0.1) 100%)',
           borderBottom: '1px solid rgba(201, 163, 71, 0.15)',
         }}
       >
-        <div 
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255, 107, 53, 0.3) 0%, rgba(255, 69, 0, 0.2) 100%)',
-            border: '1px solid rgba(255, 107, 53, 0.4)',
-          }}
-        >
-          <Flame className="w-4 h-4" style={{ color: '#FF6B35' }} />
-        </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-6 h-6 rounded-lg flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 107, 53, 0.3) 0%, rgba(255, 69, 0, 0.2) 100%)',
+              border: '1px solid rgba(255, 107, 53, 0.4)',
+            }}
+          >
+            <Flame className="w-3 h-3" style={{ color: '#FF6B35' }} />
+          </div>
           <h3 
-            className="text-sm font-bold"
+            className="text-xs font-bold"
             style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
           >
             {t('exchange.title')}
           </h3>
-          <p className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>
-            1:1 兑换 · 永久有效
-          </p>
         </div>
+        <span className="text-[9px] px-2 py-0.5 rounded-full" style={{ 
+          background: 'rgba(201, 163, 71, 0.1)', 
+          color: 'rgba(201, 163, 71, 0.6)',
+          border: '1px solid rgba(201, 163, 71, 0.15)'
+        }}>
+          1:1 兑换
+        </span>
       </div>
 
-      {/* 说明区域 */}
+      {/* 说明区域 - 单行紧凑 */}
       <div 
-        className="px-4 py-3"
+        className="px-3 py-1.5 flex flex-wrap gap-x-3 gap-y-1"
         style={{
           background: 'rgba(201, 163, 71, 0.03)',
           borderBottom: '1px solid rgba(201, 163, 71, 0.1)',
         }}
       >
-        <div className="space-y-1.5">
-          <div className="flex items-start gap-2">
-            <span style={{ color: '#FFD700' }}>•</span>
-            <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.8)' }}>
-              <strong style={{ color: '#FFD700' }}>1代币 = 1凭证</strong>，销毁代币永久获得游戏凭证
-            </span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span style={{ color: '#FFD700' }}>•</span>
-            <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.8)' }}>
-              凭证<strong style={{ color: '#FF6B35' }}>不可转让、不可买卖</strong>，绑定当前钱包
-            </span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span style={{ color: '#FFD700' }}>•</span>
-            <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.8)' }}>
-              凭证<strong style={{ color: '#00FFC8' }}>专用于王牌博弈游戏</strong>，中奖后<strong style={{ color: '#FF6B35' }}>需手动领取</strong>BNB
-            </span>
-          </div>
-        </div>
+        <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
+          <strong style={{ color: '#FFD700' }}>销毁代币</strong>=永久凭证
+        </span>
+        <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
+          <strong style={{ color: '#FF6B35' }}>不可转让</strong>
+        </span>
+        <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
+          中奖<strong style={{ color: '#00FFC8' }}>手动领取</strong>BNB
+        </span>
       </div>
 
-      <div className="p-4 space-y-4">
-        {/* 余额卡片 */}
+      <div className="p-3 space-y-3">
+        {/* 余额卡片 - 更紧凑 */}
         <div className="grid grid-cols-2 gap-2">
           <div 
-            className="p-3 rounded-xl relative overflow-hidden"
+            className="p-2 rounded-lg relative overflow-hidden"
             style={{
               background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.08) 0%, rgba(201, 163, 71, 0.02) 100%)',
               border: '1px solid rgba(201, 163, 71, 0.2)',
             }}
           >
-            <div className="flex items-center gap-1.5 mb-1">
-              <Coins className="w-3 h-3" style={{ color: '#C9A347' }} />
-              <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
+            <div className="flex items-center gap-1 mb-0.5">
+              <Coins className="w-2.5 h-2.5" style={{ color: '#C9A347' }} />
+              <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
                 {t('exchange.tokenBalance')}
               </span>
             </div>
             <div 
-              className="text-lg font-bold"
+              className="text-base font-bold"
               style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
             >
               {formatNumber(tokenBalanceNum)}
@@ -166,20 +159,20 @@ export function CreditsExchange() {
           </div>
           
           <div 
-            className="p-3 rounded-xl relative overflow-hidden"
+            className="p-2 rounded-lg relative overflow-hidden"
             style={{
               background: 'linear-gradient(135deg, rgba(0, 255, 200, 0.08) 0%, rgba(0, 200, 150, 0.02) 100%)',
               border: '1px solid rgba(0, 255, 200, 0.2)',
             }}
           >
-            <div className="flex items-center gap-1.5 mb-1">
-              <Ticket className="w-3 h-3" style={{ color: '#00FFC8' }} />
-              <span className="text-[10px]" style={{ color: 'rgba(0, 255, 200, 0.7)' }}>
+            <div className="flex items-center gap-1 mb-0.5">
+              <Ticket className="w-2.5 h-2.5" style={{ color: '#00FFC8' }} />
+              <span className="text-[9px]" style={{ color: 'rgba(0, 255, 200, 0.7)' }}>
                 {t('exchange.gameCredits')}
               </span>
             </div>
             <div 
-              className="text-lg font-bold"
+              className="text-base font-bold"
               style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
             >
               {formatNumber(gameCreditsNum)}
@@ -187,107 +180,74 @@ export function CreditsExchange() {
           </div>
         </div>
 
-        {/* 金额选择 */}
-        <div>
-          <div className="text-[10px] mb-2" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
-            选择兑换数量
-          </div>
-          <div className="grid grid-cols-4 gap-1.5">
-            {EXCHANGE_AMOUNTS.map((amount) => {
-              const canAfford = tokenBalanceNum >= amount;
-              const isSelected = selectedAmount === amount;
-              
-              return (
-                <motion.button
-                  key={amount}
-                  whileHover={{ scale: canAfford ? 1.05 : 1 }}
-                  whileTap={{ scale: canAfford ? 0.95 : 1 }}
-                  onClick={() => canAfford && setSelectedAmount(amount)}
-                  disabled={!canAfford}
-                  className="py-2 px-1 rounded-lg text-xs transition-all"
-                  style={{
-                    fontFamily: '"Cinzel", serif',
-                    background: isSelected
-                      ? 'linear-gradient(135deg, rgba(255, 107, 53, 0.25) 0%, rgba(255, 69, 0, 0.15) 100%)'
-                      : canAfford
-                      ? 'rgba(201, 163, 71, 0.08)'
-                      : 'rgba(255, 255, 255, 0.02)',
-                    color: isSelected
-                      ? '#FF6B35'
-                      : canAfford
-                      ? '#C9A347'
-                      : 'rgba(201, 163, 71, 0.3)',
-                    border: isSelected
-                      ? '1px solid rgba(255, 107, 53, 0.6)'
-                      : '1px solid rgba(201, 163, 71, 0.15)',
-                    cursor: canAfford ? 'pointer' : 'not-allowed',
-                    boxShadow: isSelected ? '0 0 12px rgba(255, 107, 53, 0.2)' : 'none',
-                  }}
-                >
-                  {formatNumber(amount)}
-                </motion.button>
-              );
-            })}
-          </div>
+        {/* 金额选择 - 更紧凑 */}
+        <div className="grid grid-cols-4 gap-1">
+          {EXCHANGE_AMOUNTS.map((amount) => {
+            const canAfford = tokenBalanceNum >= amount;
+            const isSelected = selectedAmount === amount;
+            
+            return (
+              <motion.button
+                key={amount}
+                whileHover={{ scale: canAfford ? 1.05 : 1 }}
+                whileTap={{ scale: canAfford ? 0.95 : 1 }}
+                onClick={() => canAfford && setSelectedAmount(amount)}
+                disabled={!canAfford}
+                className="py-1.5 px-1 rounded-md text-[11px] transition-all"
+                style={{
+                  fontFamily: '"Cinzel", serif',
+                  background: isSelected
+                    ? 'linear-gradient(135deg, rgba(255, 107, 53, 0.25) 0%, rgba(255, 69, 0, 0.15) 100%)'
+                    : canAfford
+                    ? 'rgba(201, 163, 71, 0.08)'
+                    : 'rgba(255, 255, 255, 0.02)',
+                  color: isSelected
+                    ? '#FF6B35'
+                    : canAfford
+                    ? '#C9A347'
+                    : 'rgba(201, 163, 71, 0.3)',
+                  border: isSelected
+                    ? '1px solid rgba(255, 107, 53, 0.6)'
+                    : '1px solid rgba(201, 163, 71, 0.15)',
+                  cursor: canAfford ? 'pointer' : 'not-allowed',
+                  boxShadow: isSelected ? '0 0 8px rgba(255, 107, 53, 0.2)' : 'none',
+                }}
+              >
+                {formatNumber(amount)}
+              </motion.button>
+            );
+          })}
         </div>
 
-        {/* 兑换预览 - 简化版 */}
+        {/* 兑换预览 - 极简版 */}
         <div 
-          className="flex items-center justify-between p-3 rounded-xl"
+          className="flex items-center justify-center gap-3 py-2 px-3 rounded-lg"
           style={{
             background: 'rgba(0, 0, 0, 0.3)',
             border: '1px solid rgba(201, 163, 71, 0.1)',
           }}
         >
-          <div className="flex items-center gap-2">
-            <div 
-              className="w-6 h-6 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(239, 68, 68, 0.2)' }}
-            >
-              <Coins className="w-3 h-3" style={{ color: '#EF4444' }} />
-            </div>
-            <div>
-              <div className="text-xs" style={{ color: '#EF4444' }}>
-                -{formatNumber(selectedAmount)}
-              </div>
-              <div className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
-                代币
-              </div>
-            </div>
-          </div>
-          
+          <span className="text-xs" style={{ color: '#EF4444' }}>
+            -{formatNumber(selectedAmount)} 代币
+          </span>
           <motion.div
-            animate={{ x: [0, 4, 0] }}
+            animate={{ x: [0, 3, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
-            <ArrowRight className="w-4 h-4" style={{ color: 'rgba(201, 163, 71, 0.4)' }} />
+            <ArrowRight className="w-3.5 h-3.5" style={{ color: 'rgba(201, 163, 71, 0.4)' }} />
           </motion.div>
-          
-          <div className="flex items-center gap-2">
-            <div>
-              <div className="text-xs text-right" style={{ color: '#00FFC8' }}>
-                +{formatNumber(selectedAmount)}
-              </div>
-              <div className="text-[10px] text-right" style={{ color: 'rgba(0, 255, 200, 0.5)' }}>
-                凭证
-              </div>
-            </div>
-            <div 
-              className="w-6 h-6 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(0, 255, 200, 0.2)' }}
-            >
-              <Ticket className="w-3 h-3" style={{ color: '#00FFC8' }} />
-            </div>
-          </div>
+          <span className="text-xs" style={{ color: '#00FFC8' }}>
+            +{formatNumber(selectedAmount)} 凭证
+          </span>
         </div>
 
-        {/* 兑换按钮 */}
+        {/* 兑换按钮 - 更紧凑 */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleExchange}
           disabled={isExchanging || tokenBalanceNum < selectedAmount || !isConnected}
-          className="w-full py-3 rounded-xl text-sm transition-all relative overflow-hidden"
+          className="w-full py-2.5 rounded-lg text-xs transition-all relative overflow-hidden"
           style={{
             fontFamily: '"Cinzel", serif',
             background: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
@@ -304,7 +264,7 @@ export function CreditsExchange() {
               : 'pointer',
             boxShadow: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
               ? 'none'
-              : '0 4px 20px rgba(255, 107, 53, 0.4)',
+              : '0 4px 16px rgba(255, 107, 53, 0.3)',
           }}
         >
           <AnimatePresence mode="wait">
@@ -314,13 +274,13 @@ export function CreditsExchange() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-1.5"
               >
                 <motion.span
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 >
-                  <Flame className="w-4 h-4" />
+                  <Flame className="w-3.5 h-3.5" />
                 </motion.span>
                 {t('exchange.burning')}
               </motion.span>
@@ -330,10 +290,10 @@ export function CreditsExchange() {
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-1.5"
                 style={{ color: '#00FFC8' }}
               >
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-3.5 h-3.5" />
                 {t('exchange.success')}
               </motion.span>
             ) : (
@@ -342,9 +302,9 @@ export function CreditsExchange() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-1.5"
               >
-                <Flame className="w-4 h-4" />
+                <Flame className="w-3.5 h-3.5" />
                 {t('exchange.button')}
               </motion.span>
             )}
@@ -353,7 +313,7 @@ export function CreditsExchange() {
         
         {/* 提示 */}
         {!isConnected && (
-          <p className="text-center text-[10px]" style={{ color: 'rgba(255, 200, 100, 0.6)' }}>
+          <p className="text-center text-[9px]" style={{ color: 'rgba(255, 200, 100, 0.6)' }}>
             请先连接钱包
           </p>
         )}
