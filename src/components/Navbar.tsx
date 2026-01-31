@@ -94,6 +94,8 @@ export function Navbar() {
 
       <div className="container mx-auto px-4 relative">
         <div className="flex items-center justify-between h-18 py-2">
+          {/* 左侧：Logo + 导航 */}
+          <div className="flex items-center gap-2">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
             <motion.div
@@ -342,6 +344,7 @@ export function Navbar() {
                 </Link>
               );
             })}
+          </div>
           </div>
 
           {/* Audio Controls & Language & Mobile Menu */}
