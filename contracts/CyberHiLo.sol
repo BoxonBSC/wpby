@@ -82,7 +82,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     address public operationWallet;
     uint256 public minPrizePool = 0.01 ether;
     address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
-    uint256 public constant REQUEST_TIMEOUT = 30 minutes;  // 降低超时时间
+    uint256 public constant REQUEST_TIMEOUT = 30 minutes;  // VRF请求超时
+    uint256 public constant GAME_TIMEOUT = 10 minutes;     // 游戏超时，防止恶意占用锁定
     
     // ============ 并发保护：预锁定奖励 ============
     uint256 public totalLockedRewards;  // 所有活跃游戏的预锁定奖励总和
@@ -145,6 +146,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     event CreditsDeposited(address indexed player, uint256 amount);
     event CreditsUsed(address indexed player, uint256 amount);
     event EmergencyPrizeRescued(address indexed player, address indexed recipient, uint256 amount);  // 新增：紧急救援
+    event GameTimedOut(address indexed player, address indexed caller, uint8 streak, uint256 releasedLock);  // 游戏超时强制结束
     
     constructor(
         address _vrfCoordinator,
@@ -504,6 +506,38 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         }
         
         // 游戏仍保持 active 状态，玩家可以继续游戏或收手
+    }
+    
+    /**
+     * @notice 强制结束超时的游戏（任何人可调用）
+     * @dev 防止恶意玩家长期占用奖池锁定
+     * @param player 目标玩家地址
+     */
+    function forceEndTimedOutGame(address player) external nonReentrant {
+        GameSession storage session = gameSessions[player];
+        require(session.active, "No active game");
+        require(block.timestamp > session.timestamp + GAME_TIMEOUT, "Game not timed out");
+        
+        // 清除挂起的VRF请求
+        uint256 reqId = pendingRequest[player];
+        if (reqId != 0) {
+            vrfRequests[reqId].fulfilled = true;
+            pendingRequest[player] = 0;
+        }
+        
+        // 释放预锁定奖励
+        uint256 lockedAmount = playerLockedReward[player];
+        if (lockedAmount > 0) {
+            totalLockedRewards -= lockedAmount;
+            playerLockedReward[player] = 0;
+        }
+        
+        uint8 streak = session.currentStreak;
+        
+        // 结束游戏，玩家不获得奖励（惩罚超时）
+        session.active = false;
+        
+        emit GameTimedOut(player, msg.sender, streak, lockedAmount);
     }
     
     // ============ 查询函数 ============
