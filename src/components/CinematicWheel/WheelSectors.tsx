@@ -17,18 +17,26 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
   const sectorAngle = 360 / sectors.length;
 
   const getSectorColors = (index: number) => {
-    // 拉斯维加斯豪华赌场配色
+    // 拉斯维加斯豪华赌场配色（全部使用 HSL）
     const vegasColors = [
-      { main: '#C9A347', light: '#E8D5A3', dark: '#8B7432' }, // 金色
-      { main: '#4A0E1E', light: '#7A2E3E', dark: '#2A0010' }, // 酒红
-      { main: '#C9A347', light: '#E8D5A3', dark: '#8B7432' }, // 金色
-      { main: '#1a1814', light: '#3a3834', dark: '#0a0804' }, // 深黑
-      { main: '#8B7432', light: '#C9A347', dark: '#5A4A22' }, // 暗金
-      { main: '#6a1e2e', light: '#9A4E5E', dark: '#4A0E1E' }, // 浅酒红
-      { main: '#C9A347', light: '#E8D5A3', dark: '#8B7432' }, // 金色
-      { main: '#2a1f1a', light: '#4a3f3a', dark: '#1a0f0a' }, // 深棕
+      // Warm Gold
+      { main: 'hsl(42 54% 53%)', light: 'hsl(44 63% 78%)', dark: 'hsl(42 47% 37%)' },
+      // Wine Red
+      { main: 'hsl(344 69% 17%)', light: 'hsl(344 44% 33%)', dark: 'hsl(338 100% 8%)' },
+      // Platinum
+      { main: 'hsl(0 0% 88%)', light: 'hsl(0 0% 96%)', dark: 'hsl(0 0% 70%)' },
+      // Deep Black
+      { main: 'hsl(36 14% 9%)', light: 'hsl(36 12% 16%)', dark: 'hsl(36 18% 5%)' },
+      // Dark Gold
+      { main: 'hsl(42 47% 37%)', light: 'hsl(42 54% 53%)', dark: 'hsl(42 55% 26%)' },
+      // Wine Light
+      { main: 'hsl(344 56% 27%)', light: 'hsl(344 44% 40%)', dark: 'hsl(344 69% 17%)' },
+      // Platinum Dark
+      { main: 'hsl(0 0% 70%)', light: 'hsl(0 0% 88%)', dark: 'hsl(0 0% 55%)' },
+      // Leather Brown
+      { main: 'hsl(22 22% 13%)', light: 'hsl(22 18% 21%)', dark: 'hsl(22 26% 8%)' },
     ];
-    
+
     return vegasColors[index % vegasColors.length];
   };
 
@@ -60,8 +68,21 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
     };
   };
 
+  const formatPoolPercent = (poolPercent: number) => {
+    if (poolPercent <= 0) return '—';
+    const pct = poolPercent * 100;
+    const decimals = pct >= 1 ? 0 : pct >= 0.1 ? 1 : 2;
+    return `${pct.toFixed(decimals)}%`;
+  };
+
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="absolute inset-0 z-10"
+      style={{ pointerEvents: 'none' }}
+    >
       <defs>
         {/* 扇区镜面反射渐变 */}
         {sectors.map((_, index) => {
@@ -87,7 +108,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
           </feComponentTransfer>
           <feGaussianBlur stdDeviation="2" />
           <feOffset dx="1" dy="2" result="offsetblur" />
-          <feFlood floodColor="rgba(0,0,0,0.7)" />
+          <feFlood floodColor="hsl(0 0% 0% / 0.7)" />
           <feComposite in2="offsetblur" operator="in" />
           <feMerge>
             <feMergeNode />
@@ -147,9 +168,9 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               dominantBaseline="middle"
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y})`}
               style={{
-                fill: 'rgba(255,255,255,0.95)',
+                fill: 'hsl(0 0% 100% / 0.95)',
                 fontSize: '20px',
-                textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                textShadow: '0 2px 4px hsl(0 0% 0% / 0.8)',
               }}
             >
               {sector.emoji}
@@ -164,11 +185,11 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y})`}
               className="font-display"
               style={{
-                fill: 'rgba(255,255,255,0.95)',
+                fill: 'hsl(0 0% 100% / 0.95)',
                 fontSize: '9px',
                 fontWeight: '700',
                 letterSpacing: '0.08em',
-                textShadow: '0 1px 3px rgba(0,0,0,0.9)',
+                textShadow: '0 1px 3px hsl(0 0% 0% / 0.9)',
               }}
             >
               {sector.label}
@@ -183,18 +204,16 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
               transform={`rotate(${textPos.rotation}, ${textPos.x}, ${textPos.y})`}
               className="font-display"
               style={{
-                fill: sector.poolPercent > 0 ? '#FFD700' : 'rgba(255,255,255,0.5)',
+                fill: sector.poolPercent > 0 ? colors.accent : 'hsl(0 0% 100% / 0.55)',
                 fontSize: sector.poolPercent >= 0.1 ? '11px' : '9px',
                 fontWeight: '800',
                 letterSpacing: '0.05em',
                 textShadow: sector.poolPercent > 0 
-                  ? '0 0 8px rgba(255,215,0,0.8), 0 1px 2px rgba(0,0,0,0.9)' 
-                  : '0 1px 2px rgba(0,0,0,0.9)',
+                  ? `0 0 10px ${colors.glow}, 0 1px 2px hsl(0 0% 0% / 0.9)` 
+                  : '0 1px 2px hsl(0 0% 0% / 0.9)',
               }}
             >
-              {sector.poolPercent > 0 
-                ? `${(sector.poolPercent * 100).toFixed(sector.poolPercent >= 0.01 ? 0 : 1)}%` 
-                : '—'}
+              {formatPoolPercent(sector.poolPercent)}
             </text>
           </g>
         );
@@ -229,7 +248,7 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
         cy={centerY - 10}
         rx={15}
         ry={10}
-        fill="rgba(255,255,255,0.3)"
+        fill="hsl(0 0% 100% / 0.3)"
       />
       
       {/* 中心Logo */}

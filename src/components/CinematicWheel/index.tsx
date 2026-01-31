@@ -14,8 +14,8 @@ export function CinematicWheel({
   prizePool, 
   theme = 'gold',
   onSpinComplete,
-  demoMode = false // 演示模式：无需钱包即可旋转
-}: CinematicWheelProps & { demoMode?: boolean }) {
+  demoMode = false
+}: CinematicWheelProps) {
   const { isConnected, connect, gameCredits } = useWallet();
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);

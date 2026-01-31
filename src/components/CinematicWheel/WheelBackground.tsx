@@ -10,7 +10,7 @@ export function WheelBackground({ theme, isSpinning }: WheelBackgroundProps) {
   const colors = THEME_COLORS[theme];
 
   return (
-    <div className="absolute inset-0 overflow-hidden rounded-full">
+    <div className="absolute inset-0 overflow-hidden rounded-full z-0">
       {/* 金属拉丝纹理层 */}
       <div 
         className="absolute inset-0"
