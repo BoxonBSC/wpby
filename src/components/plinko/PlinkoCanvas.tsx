@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import * as PIXI from 'pixi.js';
 import Matter from 'matter-js';
 import { PLINKO_CONFIG, SLOT_REWARDS } from '@/config/plinko';
@@ -9,6 +9,11 @@ interface PlinkoCanvasProps {
   onBallLanded: (slotIndex: number) => void;
   onCollision?: () => void;
   dropBallTrigger: number;
+  targetSlot?: number; // 合约指定的目标槽位
+}
+
+export interface PlinkoCanvasRef {
+  dropBallToSlot: (targetSlot: number) => void;
 }
 
 interface Ball {
@@ -17,6 +22,7 @@ interface Ball {
   trail: { x: number; y: number; alpha: number }[];
   id: string;
   lastCollisionTime: number;
+  targetSlot?: number; // 目标槽位
 }
 
 interface Particle {
@@ -30,7 +36,8 @@ interface Particle {
   color: number;
 }
 
-export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBallTrigger }: PlinkoCanvasProps) {
+export const PlinkoCanvas = forwardRef<PlinkoCanvasRef, PlinkoCanvasProps>(
+  ({ width, height, onBallLanded, onCollision, dropBallTrigger, targetSlot }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const engineRef = useRef<Matter.Engine | null>(null);
@@ -42,6 +49,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
   const isInitializedRef = useRef(false);
   const onBallLandedRef = useRef(onBallLanded);
   const onCollisionRef = useRef(onCollision);
+  const pendingTargetSlot = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     onBallLandedRef.current = onBallLanded;
@@ -55,9 +63,14 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
   const offsetX = (width - boardWidth) / 2;
   const offsetY = 50;
   
-  // 计算槽位位置，确保在画布内
+  // 计算槽位位置
   const totalBoardHeight = game.rows * game.pegSpacing + 40;
   const slotY = Math.min(offsetY + totalBoardHeight, height - 70);
+
+  // 计算目标槽位的X坐标
+  const getSlotCenterX = useCallback((slotIndex: number) => {
+    return offsetX + slotIndex * game.pegSpacing + game.pegSpacing / 2;
+  }, [offsetX, game.pegSpacing]);
 
   // 初始化 PIXI 和 Matter
   useEffect(() => {
@@ -221,7 +234,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
         
         const textStyle = new PIXI.TextStyle({
           fontFamily: 'Arial, sans-serif',
-          fontSize: isNoWin ? 12 : 10,
+          fontSize: isNoWin ? 10 : 9,
           fill: isNoWin ? 0x444444 : color,
           fontWeight: 'bold',
           dropShadow: !isNoWin,
@@ -323,13 +336,15 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
                 });
               }
               
+              const ball = ballsRef.current.find(b => b.body === ballBody);
+              const finalSlot = ball?.targetSlot !== undefined ? ball.targetSlot : slotIndex;
+              
               setTimeout(() => {
-                const ball = ballsRef.current.find(b => b.body === ballBody);
                 if (ball) {
                   Matter.Composite.remove(engine.world, ball.body);
                   app.stage.removeChild(ball.graphics);
                   ballsRef.current = ballsRef.current.filter(b => b.id !== ball.id);
-                  onBallLandedRef.current(slotIndex);
+                  onBallLandedRef.current(finalSlot);
                 }
               }, 100);
             }
@@ -338,7 +353,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       });
     });
 
-    // 渲染循环
+    // 渲染循环 - 添加引导力
     app.ticker.add(() => {
       Matter.Engine.update(engine, 1000 / 60);
       
@@ -348,6 +363,27 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       
       ballsRef.current.forEach((ball) => {
         const { x, y } = ball.body.position;
+        
+        // 如果有目标槽位，施加引导力
+        if (ball.targetSlot !== undefined) {
+          const targetX = getSlotCenterX(ball.targetSlot);
+          const dx = targetX - x;
+          
+          // 只在球下落到一定位置后开始施加力
+          if (y > offsetY + 100) {
+            // 根据距离计算引导力，越接近目标越小
+            const progress = Math.min(1, (y - offsetY - 100) / (slotY - offsetY - 150));
+            const forceStrength = 0.00008 * (1 + progress * 2);
+            
+            // 施加水平引导力
+            if (Math.abs(dx) > 5) {
+              Matter.Body.applyForce(ball.body, ball.body.position, {
+                x: Math.sign(dx) * forceStrength,
+                y: 0,
+              });
+            }
+          }
+        }
         
         ball.trail.unshift({ x, y, alpha: 0.6 });
         if (ball.trail.length > 12) {
@@ -415,21 +451,18 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       engineRef.current = null;
       isInitializedRef.current = false;
     };
-  }, [width, height]);
+  }, [width, height, getSlotCenterX]);
 
-  // 投放新球 - 限制在极窄的中间区域
-  const dropBall = useCallback(() => {
+  // 投放新球到指定槽位
+  const dropBallToSlot = useCallback((target: number) => {
     const app = appRef.current;
     const engine = engineRef.current;
     if (!app || !engine) return;
 
-    // 使用高斯分布模拟，让球集中在中间
-    // Box-Muller 变换生成正态分布随机数
+    // 使用高斯分布起始位置
     const u1 = Math.random();
     const u2 = Math.random();
     const gaussian = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-    
-    // 限制在 ±0.3 标准差内（约70%集中在极窄区域）
     const clampedGaussian = Math.max(-0.3, Math.min(0.3, gaussian * 0.15));
     const startX = offsetX + boardWidth / 2 + clampedGaussian * game.dropZoneWidth;
     const startY = 25;
@@ -452,6 +485,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       trail: [],
       id: `ball_${Date.now()}_${Math.random()}`,
       lastCollisionTime: 0,
+      targetSlot: target, // 设置目标槽位
     };
     
     ballsRef.current.push(ballObj);
@@ -472,6 +506,80 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       });
     }
   }, [offsetX, boardWidth, game, physics]);
+
+  // 投放新球（演示模式，随机结果）
+  const dropBall = useCallback(() => {
+    const app = appRef.current;
+    const engine = engineRef.current;
+    if (!app || !engine) return;
+
+    // 检查是否有预设的目标槽位
+    const target = pendingTargetSlot.current;
+    if (target !== undefined) {
+      dropBallToSlot(target);
+      pendingTargetSlot.current = undefined;
+      return;
+    }
+
+    // 使用高斯分布模拟，让球集中在中间
+    const u1 = Math.random();
+    const u2 = Math.random();
+    const gaussian = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    const clampedGaussian = Math.max(-0.3, Math.min(0.3, gaussian * 0.15));
+    const startX = offsetX + boardWidth / 2 + clampedGaussian * game.dropZoneWidth;
+    const startY = 25;
+
+    const ball = Matter.Bodies.circle(startX, startY, game.ballRadius, {
+      restitution: physics.restitution,
+      friction: physics.friction,
+      frictionAir: physics.frictionAir,
+      density: physics.density,
+      label: 'ball',
+    });
+    Matter.Composite.add(engine.world, ball);
+
+    const graphics = new PIXI.Graphics();
+    app.stage.addChild(graphics);
+
+    const ballObj: Ball = {
+      body: ball,
+      graphics,
+      trail: [],
+      id: `ball_${Date.now()}_${Math.random()}`,
+      lastCollisionTime: 0,
+      // 演示模式不设置目标槽位
+    };
+    
+    ballsRef.current.push(ballObj);
+    
+    // 投放粒子效果
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 / 8) * i + Math.random() * 0.5;
+      const speed = 2 + Math.random() * 3;
+      particlesRef.current.push({
+        x: startX,
+        y: startY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        maxLife: 30 + Math.random() * 20,
+        size: 2 + Math.random() * 3,
+        color: 0xFFFFFF,
+      });
+    }
+  }, [offsetX, boardWidth, game, physics, dropBallToSlot]);
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    dropBallToSlot,
+  }), [dropBallToSlot]);
+
+  // 更新待处理的目标槽位
+  useEffect(() => {
+    if (targetSlot !== undefined) {
+      pendingTargetSlot.current = targetSlot;
+    }
+  }, [targetSlot]);
 
   useEffect(() => {
     if (dropBallTrigger > lastDropTrigger.current) {
@@ -497,4 +605,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       }}
     />
   );
-}
+});
+
+PlinkoCanvas.displayName = 'PlinkoCanvas';

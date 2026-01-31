@@ -9,9 +9,52 @@ import { useWallet } from '@/contexts/WalletContext';
 import { usePlinkoSounds } from '@/hooks/usePlinkoSounds';
 import { Sparkles, Crown, Star, Coins } from 'lucide-react';
 
-// 模拟奖池（实际应从合约读取）
 // 模拟BNB奖池（实际应从合约读取）
 const DEMO_BNB_POOL = 5.5; // 5.5 BNB
+
+// ========================================
+// 模拟合约概率计算（Chainlink VRF 替代）
+// ========================================
+// 20行二项分布概率表（精确到小数点后6位）
+const SLOT_PROBABILITIES = [
+  0.000001,  // 槽位0:  0.0001% - 50% 大奖
+  0.000019,  // 槽位1:  0.0019% - 未中奖
+  0.000181,  // 槽位2:  0.018% - 40% 大奖
+  0.001087,  // 槽位3:  0.109% - 未中奖
+  0.004621,  // 槽位4:  0.46% - 30% 中大奖
+  0.014786,  // 槽位5:  1.48% - 未中奖
+  0.036964,  // 槽位6:  3.7% - 20% 中奖
+  0.073929,  // 槽位7:  7.4% - 未中奖
+  0.120134,  // 槽位8:  12% - 10% 小奖
+  0.160179,  // 槽位9:  16% - 未中奖
+  0.176197,  // 槽位10: 17.6% - 3% 安慰奖
+  0.160179,  // 槽位11: 16% - 未中奖
+  0.120134,  // 槽位12: 12% - 10% 小奖
+  0.073929,  // 槽位13: 7.4% - 未中奖
+  0.036964,  // 槽位14: 3.7% - 20% 中奖
+  0.014786,  // 槽位15: 1.48% - 未中奖
+  0.004621,  // 槽位16: 0.46% - 30% 中大奖
+  0.001087,  // 槽位17: 0.109% - 未中奖
+  0.000181,  // 槽位18: 0.018% - 40% 大奖
+  0.000019,  // 槽位19: 0.0019% - 未中奖
+  0.000001,  // 槽位20: 0.0001% - 50% 大奖
+];
+
+// 模拟 Chainlink VRF 随机数生成并选择槽位
+function simulateContractResult(): number {
+  const random = Math.random();
+  let cumulative = 0;
+  
+  for (let i = 0; i < SLOT_PROBABILITIES.length; i++) {
+    cumulative += SLOT_PROBABILITIES[i];
+    if (random < cumulative) {
+      return i;
+    }
+  }
+  
+  // 默认返回中间槽位
+  return 10;
+}
 
 // 背景粒子
 function BackgroundParticles() {
@@ -60,6 +103,7 @@ export function PlinkoGame() {
   const [remainingDrops, setRemainingDrops] = useState(0);
   const [results, setResults] = useState<PlinkoResult[]>([]);
   const [dropTrigger, setDropTrigger] = useState(0);
+  const [targetSlot, setTargetSlot] = useState<number | undefined>(undefined);
   const [showWinOverlay, setShowWinOverlay] = useState(false);
   const [lastWin, setLastWin] = useState<{ label: string; amount: number; bnbAmount: number; isJackpot: boolean } | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -150,11 +194,16 @@ export function PlinkoGame() {
     }
   }, [betAmount, isConnected, bnbPool, sounds]);
 
-  // 执行投球
+  // 执行投球 - 使用合约模拟决定结果
   const executeDrop = useCallback(() => {
     if (!isConnected) {
       setDemoCredits(prev => prev - betAmount);
     }
+    
+    // 模拟合约调用：先确定结果，再播放动画
+    const contractResult = simulateContractResult();
+    setTargetSlot(contractResult);
+    
     sounds.playDropSound();
     setDropTrigger(prev => prev + 1);
   }, [betAmount, isConnected, sounds]);
@@ -310,6 +359,7 @@ export function PlinkoGame() {
             onBallLanded={handleBallLanded}
             onCollision={handleCollision}
             dropBallTrigger={dropTrigger}
+            targetSlot={targetSlot}
           />
         </motion.div>
 
