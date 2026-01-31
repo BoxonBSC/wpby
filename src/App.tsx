@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import History from "./pages/History";
 import Rules from "./pages/Rules";
+import RouletteDemo from "./pages/RouletteDemo";
 import NotFound from "./pages/NotFound";
 
 // 初始化 Web3Modal
@@ -29,6 +30,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/rules" element={<Rules />} />
+                <Route path="/roulette-demo" element={<RouletteDemo />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
