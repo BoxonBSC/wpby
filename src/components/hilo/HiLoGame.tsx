@@ -34,12 +34,16 @@ export function HiLoGame() {
   // 玩家状态
   const [credits, setCredits] = useState(MOCK_CREDITS);
   const [prizePool] = useState(MOCK_PRIZE_POOL);
+  const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null); // 开始游戏时锁定的奖池快照
   const [selectedTierIndex, setSelectedTierIndex] = useState(0);
   const [currentBetTier, setCurrentBetTier] = useState(BET_TIERS[0]);
   
   // 历史记录
   const [results, setResults] = useState<HiLoResult[]>([]);
   const [guessCorrect, setGuessCorrect] = useState<boolean | null>(null);
+  
+  // 获取用于计算奖励的奖池（游戏中用快照，否则用实时）
+  const effectivePrizePool = prizePoolSnapshot ?? prizePool;
 
   // 开始游戏
   const startGame = useCallback(() => {
@@ -53,7 +57,9 @@ export function HiLoGame() {
     setStreak(0);
     setGameState('playing');
     setGuessCorrect(null);
-  }, [credits, selectedTierIndex]);
+    // 锁定当前奖池快照 - 整局游戏的奖励都基于此计算
+    setPrizePoolSnapshot(prizePool);
+  }, [credits, selectedTierIndex, prizePool]);
 
   // 猜测
   const makeGuess = useCallback((guess: Guess) => {
@@ -85,8 +91,8 @@ export function HiLoGame() {
         
         // 检查是否达到门槛上限
         if (newStreak >= currentBetTier.maxStreak) {
-          // 自动兑现
-          const reward = calculateHiLoReward(newStreak, currentBetTier.maxStreak, prizePool);
+          // 自动兑现 - 使用锁定的奖池快照
+          const reward = calculateHiLoReward(newStreak, currentBetTier.maxStreak, effectivePrizePool);
           setGameState('won');
           const result: HiLoResult = {
             id: `${Date.now()}-${Math.random()}`,
@@ -120,13 +126,14 @@ export function HiLoGame() {
       
       setIsRevealing(false);
     }, HILO_CONFIG.animation.flipDuration + HILO_CONFIG.animation.revealDelay);
-  }, [gameState, currentCard, isRevealing, streak, currentBetTier, prizePool]);
+  }, [gameState, currentCard, isRevealing, streak, currentBetTier, effectivePrizePool]);
 
   // 收手兑现
   const cashOut = useCallback(() => {
     if (gameState !== 'playing' || streak <= 0) return;
     
-    const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, prizePool);
+    // 使用锁定的奖池快照计算奖励
+    const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
     setGameState('won');
     
     const result: HiLoResult = {
@@ -139,7 +146,7 @@ export function HiLoGame() {
       timestamp: Date.now(),
     };
     setResults(prev => [result, ...prev]);
-  }, [gameState, streak, currentBetTier, prizePool]);
+  }, [gameState, streak, currentBetTier, effectivePrizePool]);
 
   // 重新开始
   const resetGame = useCallback(() => {
@@ -148,9 +155,10 @@ export function HiLoGame() {
     setNextCard(null);
     setStreak(0);
     setGuessCorrect(null);
+    setPrizePoolSnapshot(null); // 清除快照，下局重新锁定
   }, []);
 
-  const currentReward = calculateHiLoReward(streak, currentBetTier.maxStreak, prizePool);
+  const currentReward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
 
   // 计算概率显示
   const higherProb = currentCard ? (calculateWinProbability(currentCard.value, 'higher') * 100).toFixed(1) : '0';
@@ -184,7 +192,7 @@ export function HiLoGame() {
           <div className="lg:col-span-3">
             <RewardLadder 
               currentStreak={streak} 
-              prizePool={prizePool} 
+              prizePool={effectivePrizePool} 
               currentBetTier={currentBetTier}
             />
           </div>
