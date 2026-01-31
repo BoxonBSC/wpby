@@ -239,17 +239,21 @@ export function CinematicWheel({
 
           {/* 主轮盘 */}
           <motion.div
-            className="absolute rounded-full overflow-hidden"
+            className="absolute rounded-full"
             style={{
               width: wheelSize,
               height: wheelSize,
               left: 20,
               top: 20,
+              overflow: 'visible',
             }}
             animate={wheelControls}
             initial={{ rotate: 0 }}
           >
+            {/* 背景层 - z-index: 0 */}
             <WheelBackground theme={theme} isSpinning={isSpinning} />
+            
+            {/* 扇区层 - z-index: 10 */}
             <WheelSectors 
               sectors={sectors} 
               theme={theme} 
@@ -257,16 +261,17 @@ export function CinematicWheel({
               winningSector={winningSector?.id || null}
             />
             
-            {/* Motion Blur 效果 */}
+            {/* Motion Blur 效果 - z-index: 20 */}
             {spinPhase === 'spinning' && (
               <motion.div
-                className="absolute inset-0 rounded-full"
+                className="absolute inset-0 rounded-full pointer-events-none"
                 style={{
                   background: `radial-gradient(circle, transparent 30%, ${colors.glow}10 100%)`,
                   filter: 'blur(3px)',
+                  zIndex: 20,
                 }}
                 animate={{
-                  opacity: [0, 0.5, 0],
+                  opacity: [0, 0.3, 0],
                 }}
                 transition={{
                   duration: 0.1,
