@@ -12,21 +12,20 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWallet } from '@/contexts/WalletContext';
 import { toast } from '@/hooks/use-toast';
-import { BET_LEVELS } from '@/config/contracts';
 
 interface LuxuryWheelProps {
   prizePool: number;
+  selectedBet?: number;
   onSpin?: (result: WheelSector, payout: number) => void;
 }
 
-export function LuxuryWheel({ prizePool, onSpin }: LuxuryWheelProps) {
+export function LuxuryWheel({ prizePool, selectedBet = 10000, onSpin }: LuxuryWheelProps) {
   const { t } = useLanguage();
   const { isConnected, connect, gameCredits } = useWallet();
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<WheelSector | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [selectedBet, setSelectedBet] = useState(BET_LEVELS[0].value);
   const wheelRef = useRef<HTMLDivElement>(null);
   
   const sectorAngles = calculateSectorAngles();
@@ -327,43 +326,6 @@ export function LuxuryWheel({ prizePool, onSpin }: LuxuryWheelProps) {
             />
           )}
         </AnimatePresence>
-      </div>
-
-      {/* 奖池显示 */}
-      <motion.div 
-        className="mt-8 text-center"
-        animate={isSpinning ? { scale: [1, 1.05, 1] } : {}}
-        transition={{ duration: 1, repeat: Infinity }}
-      >
-        <div className="text-sm text-muted-foreground uppercase tracking-widest mb-1">
-          Prize Pool
-        </div>
-        <div className="text-5xl font-display text-shimmer">
-          {prizePool.toFixed(2)} BNB
-        </div>
-      </motion.div>
-
-      {/* 下注选择 */}
-      <div className="mt-6 flex items-center gap-3 flex-wrap justify-center">
-        {BET_LEVELS.map((bet) => (
-          <motion.button
-            key={bet.value}
-            onClick={() => setSelectedBet(bet.value)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={isSpinning}
-            className={`
-              px-4 py-2 rounded-lg font-display text-sm transition-all
-              ${selectedBet === bet.value
-                ? 'bg-primary/30 border-2 border-primary text-primary shadow-[0_0_20px_hsl(45_100%_50%/0.4)]'
-                : 'bg-muted/50 border border-border text-muted-foreground hover:text-foreground hover:border-primary/50'
-              }
-            `}
-          >
-            <div className="font-bold">{bet.label}</div>
-            <div className="text-xs opacity-70">{bet.multiplier}</div>
-          </motion.button>
-        ))}
       </div>
 
       {/* 旋转按钮 */}
