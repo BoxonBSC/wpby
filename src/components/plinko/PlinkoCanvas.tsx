@@ -58,7 +58,8 @@ export const PlinkoCanvas = forwardRef<PlinkoCanvasRef, PlinkoCanvasProps>(
 
   const { game, physics, visuals } = PLINKO_CONFIG;
   
-  const cols = game.rows + 1;
+  // 使用 SLOT_REWARDS 数组长度作为槽位数量
+  const cols = SLOT_REWARDS.length;
   const boardWidth = cols * game.pegSpacing;
   const offsetX = (width - boardWidth) / 2;
   const offsetY = 50;
