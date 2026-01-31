@@ -44,7 +44,7 @@ contract CyberPlinko is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausabl
     uint256 public constant SUPER_JACKPOT_PERCENT = 3000;  // 30%
     uint256 public constant JACKPOT_PERCENT = 1500;        // 15%
     uint256 public constant MEDIUM_PERCENT = 500;          // 5%
-    uint256 public constant SMALL_FIXED_BNB = 0.01 ether;  // 固定0.01 BNB
+    uint256 public constant SMALL_FIXED_BNB = 0.002 ether;  // 固定0.002 BNB
     
     uint256 public constant SUPER_JACKPOT_MAX = 5 ether;   // 上限5 BNB
     uint256 public constant JACKPOT_MAX = 2 ether;         // 上限2 BNB

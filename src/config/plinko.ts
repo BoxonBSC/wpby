@@ -107,7 +107,7 @@ export const SLOT_REWARDS: SlotReward[] = [
   // 槽位 5
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 6 - 小奖 (概率 7.08%)
-  { type: 'small', label: '小奖', fullLabel: '✨ 小奖 0.01 BNB', fixedBNB: 0.01, color: COLORS.small },
+  { type: 'small', label: '小奖', fullLabel: '✨ 小奖 0.002 BNB', fixedBNB: 0.002, color: COLORS.small },
   // 槽位 7
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 8 - 未中奖 (原小奖，已移除)
@@ -119,7 +119,7 @@ export const SLOT_REWARDS: SlotReward[] = [
   // 槽位 11
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 12 - 小奖 (概率 7.08%)
-  { type: 'small', label: '小奖', fullLabel: '✨ 小奖 0.01 BNB', fixedBNB: 0.01, color: COLORS.small },
+  { type: 'small', label: '小奖', fullLabel: '✨ 小奖 0.002 BNB', fixedBNB: 0.002, color: COLORS.small },
   // 槽位 13
   { type: 'no_win', label: '', fullLabel: '未中奖', color: COLORS.no_win },
   // 槽位 14 - 中奖 (概率 1.17%)
@@ -203,7 +203,7 @@ export function getRewardInfo(type: RewardType): { percent?: number; fixed?: num
     case 'super_jackpot': return { percent: 30, max: 5 };
     case 'jackpot': return { percent: 15, max: 2 };
     case 'medium': return { percent: 5, max: 0.5 };
-    case 'small': return { fixed: 0.01 };
+    case 'small': return { fixed: 0.002 };
     default: return {};
   }
 }
@@ -261,21 +261,21 @@ export type PlinkoResult = {
 // 大奖中奖率: ~2.5%
 // 
 // 【每1000次游戏的奖池消耗】（假设奖池10 BNB）
-// - 小奖: 1000×14.16%×0.01 = 1.416 BNB（固定）
+// - 小奖: 1000×14.16%×0.002 = 0.283 BNB（固定）
 // - 中奖: 1000×2.34%×0.5 = 1.17 BNB（上限）
 // - 大奖: 1000×0.12%×1.5 = 0.18 BNB
 // - 超级大奖: 1000×0.0008%×3 = 0.0024 BNB
-// 总计: ~2.77 BNB/1000次
+// 总计: ~1.64 BNB/1000次
 //
 // 【返点率分析】（假设20K代币 ≈ 0.02 BNB）
-// 每次期望奖励: 0.00277 BNB
+// 每次期望奖励: 0.00164 BNB
 // 每次下注价值: 0.02 BNB
-// RTP = 0.00277 / 0.02 = 13.85% → 项目利润率 86.15%
+// RTP = 0.00164 / 0.02 = 8.2% → 项目利润率 91.8%
 //
 // 【可持续性分析】
-// 日均1000次：消耗27.7%奖池 → 可撑 ~3.6天（需持续注入）
-// 日均500次：消耗13.85%奖池 → 可撑 ~7.2天
+// 日均1000次：消耗16.4%奖池 → 可撑 ~6天
+// 日均500次：消耗8.2%奖池 → 可撑 ~12天
 // 
 // 【与之前对比】
-// 4个小奖槽位版本：~50%中奖率，190% RTP（不可持续）
-// 2个小奖槽位版本：~16.6%中奖率，~14% RTP ✅ 高度可持续
+// 0.01 BNB小奖版本：~14% RTP
+// 0.002 BNB小奖版本：~8.2% RTP ✅ 更高利润率
