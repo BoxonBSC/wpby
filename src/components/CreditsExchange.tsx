@@ -135,7 +135,7 @@ export function CreditsExchange() {
           <div className="flex items-start gap-2">
             <span style={{ color: '#FFD700' }}>•</span>
             <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.8)' }}>
-              凭证<strong style={{ color: '#00FFC8' }}>专用于王牌博弈游戏</strong>，中奖直发BNB到钱包
+              凭证<strong style={{ color: '#00FFC8' }}>专用于王牌博弈游戏</strong>，中奖后<strong style={{ color: '#FF6B35' }}>需手动领取</strong>BNB
             </span>
           </div>
         </div>
