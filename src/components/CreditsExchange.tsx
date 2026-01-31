@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@/contexts/WalletContext';
 import { useCyberSlots } from '@/hooks/useCyberSlots';
-import { Flame, ArrowRight, Ticket, CheckCircle, Coins } from 'lucide-react';
+import { Flame, ArrowRight, Ticket, CheckCircle, Coins, Keyboard } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -13,11 +13,23 @@ export function CreditsExchange() {
   const { tokenBalance, gameCredits, depositCredits, error: contractError, refreshData } = useCyberSlots();
   const { t } = useLanguage();
   const [selectedAmount, setSelectedAmount] = useState(EXCHANGE_AMOUNTS[1]);
+  const [customAmount, setCustomAmount] = useState('');
+  const [useCustom, setUseCustom] = useState(false);
   const [isExchanging, setIsExchanging] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const tokenBalanceNum = Number(tokenBalance);
   const gameCreditsNum = Number(gameCredits);
+  
+  // 获取最终要兑换的金额
+  const finalAmount = useCustom 
+    ? Math.floor(Number(customAmount) || 0) 
+    : selectedAmount;
+
+  // 验证自定义金额
+  const isValidCustomAmount = useCustom 
+    ? finalAmount > 0 && finalAmount <= tokenBalanceNum && finalAmount <= 100000000 // 最大1亿
+    : tokenBalanceNum >= selectedAmount;
 
   const handleExchange = async () => {
     if (!isConnected) {
@@ -25,10 +37,15 @@ export function CreditsExchange() {
       return;
     }
 
-    if (tokenBalanceNum < selectedAmount) {
+    if (finalAmount <= 0) {
+      toast({ title: '请输入有效金额', variant: "destructive" });
+      return;
+    }
+
+    if (tokenBalanceNum < finalAmount) {
       toast({
         title: t('exchange.insufficientTokens'),
-        description: t('exchange.needTokens').replace('{amount}', selectedAmount.toLocaleString()),
+        description: t('exchange.needTokens').replace('{amount}', finalAmount.toLocaleString()),
         variant: "destructive",
       });
       return;
@@ -37,15 +54,16 @@ export function CreditsExchange() {
     setIsExchanging(true);
     
     try {
-      const result = await depositCredits(selectedAmount);
+      const result = await depositCredits(finalAmount);
       
       if (result.ok) {
         setShowSuccess(true);
         toast({
           title: `${t('exchange.success')} 🎉`,
-          description: t('exchange.successDesc').replace('{amount}', selectedAmount.toLocaleString()),
+          description: t('exchange.successDesc').replace('{amount}', finalAmount.toLocaleString()),
         });
         setTimeout(() => setShowSuccess(false), 2000);
+        if (useCustom) setCustomAmount('');
         await refreshData();
       } else {
         toast({
@@ -70,6 +88,37 @@ export function CreditsExchange() {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
     return num.toString();
+  };
+
+  // 处理自定义输入
+  const handleCustomInput = (value: string) => {
+    // 只允许数字
+    const sanitized = value.replace(/[^0-9]/g, '');
+    // 限制最大长度（防止过大数字）
+    if (sanitized.length <= 9) {
+      setCustomAmount(sanitized);
+      setUseCustom(true);
+    }
+  };
+
+  // 选择预设金额
+  const handlePresetClick = (amount: number) => {
+    if (tokenBalanceNum >= amount) {
+      setSelectedAmount(amount);
+      setUseCustom(false);
+      setCustomAmount('');
+    }
+  };
+
+  // 快捷按钮：全部、一半
+  const handleQuickAmount = (type: 'all' | 'half') => {
+    const amount = type === 'all' 
+      ? Math.floor(tokenBalanceNum) 
+      : Math.floor(tokenBalanceNum / 2);
+    if (amount > 0) {
+      setCustomAmount(amount.toString());
+      setUseCustom(true);
+    }
   };
 
   return (
@@ -180,18 +229,18 @@ export function CreditsExchange() {
           </div>
         </div>
 
-        {/* 金额选择 - 更紧凑 */}
+        {/* 金额选择 - 预设按钮 */}
         <div className="grid grid-cols-4 gap-1">
           {EXCHANGE_AMOUNTS.map((amount) => {
             const canAfford = tokenBalanceNum >= amount;
-            const isSelected = selectedAmount === amount;
+            const isSelected = !useCustom && selectedAmount === amount;
             
             return (
               <motion.button
                 key={amount}
                 whileHover={{ scale: canAfford ? 1.05 : 1 }}
                 whileTap={{ scale: canAfford ? 0.95 : 1 }}
-                onClick={() => canAfford && setSelectedAmount(amount)}
+                onClick={() => handlePresetClick(amount)}
                 disabled={!canAfford}
                 className="py-1.5 px-1 rounded-md text-[11px] transition-all"
                 style={{
@@ -219,6 +268,82 @@ export function CreditsExchange() {
           })}
         </div>
 
+        {/* 自定义输入框 */}
+        <div 
+          className="rounded-lg p-2"
+          style={{
+            background: useCustom 
+              ? 'linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 69, 0, 0.05) 100%)'
+              : 'rgba(0, 0, 0, 0.2)',
+            border: useCustom 
+              ? '1px solid rgba(255, 107, 53, 0.4)' 
+              : '1px solid rgba(201, 163, 71, 0.15)',
+          }}
+        >
+          <div className="flex items-center gap-2 mb-1.5">
+            <Keyboard className="w-3 h-3" style={{ color: useCustom ? '#FF6B35' : 'rgba(201, 163, 71, 0.5)' }} />
+            <span className="text-[10px]" style={{ color: useCustom ? '#FF6B35' : 'rgba(201, 163, 71, 0.6)' }}>
+              自定义金额
+            </span>
+            {/* 快捷按钮 */}
+            <div className="flex gap-1 ml-auto">
+              <button
+                onClick={() => handleQuickAmount('half')}
+                className="px-2 py-0.5 rounded text-[9px] transition-all hover:opacity-80"
+                style={{
+                  background: 'rgba(201, 163, 71, 0.15)',
+                  color: '#C9A347',
+                  border: '1px solid rgba(201, 163, 71, 0.25)',
+                }}
+              >
+                50%
+              </button>
+              <button
+                onClick={() => handleQuickAmount('all')}
+                className="px-2 py-0.5 rounded text-[9px] transition-all hover:opacity-80"
+                style={{
+                  background: 'rgba(255, 107, 53, 0.15)',
+                  color: '#FF6B35',
+                  border: '1px solid rgba(255, 107, 53, 0.25)',
+                }}
+              >
+                全部
+              </button>
+            </div>
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="输入任意数量..."
+              value={customAmount}
+              onChange={(e) => handleCustomInput(e.target.value)}
+              onFocus={() => customAmount && setUseCustom(true)}
+              className="w-full py-2 px-3 rounded-md text-sm outline-none transition-all"
+              style={{
+                fontFamily: '"Cinzel", serif',
+                background: 'rgba(0, 0, 0, 0.4)',
+                color: useCustom && customAmount ? '#FFD700' : 'rgba(201, 163, 71, 0.8)',
+                border: '1px solid rgba(201, 163, 71, 0.2)',
+              }}
+            />
+            {customAmount && (
+              <span 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px]"
+                style={{ color: 'rgba(201, 163, 71, 0.5)' }}
+              >
+                代币
+              </span>
+            )}
+          </div>
+          {/* 输入验证提示 */}
+          {useCustom && customAmount && !isValidCustomAmount && (
+            <p className="text-[9px] mt-1" style={{ color: '#EF4444' }}>
+              {Number(customAmount) > tokenBalanceNum ? '超出代币余额' : '请输入有效金额'}
+            </p>
+          )}
+        </div>
+
         {/* 兑换预览 - 极简版 */}
         <div 
           className="flex items-center justify-center gap-3 py-2 px-3 rounded-lg"
@@ -228,7 +353,7 @@ export function CreditsExchange() {
           }}
         >
           <span className="text-xs" style={{ color: '#EF4444' }}>
-            -{formatNumber(selectedAmount)} 代币
+            -{formatNumber(finalAmount)} 代币
           </span>
           <motion.div
             animate={{ x: [0, 3, 0] }}
@@ -237,7 +362,7 @@ export function CreditsExchange() {
             <ArrowRight className="w-3.5 h-3.5" style={{ color: 'rgba(201, 163, 71, 0.4)' }} />
           </motion.div>
           <span className="text-xs" style={{ color: '#00FFC8' }}>
-            +{formatNumber(selectedAmount)} 凭证
+            +{formatNumber(finalAmount)} 凭证
           </span>
         </div>
 
@@ -246,23 +371,23 @@ export function CreditsExchange() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleExchange}
-          disabled={isExchanging || tokenBalanceNum < selectedAmount || !isConnected}
+          disabled={isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0}
           className="w-full py-2.5 rounded-lg text-xs transition-all relative overflow-hidden"
           style={{
             fontFamily: '"Cinzel", serif',
-            background: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            background: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
               ? 'rgba(201, 163, 71, 0.1)'
               : 'linear-gradient(135deg, rgba(255, 107, 53, 0.9) 0%, rgba(255, 69, 0, 0.8) 100%)',
-            color: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            color: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
               ? 'rgba(201, 163, 71, 0.4)'
               : '#FFF',
-            border: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            border: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
               ? '1px solid rgba(201, 163, 71, 0.2)'
               : '1px solid rgba(255, 107, 53, 0.8)',
-            cursor: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            cursor: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
               ? 'not-allowed'
               : 'pointer',
-            boxShadow: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            boxShadow: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
               ? 'none'
               : '0 4px 16px rgba(255, 107, 53, 0.3)',
           }}
