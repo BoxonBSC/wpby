@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Trophy, User } from 'lucide-react';
+import { Clock, Trophy, User, Award, Star, Gem, Crown } from 'lucide-react';
 import { useCyberSlots, formatSymbols, shortenAddress } from '@/hooks/useCyberSlots';
 import { formatEther } from 'ethers';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -9,33 +9,80 @@ interface HistoryItem {
   id: string;
   address: string;
   result: string;
+  symbols: number[];
   winAmount: number;
   timestamp: Date;
   isWin: boolean;
   txHash?: string;
+  prizeType: string;
+  prizeName: string;
+  prizeColor: string;
 }
 
 const VISIBLE_COUNT = 8; // 每次显示8条
 const ROTATE_INTERVAL = 5000; // 每5秒轮动一次
 
+// 根据符号判断中奖类型
+function getPrizeInfo(symbols: number[], language: string): { type: string; name: string; color: string } {
+  const counts: Record<number, number> = {};
+  symbols.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+  
+  const maxCount = Math.max(...Object.values(counts));
+  const maxSymbol = Number(Object.keys(counts).find(k => counts[Number(k)] === maxCount));
+  
+  // 超级头奖: 5×7️⃣ (symbol 0)
+  if (maxCount === 5 && maxSymbol === 0) {
+    return { type: 'super_jackpot', name: language === 'zh' ? '超级头奖' : 'SUPER JACKPOT', color: 'text-neon-yellow' };
+  }
+  // 头奖: 5×💎 (symbol 1) 或 4×7️⃣
+  if ((maxCount === 5 && maxSymbol === 1) || (maxCount === 4 && maxSymbol === 0)) {
+    return { type: 'jackpot', name: language === 'zh' ? '头奖' : 'JACKPOT', color: 'text-neon-purple' };
+  }
+  // 一等奖: 任意5个相同
+  if (maxCount === 5) {
+    return { type: 'first', name: language === 'zh' ? '一等奖' : '1st Prize', color: 'text-neon-pink' };
+  }
+  // 二等奖: 4个稀有符号 (0-4)
+  if (maxCount === 4 && maxSymbol <= 4) {
+    return { type: 'second', name: language === 'zh' ? '二等奖' : '2nd Prize', color: 'text-neon-cyan' };
+  }
+  // 三等奖: 4个普通符号 (5-9)
+  if (maxCount === 4) {
+    return { type: 'third', name: language === 'zh' ? '三等奖' : '3rd Prize', color: 'text-neon-blue' };
+  }
+  // 小奖: 3个相同
+  if (maxCount === 3) {
+    return { type: 'small', name: language === 'zh' ? '小奖' : 'Small Win', color: 'text-neon-green' };
+  }
+  // 安慰奖: 2个相同
+  return { type: 'consolation', name: language === 'zh' ? '安慰奖' : 'Consolation', color: 'text-muted-foreground' };
+}
+
 export function CompactGameHistory() {
   const { recentWins } = useCyberSlots();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [startIndex, setStartIndex] = useState(0);
 
   // 获取最多20条中奖记录
   const allHistory: HistoryItem[] = recentWins
     .filter(win => win.winAmount > 0n)
     .slice(0, 20)
-    .map((win, index) => ({
-      id: `${win.requestId}-${index}`,
-      address: shortenAddress(win.player),
-      result: formatSymbols(win.symbols).join(' '),
-      winAmount: parseFloat(formatEther(win.winAmount)),
-      timestamp: new Date(win.timestamp),
-      isWin: true,
-      txHash: win.txHash,
-    }));
+    .map((win, index) => {
+      const prizeInfo = getPrizeInfo(win.symbols, language);
+      return {
+        id: `${win.requestId}-${index}`,
+        address: shortenAddress(win.player),
+        result: formatSymbols(win.symbols).join(' '),
+        symbols: win.symbols,
+        winAmount: parseFloat(formatEther(win.winAmount)),
+        timestamp: new Date(win.timestamp),
+        isWin: true,
+        txHash: win.txHash,
+        prizeType: prizeInfo.type,
+        prizeName: prizeInfo.name,
+        prizeColor: prizeInfo.color,
+      };
+    });
 
   // 轮动效果：当记录超过5条时自动切换
   useEffect(() => {
@@ -98,11 +145,13 @@ export function CompactGameHistory() {
                 transition={{ delay: index * 0.03, duration: 0.25 }}
                 className={`
                   p-2 rounded-lg text-xs
-                  ${item.isWin ? 'neon-border bg-neon-green/5' : 'border border-border bg-muted/20'}
-                  ${item.txHash ? 'cursor-pointer hover:bg-neon-green/10 transition-colors' : ''}
+                  ${item.prizeType === 'super_jackpot' ? 'bg-gradient-to-r from-neon-yellow/20 to-neon-orange/10 border border-neon-yellow/40' :
+                    item.prizeType === 'jackpot' ? 'bg-gradient-to-r from-neon-purple/20 to-neon-pink/10 border border-neon-purple/40' :
+                    'neon-border bg-neon-green/5'}
+                  ${item.txHash ? 'cursor-pointer hover:brightness-110 transition-all' : ''}
                 `}
               >
-                {/* 第一行：地址 + 金额 */}
+                {/* 第一行：地址 + 奖级 */}
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
                     <User className="w-3 h-3 text-neon-cyan flex-shrink-0" />
@@ -110,16 +159,17 @@ export function CompactGameHistory() {
                       {item.address}
                     </span>
                   </div>
-                  {item.isWin && (
-                    <div className="flex items-center gap-1 text-neon-yellow">
-                      <Trophy className="w-3 h-3" />
-                      <span className="font-display text-[11px]">+{item.winAmount.toFixed(4)}</span>
-                    </div>
-                  )}
+                  <span className={`font-display text-[10px] px-1.5 py-0.5 rounded ${item.prizeColor} bg-background/50`}>
+                    {item.prizeName}
+                  </span>
                 </div>
-                {/* 第二行：符号结果 */}
-                <div className="text-center text-sm">
-                  {item.result}
+                {/* 第二行：符号 + 金额 */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">{item.result}</span>
+                  <div className="flex items-center gap-1 text-neon-yellow">
+                    <Trophy className="w-3 h-3" />
+                    <span className="font-display text-[11px]">+{item.winAmount.toFixed(4)}</span>
+                  </div>
                 </div>
               </motion.div>
             );

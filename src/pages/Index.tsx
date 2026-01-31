@@ -164,7 +164,7 @@ const Index = () => {
         </div>
 
         {/* 桌面端布局 - 三栏等高 */}
-        <div className="hidden lg:grid xl:grid-cols-[280px_1fr_300px] lg:grid-cols-[240px_1fr_260px] gap-4 items-stretch">
+        <div className="hidden lg:grid xl:grid-cols-[320px_1fr_300px] lg:grid-cols-[280px_1fr_260px] gap-4 items-stretch">
           {/* 左侧 - 钱包 + 凭证兑换 + 历史记录 */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
