@@ -81,9 +81,9 @@ export function PlinkoGame() {
     setVolume(vol);
   }, [sounds]);
 
-  // 碰撞音效回调
+  // 碰撞音效回调 - 增加音量
   const handleCollision = useCallback(() => {
-    sounds.playCollisionSound(0.3 + Math.random() * 0.4);
+    sounds.playCollisionSound(0.5 + Math.random() * 0.5);
   }, [sounds]);
 
   // 处理球落入槽位
@@ -94,7 +94,12 @@ export function PlinkoGame() {
     // 播放落槽音效
     sounds.playSlotSound(multiplier);
     
-    // 超级大奖
+    // 大奖庆祝音效（10倍以上）
+    if (multiplier >= 10) {
+      sounds.playWinSound(multiplier);
+    }
+    
+    // 超级大奖（41倍以上）
     if (multiplier >= 41) {
       sounds.playJackpotSound();
     }
