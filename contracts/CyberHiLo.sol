@@ -463,8 +463,9 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     
     /**
      * @notice 领取未发放的奖励
+     * @dev 添加 whenNotPaused 保护，发现漏洞时可暂停所有提款
      */
-    function claimPrize() external nonReentrant {
+    function claimPrize() external nonReentrant whenNotPaused {
         uint256 amount = unclaimedPrizes[msg.sender];
         require(amount > 0, "No unclaimed prizes");
         
