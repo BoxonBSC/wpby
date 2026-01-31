@@ -79,6 +79,7 @@ const Index = () => {
               prizePool={prizePool}
               theme={theme}
               onSpinComplete={handleSpinComplete}
+              demoMode={true}
             />
           </motion.div>
           
@@ -124,6 +125,7 @@ const Index = () => {
               prizePool={prizePool}
               theme={theme}
               onSpinComplete={handleSpinComplete}
+              demoMode={true}
             />
           </motion.div>
 
