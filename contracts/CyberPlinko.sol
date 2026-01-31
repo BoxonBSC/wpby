@@ -154,47 +154,48 @@ contract CyberPlinko is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausabl
     }
     
     /**
-     * @dev 初始化19个槽位的奖励配置
-     * 布局：[超级][  ][大奖][  ][中奖][  ][小奖][  ][小奖][中间][小奖][  ][小奖][  ][中奖][  ][大奖][  ][超级]
+     * @dev 初始化19个槽位的奖励配置（优化版：只保留2个小奖槽位）
+     * 布局：[超级][  ][大奖][  ][中奖][  ][小奖][  ][  ][中间][  ][  ][小奖][  ][中奖][  ][大奖][  ][超级]
+     * 总中奖率：~16.6%（超级0.0008% + 大奖0.12% + 中奖2.34% + 小奖14.16%）
      */
     function _initializeSlotRewards() internal {
-        // 槽位 0 - 超级大奖 (最左边缘)
+        // 槽位 0 - 超级大奖 (最左边缘，概率 0.0004%)
         slotRewards[0] = RewardConfig(RewardType.SUPER_JACKPOT, SUPER_JACKPOT_PERCENT, SUPER_JACKPOT_MAX, 0);
         // 槽位 1 - 未中奖
         slotRewards[1] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 2 - 大奖
+        // 槽位 2 - 大奖 (概率 0.06%)
         slotRewards[2] = RewardConfig(RewardType.JACKPOT, JACKPOT_PERCENT, JACKPOT_MAX, 0);
         // 槽位 3 - 未中奖
         slotRewards[3] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 4 - 中奖
+        // 槽位 4 - 中奖 (概率 1.17%)
         slotRewards[4] = RewardConfig(RewardType.MEDIUM, MEDIUM_PERCENT, MEDIUM_MAX, 0);
         // 槽位 5 - 未中奖
         slotRewards[5] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 6 - 小奖
+        // 槽位 6 - 小奖 (概率 7.08%)
         slotRewards[6] = RewardConfig(RewardType.SMALL, 0, 0, SMALL_FIXED_BNB);
         // 槽位 7 - 未中奖
         slotRewards[7] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 8 - 小奖
-        slotRewards[8] = RewardConfig(RewardType.SMALL, 0, 0, SMALL_FIXED_BNB);
+        // 槽位 8 - 未中奖 (原小奖已移除)
+        slotRewards[8] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
         // 槽位 9 - 中间（未中奖）
         slotRewards[9] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 10 - 小奖
-        slotRewards[10] = RewardConfig(RewardType.SMALL, 0, 0, SMALL_FIXED_BNB);
+        // 槽位 10 - 未中奖 (原小奖已移除)
+        slotRewards[10] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
         // 槽位 11 - 未中奖
         slotRewards[11] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 12 - 小奖
+        // 槽位 12 - 小奖 (概率 7.08%)
         slotRewards[12] = RewardConfig(RewardType.SMALL, 0, 0, SMALL_FIXED_BNB);
         // 槽位 13 - 未中奖
         slotRewards[13] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 14 - 中奖
+        // 槽位 14 - 中奖 (概率 1.17%)
         slotRewards[14] = RewardConfig(RewardType.MEDIUM, MEDIUM_PERCENT, MEDIUM_MAX, 0);
         // 槽位 15 - 未中奖
         slotRewards[15] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 16 - 大奖
+        // 槽位 16 - 大奖 (概率 0.06%)
         slotRewards[16] = RewardConfig(RewardType.JACKPOT, JACKPOT_PERCENT, JACKPOT_MAX, 0);
         // 槽位 17 - 未中奖
         slotRewards[17] = RewardConfig(RewardType.NO_WIN, 0, 0, 0);
-        // 槽位 18 - 超级大奖 (最右边缘)
+        // 槽位 18 - 超级大奖 (最右边缘，概率 0.0004%)
         slotRewards[18] = RewardConfig(RewardType.SUPER_JACKPOT, SUPER_JACKPOT_PERCENT, SUPER_JACKPOT_MAX, 0);
     }
     
