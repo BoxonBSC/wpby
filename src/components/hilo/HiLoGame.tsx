@@ -10,6 +10,7 @@ import {
   Card,
   Guess,
   BET_TIERS,
+  REWARD_TIERS,
   generateRandomCard,
   calculateHiLoReward,
   calculateWinProbability,
@@ -208,22 +209,25 @@ export function HiLoGame() {
               }}
             >
               {/* 连胜显示 */}
-              {gameState === 'playing' && streak > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full"
-                  style={{
-                    background: `linear-gradient(90deg, ${currentBetTier.color}30 0%, transparent 100%)`,
-                    border: `1px solid ${currentBetTier.color}60`,
-                  }}
-                >
-                  <span className="font-bold" style={{ color: currentBetTier.color }}>
-                    连胜 {streak}/{currentBetTier.maxStreak}
-                  </span>
-                  <span className="text-[#C9A347] ml-2">| {currentReward.toFixed(4)} BNB</span>
-                </motion.div>
-              )}
+              {gameState === 'playing' && streak > 0 && (() => {
+                const currentTier = REWARD_TIERS.find(t => t.streak === streak);
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full"
+                    style={{
+                      background: `linear-gradient(90deg, ${currentBetTier.color}30 0%, transparent 100%)`,
+                      border: `1px solid ${currentBetTier.color}60`,
+                    }}
+                  >
+                    <span className="font-bold" style={{ color: currentBetTier.color }}>
+                      连胜 {streak}/{currentBetTier.maxStreak}
+                    </span>
+                    <span className="text-[#C9A347] ml-2">| {currentTier?.percentage ?? 0}% (≈{currentReward.toFixed(4)} BNB)</span>
+                  </motion.div>
+                );
+              })()}
 
               {/* 牌区 */}
               <div className="flex items-center justify-center gap-8 min-h-[300px]">
@@ -407,15 +411,18 @@ export function HiLoGame() {
                     </div>
 
                     {/* 收手按钮 */}
-                    {streak > 0 && (
-                      <Button
-                        onClick={cashOut}
-                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black hover:from-[#FFA500] hover:to-[#FFD700]"
-                      >
-                        <HandCoins className="w-5 h-5 mr-2" />
-                        收手兑现 {currentReward.toFixed(4)} BNB
-                      </Button>
-                    )}
+                    {streak > 0 && (() => {
+                      const currentTier = REWARD_TIERS.find(t => t.streak === streak);
+                      return (
+                        <Button
+                          onClick={cashOut}
+                          className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black hover:from-[#FFA500] hover:to-[#FFD700]"
+                        >
+                          <HandCoins className="w-5 h-5 mr-2" />
+                          收手兑现 {currentTier?.percentage ?? 0}% 奖池 (≈{currentReward.toFixed(4)} BNB)
+                        </Button>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -427,34 +434,40 @@ export function HiLoGame() {
                 )}
 
                 {/* 游戏结束 */}
-                {(gameState === 'won' || gameState === 'lost') && (
-                  <div className="text-center space-y-4">
-                    <div 
-                      className={`
-                        text-3xl font-bold py-4
-                        ${gameState === 'won' ? 'text-[#FFD700]' : 'text-red-400'}
-                      `}
-                    >
-                      {gameState === 'won' ? (
-                        <>恭喜获得 {currentReward.toFixed(4)} BNB!</>
-                      ) : (
-                        <>游戏结束 - 连胜 {streak} 次</>
-                      )}
+                {(gameState === 'won' || gameState === 'lost') && (() => {
+                  const currentTier = REWARD_TIERS.find(t => t.streak === streak);
+                  return (
+                    <div className="text-center space-y-4">
+                      <div 
+                        className={`
+                          text-2xl font-bold py-4
+                          ${gameState === 'won' ? 'text-[#FFD700]' : 'text-red-400'}
+                        `}
+                      >
+                        {gameState === 'won' ? (
+                          <>
+                            <div>恭喜获得 {currentTier?.percentage ?? 0}% 奖池!</div>
+                            <div className="text-lg mt-1">≈ {currentReward.toFixed(4)} BNB</div>
+                          </>
+                        ) : (
+                          <>游戏结束 - 连胜 {streak} 次</>
+                        )}
+                      </div>
+                      
+                      <Button
+                        onClick={resetGame}
+                        className="w-full h-14 text-lg font-bold"
+                        style={{
+                          background: `linear-gradient(135deg, ${currentBetTier.color} 0%, ${currentBetTier.color}CC 100%)`,
+                          color: '#000',
+                        }}
+                      >
+                        <Play className="w-5 h-5 mr-2" />
+                        再来一局
+                      </Button>
                     </div>
-                    
-                    <Button
-                      onClick={resetGame}
-                      className="w-full h-14 text-lg font-bold"
-                      style={{
-                        background: `linear-gradient(135deg, ${currentBetTier.color} 0%, ${currentBetTier.color}CC 100%)`,
-                        color: '#000',
-                      }}
-                    >
-                      <Play className="w-5 h-5 mr-2" />
-                      再来一局
-                    </Button>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </div>
           </div>
