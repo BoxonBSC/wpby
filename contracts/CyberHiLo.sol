@@ -17,29 +17,57 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
  * - Owner无法提取或转移奖池资金
  * - 仅可通过fundPrizePool注入资金
  * - 玩家奖励直接发放，无中间托管
+ * 
+ * 游戏机制（匹配前端）：
+ * - 5门槛等级，每个等级有不同的最大连胜限制
+ * - 20级固定奖励百分比表
+ * - 猜大小，相同视为输
  */
 contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable {
     
-    // ============ 投注档位（可调整，只能降低） ============
-    uint256 public betLevel1 = 10000 * 10**18;   // 10K tokens
-    uint256 public betLevel2 = 25000 * 10**18;   // 25K tokens
-    uint256 public betLevel3 = 50000 * 10**18;   // 50K tokens
-    uint256 public betLevel4 = 100000 * 10**18;  // 100K tokens
-    uint256 public betLevel5 = 250000 * 10**18;  // 250K tokens
+    // ============ 5门槛等级配置（匹配前端） ============
+    // 青铜50K, 白银100K, 黄金200K, 铂金500K, 钻石1M
+    uint256 public betLevel1 = 50000 * 10**18;    // 青铜 - maxStreak=5
+    uint256 public betLevel2 = 100000 * 10**18;   // 白银 - maxStreak=8
+    uint256 public betLevel3 = 200000 * 10**18;   // 黄金 - maxStreak=12
+    uint256 public betLevel4 = 500000 * 10**18;   // 铂金 - maxStreak=16
+    uint256 public betLevel5 = 1000000 * 10**18;  // 钻石 - maxStreak=20
     
-    // ============ 奖励配置（可调整） ============
-    uint256 public baseRewardPercent = 50;       // 基础奖励：奖池的0.5%
-    uint256 public streakMultiplier = 150;       // 连胜倍数：每连胜+50%（150 = 1.5x）
-    uint256 public maxStreakBonus = 500;         // 最大连胜倍数：5x
-    uint256 public maxStreak = 10;               // 最大连胜次数
+    // 每个门槛的最大连胜限制
+    uint8 public maxStreak1 = 5;   // 青铜
+    uint8 public maxStreak2 = 8;   // 白银
+    uint8 public maxStreak3 = 12;  // 黄金
+    uint8 public maxStreak4 = 16;  // 铂金
+    uint8 public maxStreak5 = 20;  // 钻石
+    
+    // ============ 20级固定奖励百分比（万分比，匹配前端） ============
+    // 例如: 2 = 0.02%, 10 = 0.1%, 100 = 1%, 10000 = 100%
+    uint16[20] public rewardPercentages = [
+        2,      // 1连胜: 0.02%
+        5,      // 2连胜: 0.05%
+        10,     // 3连胜: 0.1%
+        15,     // 4连胜: 0.15%
+        25,     // 5连胜: 0.25% (青铜上限)
+        40,     // 6连胜: 0.4%
+        60,     // 7连胜: 0.6%
+        100,    // 8连胜: 1% (白银上限)
+        150,    // 9连胜: 1.5%
+        250,    // 10连胜: 2.5%
+        400,    // 11连胜: 4%
+        600,    // 12连胜: 6% (黄金上限)
+        900,    // 13连胜: 9%
+        1300,   // 14连胜: 13%
+        1800,   // 15连胜: 18%
+        2500,   // 16连胜: 25% (铂金上限)
+        3500,   // 17连胜: 35%
+        5000,   // 18连胜: 50%
+        7000,   // 19连胜: 70%
+        10000   // 20连胜: 100% (钻石上限 - 清空奖池)
+    ];
     
     // ============ 费用配置 ============
     uint256 public constant OPERATION_FEE_PERCENT = 500;  // 5% 运营费
     uint256 public constant PLAYER_PRIZE_PERCENT = 9500;  // 95% 给玩家
-    uint256 public constant MAX_SINGLE_PAYOUT_PERCENT = 1000; // 单次最大支付：奖池10%
-    
-    // ============ 绝对上限（BNB） ============
-    uint256 public maxPayoutBNB = 5 ether;       // 单次最大5 BNB
     
     // ============ VRF配置 ============
     bytes32 public keyHash;
@@ -76,16 +104,17 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     struct GameSession {
         address player;
         uint256 betAmount;
+        uint8 betTierIndex;     // 0-4 对应5个门槛
         uint8 currentCard;      // 当前牌 (1-13, A=1, J=11, Q=12, K=13)
         uint8 currentStreak;    // 当前连胜
-        uint256 accumulatedWin; // 累积奖励
+        uint256 prizePoolSnapshot; // 开始时锁定的奖池快照
         uint256 timestamp;
         bool active;
     }
     
     struct VRFRequest {
         address player;
-        uint8 guess;            // 0=Low, 1=High
+        uint8 guessHigh;        // 0=Low, 1=High
         uint256 timestamp;
         bool fulfilled;
     }
@@ -97,10 +126,10 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     mapping(address => uint256) public unclaimedPrizes;
     
     // ============ 事件 ============
-    event GameStarted(address indexed player, uint256 betAmount, uint8 firstCard);
-    event GuessRequested(address indexed player, uint256 indexed requestId, uint8 guess);
-    event GuessResult(address indexed player, uint256 indexed requestId, uint8 newCard, bool won, uint8 streak, uint256 potentialWin);
-    event GameCashedOut(address indexed player, uint256 totalWin, uint8 finalStreak);
+    event GameStarted(address indexed player, uint256 betAmount, uint8 betTierIndex, uint8 firstCard, uint256 prizePoolSnapshot);
+    event GuessRequested(address indexed player, uint256 indexed requestId, uint8 guessHigh);
+    event GuessResult(address indexed player, uint256 indexed requestId, uint8 oldCard, uint8 newCard, bool won, uint8 streak, uint256 potentialReward);
+    event GameCashedOut(address indexed player, uint256 grossPrize, uint256 playerPrize, uint8 finalStreak);
     event GameLost(address indexed player, uint8 lostAtStreak);
     event PrizeClaimed(address indexed player, uint256 amount);
     event PrizeTransferFailed(address indexed player, uint256 amount);
@@ -148,34 +177,63 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     // ============ 游戏核心 ============
     
     /**
-     * @notice 开始新游戏（使用链上随机数生成首张牌）
+     * @notice 获取门槛等级索引 (0-4)
      */
-    function startGame(uint256 betAmount) external nonReentrant whenNotPaused returns (uint256 requestId) {
+    function getBetTierIndex(uint256 betAmount) public view returns (uint8) {
+        if (betAmount >= betLevel5) return 4;
+        if (betAmount >= betLevel4) return 3;
+        if (betAmount >= betLevel3) return 2;
+        if (betAmount >= betLevel2) return 1;
+        if (betAmount >= betLevel1) return 0;
+        revert("Invalid bet amount");
+    }
+    
+    /**
+     * @notice 获取门槛的最大连胜限制
+     */
+    function getMaxStreakForTier(uint8 tierIndex) public view returns (uint8) {
+        if (tierIndex == 0) return maxStreak1;
+        if (tierIndex == 1) return maxStreak2;
+        if (tierIndex == 2) return maxStreak3;
+        if (tierIndex == 3) return maxStreak4;
+        return maxStreak5;
+    }
+    
+    /**
+     * @notice 开始新游戏
+     */
+    function startGame(uint256 betAmount) external nonReentrant whenNotPaused returns (uint8 firstCard) {
         require(isValidBetAmount(betAmount), "Invalid bet amount");
         require(!gameSessions[msg.sender].active, "Game already active");
         require(pendingRequest[msg.sender] == 0, "Pending request exists");
         require(gameCredits[msg.sender] >= betAmount, "Insufficient game credits");
-        require(getAvailablePool() >= minPrizePool, "Prize pool too low");
+        
+        uint256 currentPool = getAvailablePool();
+        require(currentPool >= minPrizePool, "Prize pool too low");
         
         // 扣除凭证
         gameCredits[msg.sender] -= betAmount;
         emit CreditsUsed(msg.sender, betAmount);
         
+        // 获取门槛等级
+        uint8 tierIndex = getBetTierIndex(betAmount);
+        
         // 生成首张牌（使用区块数据，因为首张牌不影响胜负）
-        uint8 firstCard = uint8((uint256(keccak256(abi.encodePacked(
+        firstCard = uint8((uint256(keccak256(abi.encodePacked(
             block.timestamp,
             block.prevrandao,
             msg.sender,
             totalGames
         ))) % 13) + 1);
         
-        // 创建游戏会话
+        // 创建游戏会话，锁定奖池快照
         gameSessions[msg.sender] = GameSession({
             player: msg.sender,
             betAmount: betAmount,
+            betTierIndex: tierIndex,
             currentCard: firstCard,
             currentStreak: 0,
-            accumulatedWin: 0,
+            prizePoolSnapshot: currentPool,
             timestamp: block.timestamp,
             active: true
         });
@@ -184,8 +242,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         playerStats[msg.sender].totalGames++;
         playerStats[msg.sender].totalBet += betAmount;
         
-        emit GameStarted(msg.sender, betAmount, firstCard);
-        return 0; // 首张牌不需要VRF
+        emit GameStarted(msg.sender, betAmount, tierIndex, firstCard, currentPool);
+        return firstCard;
     }
     
     /**
@@ -196,6 +254,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         GameSession storage session = gameSessions[msg.sender];
         require(session.active, "No active game");
         require(pendingRequest[msg.sender] == 0, "Pending request exists");
+        
+        uint8 maxStreak = getMaxStreakForTier(session.betTierIndex);
         require(session.currentStreak < maxStreak, "Max streak reached, cash out");
         
         // 请求VRF随机数
@@ -214,7 +274,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         
         vrfRequests[requestId] = VRFRequest({
             player: msg.sender,
-            guess: guessHigh ? 1 : 0,
+            guessHigh: guessHigh ? 1 : 0,
             timestamp: block.timestamp,
             fulfilled: false
         });
@@ -245,7 +305,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         
         // 判断胜负
         bool won;
-        if (request.guess == 1) {
+        if (request.guessHigh == 1) {
             // 猜大：新牌 > 旧牌
             won = newCard > oldCard;
         } else {
@@ -259,19 +319,22 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         }
         
         if (won) {
-            // 赢了，更新连胜和累积奖励
+            // 赢了，更新连胜
             session.currentStreak++;
             session.currentCard = newCard;
-            session.accumulatedWin = calculatePotentialWin(session.betAmount, session.currentStreak);
             
             // 更新最大连胜记录
             if (session.currentStreak > playerStats[request.player].maxStreak) {
                 playerStats[request.player].maxStreak = session.currentStreak;
             }
             
-            emit GuessResult(request.player, requestId, newCard, true, session.currentStreak, session.accumulatedWin);
+            // 计算当前可获得的奖励
+            uint256 potentialReward = calculateReward(session.currentStreak, session.prizePoolSnapshot);
+            
+            emit GuessResult(request.player, requestId, oldCard, newCard, true, session.currentStreak, potentialReward);
             
             // 达到最大连胜，自动结算
+            uint8 maxStreak = getMaxStreakForTier(session.betTierIndex);
             if (session.currentStreak >= maxStreak) {
                 _cashOut(request.player);
             }
@@ -279,11 +342,23 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
             // 输了，游戏结束，清空累积
             uint8 lostStreak = session.currentStreak;
             session.active = false;
-            session.accumulatedWin = 0;
             
-            emit GuessResult(request.player, requestId, newCard, false, 0, 0);
+            emit GuessResult(request.player, requestId, oldCard, newCard, false, 0, 0);
             emit GameLost(request.player, lostStreak);
         }
+    }
+    
+    /**
+     * @notice 计算奖励（基于锁定的奖池快照）
+     */
+    function calculateReward(uint8 streak, uint256 poolSnapshot) public view returns (uint256) {
+        if (streak == 0 || streak > 20) return 0;
+        
+        // 从固定百分比表获取（万分比）
+        uint16 percentBps = rewardPercentages[streak - 1];
+        
+        // 计算奖励 = 奖池快照 * 百分比 / 10000
+        return (poolSnapshot * percentBps) / 10000;
     }
     
     /**
@@ -300,14 +375,20 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     function _cashOut(address player) internal {
         GameSession storage session = gameSessions[player];
         
-        uint256 grossPrize = session.accumulatedWin;
+        // 计算奖励（基于开始时锁定的奖池快照）
+        uint256 grossPrize = calculateReward(session.currentStreak, session.prizePoolSnapshot);
         uint8 finalStreak = session.currentStreak;
         
         // 结束游戏
         session.active = false;
-        session.accumulatedWin = 0;
         
         if (grossPrize > 0) {
+            // 确保不超过当前实际奖池
+            uint256 currentPool = getAvailablePool();
+            if (grossPrize > currentPool) {
+                grossPrize = currentPool;
+            }
+            
             // 计算费用分配
             uint256 playerPrize = (grossPrize * PLAYER_PRIZE_PERCENT) / 10000;
             uint256 operationFee = grossPrize - playerPrize;
@@ -334,9 +415,11 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
                 unclaimedPrizes[player] += playerPrize;
                 emit PrizeTransferFailed(player, playerPrize);
             }
+            
+            emit GameCashedOut(player, grossPrize, playerPrize, finalStreak);
+        } else {
+            emit GameCashedOut(player, 0, 0, finalStreak);
         }
-        
-        emit GameCashedOut(player, grossPrize, finalStreak);
     }
     
     /**
@@ -371,40 +454,6 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         // 游戏保持当前状态，玩家可以继续或提现
     }
     
-    // ============ 奖励计算 ============
-    
-    function calculatePotentialWin(uint256 betAmount, uint8 streak) public view returns (uint256) {
-        if (streak == 0) return 0;
-        
-        uint256 availablePool = getAvailablePool();
-        
-        // 基础奖励 = 奖池 * baseRewardPercent / 10000
-        uint256 baseReward = (availablePool * baseRewardPercent) / 10000;
-        
-        // 连胜倍数 = streakMultiplier ^ (streak-1)，上限maxStreakBonus
-        uint256 multiplier = 100; // 100 = 1x
-        for (uint8 i = 1; i < streak; i++) {
-            multiplier = (multiplier * streakMultiplier) / 100;
-            if (multiplier > maxStreakBonus) {
-                multiplier = maxStreakBonus;
-                break;
-            }
-        }
-        
-        // 投注倍数
-        uint256 betMultiplier = getBetMultiplier(betAmount);
-        
-        // 最终奖励
-        uint256 reward = (baseReward * multiplier * betMultiplier) / 10000;
-        
-        // 应用上限
-        uint256 maxPoolPayout = (availablePool * MAX_SINGLE_PAYOUT_PERCENT) / 10000;
-        if (reward > maxPoolPayout) reward = maxPoolPayout;
-        if (reward > maxPayoutBNB) reward = maxPayoutBNB;
-        
-        return reward;
-    }
-    
     // ============ 查询函数 ============
     
     function isValidBetAmount(uint256 amount) public view returns (bool) {
@@ -413,14 +462,6 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
                amount == betLevel3 ||
                amount == betLevel4 ||
                amount == betLevel5;
-    }
-    
-    function getBetMultiplier(uint256 betAmount) public view returns (uint256) {
-        if (betAmount >= betLevel5) return 200;  // 2x
-        if (betAmount >= betLevel4) return 150;  // 1.5x
-        if (betAmount >= betLevel3) return 125;  // 1.25x
-        if (betAmount >= betLevel2) return 110;  // 1.1x
-        return 100; // 1x
     }
     
     function getAvailablePool() public view returns (uint256) {
@@ -443,14 +484,12 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         return [betLevel1, betLevel2, betLevel3, betLevel4, betLevel5];
     }
     
-    function getRewardConfig() external view returns (
-        uint256 _baseRewardPercent,
-        uint256 _streakMultiplier,
-        uint256 _maxStreakBonus,
-        uint256 _maxStreak,
-        uint256 _maxPayoutBNB
-    ) {
-        return (baseRewardPercent, streakMultiplier, maxStreakBonus, maxStreak, maxPayoutBNB);
+    function getMaxStreaks() external view returns (uint8[5] memory) {
+        return [maxStreak1, maxStreak2, maxStreak3, maxStreak4, maxStreak5];
+    }
+    
+    function getRewardPercentages() external view returns (uint16[20] memory) {
+        return rewardPercentages;
     }
     
     // ============ 管理函数（无资金提取权限） ============
@@ -471,7 +510,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         require(_level4 <= betLevel4, "Can only lower level 4");
         require(_level5 <= betLevel5, "Can only lower level 5");
         require(_level1 < _level2 && _level2 < _level3 && _level3 < _level4 && _level4 < _level5, "Levels must be ascending");
-        require(_level1 >= 1000 * 10**18, "Min level is 1000 tokens");
+        require(_level1 >= 10000 * 10**18, "Min level is 10000 tokens");
         
         betLevel1 = _level1;
         betLevel2 = _level2;
@@ -483,28 +522,50 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     }
     
     /**
-     * @notice 调整奖励配置
+     * @notice 调整最大连胜限制（只能提高，利于玩家）
      */
-    function setRewardConfig(
-        uint256 _baseRewardPercent,
-        uint256 _streakMultiplier,
-        uint256 _maxStreakBonus,
-        uint256 _maxStreak,
-        uint256 _maxPayoutBNB
+    function setMaxStreaks(
+        uint8 _max1,
+        uint8 _max2,
+        uint8 _max3,
+        uint8 _max4,
+        uint8 _max5
     ) external onlyOwner {
-        require(_baseRewardPercent <= 500, "Base reward too high"); // 最高5%
-        require(_streakMultiplier >= 100 && _streakMultiplier <= 300, "Invalid multiplier"); // 1x-3x
-        require(_maxStreakBonus >= 100 && _maxStreakBonus <= 1000, "Invalid max bonus"); // 1x-10x
-        require(_maxStreak >= 3 && _maxStreak <= 20, "Invalid max streak");
-        require(_maxPayoutBNB >= 0.1 ether && _maxPayoutBNB <= 50 ether, "Invalid max payout");
+        require(_max1 >= maxStreak1, "Can only increase max streak 1");
+        require(_max2 >= maxStreak2, "Can only increase max streak 2");
+        require(_max3 >= maxStreak3, "Can only increase max streak 3");
+        require(_max4 >= maxStreak4, "Can only increase max streak 4");
+        require(_max5 >= maxStreak5, "Can only increase max streak 5");
+        require(_max1 < _max2 && _max2 < _max3 && _max3 < _max4 && _max4 < _max5, "Must be ascending");
+        require(_max5 <= 20, "Max streak cannot exceed 20");
         
-        baseRewardPercent = _baseRewardPercent;
-        streakMultiplier = _streakMultiplier;
-        maxStreakBonus = _maxStreakBonus;
-        maxStreak = _maxStreak;
-        maxPayoutBNB = _maxPayoutBNB;
+        maxStreak1 = _max1;
+        maxStreak2 = _max2;
+        maxStreak3 = _max3;
+        maxStreak4 = _max4;
+        maxStreak5 = _max5;
         
-        emit ConfigUpdated("rewardConfig");
+        emit ConfigUpdated("maxStreaks");
+    }
+    
+    /**
+     * @notice 调整奖励百分比（只能提高，利于玩家）
+     */
+    function setRewardPercentages(uint16[20] calldata _percentages) external onlyOwner {
+        // 验证每个值只能提高
+        for (uint8 i = 0; i < 20; i++) {
+            require(_percentages[i] >= rewardPercentages[i], "Can only increase rewards");
+        }
+        // 验证递增
+        for (uint8 i = 1; i < 20; i++) {
+            require(_percentages[i] > _percentages[i-1], "Must be ascending");
+        }
+        // 验证最大不超过100%
+        require(_percentages[19] <= 10000, "Max 100%");
+        
+        rewardPercentages = _percentages;
+        
+        emit ConfigUpdated("rewardPercentages");
     }
     
     /**
