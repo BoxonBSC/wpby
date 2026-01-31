@@ -17,14 +17,14 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
   const sectorAngle = 360 / sectors.length;
 
   const getSectorColors = (index: number) => {
-    const baseHue = theme === 'gold' ? 45 : theme === 'roseGold' ? 15 : 220;
-    const hueShift = (index * 15) % 40 - 20;
+    const baseHue = theme === 'gold' ? 45 : theme === 'roseGold' ? 350 : 220;
+    const hueShift = (index * 25) % 60 - 30;
     const isEven = index % 2 === 0;
     
     return {
-      main: `hsl(${baseHue + hueShift}, ${isEven ? '60%' : '40%'}, ${isEven ? '25%' : '15%'})`,
-      light: `hsl(${baseHue + hueShift}, ${isEven ? '70%' : '50%'}, ${isEven ? '40%' : '25%'})`,
-      dark: `hsl(${baseHue + hueShift}, ${isEven ? '50%' : '30%'}, ${isEven ? '15%' : '8%'})`,
+      main: `hsl(${baseHue + hueShift}, ${isEven ? '75%' : '60%'}, ${isEven ? '45%' : '30%'})`,
+      light: `hsl(${baseHue + hueShift}, ${isEven ? '85%' : '70%'}, ${isEven ? '60%' : '45%'})`,
+      dark: `hsl(${baseHue + hueShift}, ${isEven ? '65%' : '50%'}, ${isEven ? '30%' : '20%'})`,
     };
   };
 
