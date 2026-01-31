@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import * as PIXI from 'pixi.js';
 import Matter from 'matter-js';
-import { PLINKO_CONFIG, SLOT_REWARDS, getSlotColor } from '@/config/plinko';
+import { PLINKO_CONFIG, SLOT_REWARDS } from '@/config/plinko';
 
 interface PlinkoCanvasProps {
   width: number;
@@ -183,41 +183,45 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       
       if (i < cols) {
         const reward = SLOT_REWARDS[i];
-        const color = reward?.color || 0x444444;
+        const color = reward?.color || 0x333333;
+        const isNoWin = reward?.type === 'no_win';
         
         const slotGfx = new PIXI.Graphics();
         
-        slotGfx.beginFill(color, 0.15);
+        // 槽位背景
+        slotGfx.beginFill(color, isNoWin ? 0.08 : 0.2);
         slotGfx.drawRoundedRect(
-          offsetX + i * slotWidth + 3,
+          offsetX + i * slotWidth + 4,
           slotY,
-          slotWidth - 6,
+          slotWidth - 8,
           50,
           4
         );
         slotGfx.endFill();
         
-        slotGfx.beginFill(color, 0.4);
-        slotGfx.drawRect(
-          offsetX + i * slotWidth + 3,
-          slotY + 45,
-          slotWidth - 6,
-          5
-        );
-        slotGfx.endFill();
+        // 底部高亮条
+        if (!isNoWin) {
+          slotGfx.beginFill(color, 0.5);
+          slotGfx.drawRect(
+            offsetX + i * slotWidth + 4,
+            slotY + 45,
+            slotWidth - 8,
+            5
+          );
+          slotGfx.endFill();
+        }
         
         slotsContainer.addChild(slotGfx);
         
-        // 显示奖励标签
+        // 显示奖励标签（使用简短的 label）
         const label = reward?.label || '';
-        const isPoolReward = reward?.poolPercent !== undefined;
         
         const textStyle = new PIXI.TextStyle({
           fontFamily: 'Arial, sans-serif',
-          fontSize: label.length > 5 ? 9 : 11,
-          fill: color,
+          fontSize: isNoWin ? 14 : 12,
+          fill: isNoWin ? 0x555555 : color,
           fontWeight: 'bold',
-          dropShadow: true,
+          dropShadow: !isNoWin,
           dropShadowColor: color,
           dropShadowBlur: 4,
           dropShadowAlpha: 0.5,

@@ -4,13 +4,14 @@ import { PlinkoCanvas } from './PlinkoCanvas';
 import { PlinkoControls } from './PlinkoControls';
 import { PlinkoResults } from './PlinkoResults';
 import { SoundControls } from './SoundControls';
-import { PlinkoResult, SLOT_REWARDS, calculateReward, isJackpot, isBigWin } from '@/config/plinko';
+import { PlinkoResult, SLOT_REWARDS, calculateReward, isJackpot, isBigWin, isWin } from '@/config/plinko';
 import { useWallet } from '@/contexts/WalletContext';
 import { usePlinkoSounds } from '@/hooks/usePlinkoSounds';
 import { Sparkles, Crown, Star, Coins } from 'lucide-react';
 
 // 模拟奖池（实际应从合约读取）
-const DEMO_PRIZE_POOL = 10000000; // 1000万凭证
+// 模拟BNB奖池（实际应从合约读取）
+const DEMO_BNB_POOL = 5.5; // 5.5 BNB
 
 // 背景粒子
 function BackgroundParticles() {
@@ -60,10 +61,11 @@ export function PlinkoGame() {
   const [results, setResults] = useState<PlinkoResult[]>([]);
   const [dropTrigger, setDropTrigger] = useState(0);
   const [showWinOverlay, setShowWinOverlay] = useState(false);
-  const [lastWin, setLastWin] = useState<{ label: string; amount: number; isJackpot: boolean } | null>(null);
+  const [lastWin, setLastWin] = useState<{ label: string; amount: number; bnbAmount: number; isJackpot: boolean } | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [bnbPool, setBnbPool] = useState(DEMO_BNB_POOL);
   const [volume, setVolume] = useState(0.5);
-  const [prizePool, setPrizePool] = useState(DEMO_PRIZE_POOL);
+  
 
   const [demoCredits, setDemoCredits] = useState(100000);
   const credits = isConnected ? gameCredits : demoCredits;
@@ -92,15 +94,14 @@ export function PlinkoGame() {
 
   // 处理球落入槽位
   const handleBallLanded = useCallback((slotIndex: number) => {
-    const reward = calculateReward(slotIndex, betAmount, prizePool);
-    const rewardConfig = SLOT_REWARDS[slotIndex];
+    const reward = calculateReward(slotIndex, betAmount, bnbPool);
     
     // 播放音效
     if (isJackpot(reward.type)) {
       sounds.playJackpotSound();
     } else if (isBigWin(reward.type)) {
       sounds.playWinSound(50);
-    } else if (reward.amount > 0) {
+    } else if (isWin(reward.type)) {
       sounds.playSlotSound(2);
     } else {
       sounds.playSlotSound(0);
@@ -110,6 +111,7 @@ export function PlinkoGame() {
       id: `${Date.now()}_${Math.random()}`,
       betAmount,
       winAmount: reward.amount,
+      bnbWinAmount: reward.bnbAmount,
       rewardType: reward.type,
       rewardLabel: reward.label,
       slotIndex,
@@ -118,18 +120,21 @@ export function PlinkoGame() {
 
     setResults(prev => [result, ...prev]);
     
-    // 更新凭证和奖池
+    // 更新凭证和BNB奖池
     if (!isConnected) {
       setDemoCredits(prev => prev + reward.amount);
-      // 模拟奖池变化：投注80%进入奖池，中奖从奖池扣除
-      setPrizePool(prev => prev + Math.floor(betAmount * 0.8) - reward.amount);
+      // 模拟BNB奖池变化
+      if (reward.bnbAmount > 0) {
+        setBnbPool(prev => Math.max(0.1, prev - reward.bnbAmount));
+      }
     }
 
-    // 显示大奖特效
-    if (isBigWin(reward.type) && reward.amount > 0) {
+    // 显示大奖特效（BNB奖励或凭证奖励）
+    if (isBigWin(reward.type)) {
       setLastWin({ 
         label: reward.label, 
         amount: reward.amount,
+        bnbAmount: reward.bnbAmount,
         isJackpot: isJackpot(reward.type)
       });
       setShowWinOverlay(true);
@@ -142,7 +147,7 @@ export function PlinkoGame() {
     if (pendingDrops.current <= 0) {
       setIsDropping(false);
     }
-  }, [betAmount, isConnected, prizePool, sounds]);
+  }, [betAmount, isConnected, bnbPool, sounds]);
 
   // 执行投球
   const executeDrop = useCallback(() => {
@@ -263,10 +268,10 @@ export function PlinkoGame() {
             boxShadow: '0 0 30px rgba(255, 68, 68, 0.2)',
           }}
         >
-          <Coins className="w-5 h-5 text-[#FF4444]" />
-          <span className="text-[#FF4444]/80 text-sm">当前奖池</span>
-          <span className="text-[#FF4444] font-bold text-lg">
-            {prizePool.toLocaleString()}
+          <Coins className="w-5 h-5 text-[#FFD700]" />
+          <span className="text-[#FFD700]/80 text-sm">BNB 奖池</span>
+          <span className="text-[#FFD700] font-bold text-lg">
+            {bnbPool.toFixed(4)} BNB
           </span>
         </motion.div>
       </motion.div>
@@ -410,7 +415,10 @@ export function PlinkoGame() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                +{lastWin.amount.toLocaleString()}
+                {lastWin.bnbAmount > 0 
+                  ? `+${lastWin.bnbAmount.toFixed(4)} BNB`
+                  : `+${lastWin.amount.toLocaleString()}`
+                }
               </motion.div>
               
               <motion.div
