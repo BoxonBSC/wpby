@@ -130,21 +130,24 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
 
         const pegContainer = new PIXI.Graphics();
         
-        for (let g = 3; g >= 0; g--) {
-          pegContainer.beginFill(visuals.pegGlowColor, 0.05 * (4 - g));
-          pegContainer.drawCircle(x, y, game.pegRadius + 8 - g * 2);
+        // 钉子光晕（缩小）
+        for (let g = 2; g >= 0; g--) {
+          pegContainer.beginFill(visuals.pegGlowColor, 0.04 * (3 - g));
+          pegContainer.drawCircle(x, y, game.pegRadius + 5 - g * 1.5);
           pegContainer.endFill();
         }
         
+        // 钉子渐变
         const gradient = [0xE8D490, 0xC9A347, 0x8B7230];
         gradient.forEach((color, i) => {
           pegContainer.beginFill(color, 1 - i * 0.2);
-          pegContainer.drawCircle(x - i * 0.5, y - i * 0.5, game.pegRadius - i);
+          pegContainer.drawCircle(x - i * 0.3, y - i * 0.3, game.pegRadius - i * 0.8);
           pegContainer.endFill();
         });
         
-        pegContainer.beginFill(0xFFFFFF, 0.7);
-        pegContainer.drawCircle(x - 2, y - 2, game.pegRadius * 0.25);
+        // 高光点
+        pegContainer.beginFill(0xFFFFFF, 0.6);
+        pegContainer.drawCircle(x - 1.5, y - 1.5, game.pegRadius * 0.2);
         pegContainer.endFill();
         
         app.stage.addChild(pegContainer);
@@ -163,9 +166,9 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       if (i <= cols) {
         const wall = Matter.Bodies.rectangle(
           offsetX + i * slotWidth,
-          slotY + 25,
-          6,
-          50,
+          slotY + 20,
+          4,
+          45,
           { isStatic: true, label: 'wall' }
         );
         slots.push(wall);
@@ -174,7 +177,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
         const wallGradient = [0xE8D490, 0xC9A347, 0x6B5220];
         wallGradient.forEach((color, idx) => {
           wallGfx.beginFill(color);
-          wallGfx.drawRect(offsetX + i * slotWidth - 3 + idx, slotY, 6 - idx * 2, 50);
+          wallGfx.drawRect(offsetX + i * slotWidth - 2 + idx, slotY, 4 - idx, 45);
           wallGfx.endFill();
         });
         
@@ -189,23 +192,23 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
         const slotGfx = new PIXI.Graphics();
         
         // 槽位背景
-        slotGfx.beginFill(color, isNoWin ? 0.08 : 0.2);
+        slotGfx.beginFill(color, isNoWin ? 0.06 : 0.25);
         slotGfx.drawRoundedRect(
-          offsetX + i * slotWidth + 4,
+          offsetX + i * slotWidth + 2,
           slotY,
-          slotWidth - 8,
-          50,
-          4
+          slotWidth - 4,
+          45,
+          3
         );
         slotGfx.endFill();
         
         // 底部高亮条
         if (!isNoWin) {
-          slotGfx.beginFill(color, 0.5);
+          slotGfx.beginFill(color, 0.6);
           slotGfx.drawRect(
-            offsetX + i * slotWidth + 4,
-            slotY + 45,
-            slotWidth - 8,
+            offsetX + i * slotWidth + 2,
+            slotY + 40,
+            slotWidth - 4,
             5
           );
           slotGfx.endFill();
@@ -213,17 +216,17 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
         
         slotsContainer.addChild(slotGfx);
         
-        // 显示奖励标签（使用简短的 label）
+        // 显示奖励标签
         const label = reward?.label || '';
         
         const textStyle = new PIXI.TextStyle({
           fontFamily: 'Arial, sans-serif',
-          fontSize: isNoWin ? 14 : 12,
-          fill: isNoWin ? 0x555555 : color,
+          fontSize: isNoWin ? 12 : 10,
+          fill: isNoWin ? 0x444444 : color,
           fontWeight: 'bold',
           dropShadow: !isNoWin,
           dropShadowColor: color,
-          dropShadowBlur: 4,
+          dropShadowBlur: 3,
           dropShadowAlpha: 0.5,
           dropShadowDistance: 0,
         });
@@ -231,7 +234,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
         const text = new PIXI.Text(label, textStyle);
         text.anchor.set(0.5);
         text.x = offsetX + i * slotWidth + slotWidth / 2;
-        text.y = slotY + 25;
+        text.y = slotY + 20;
         slotsContainer.addChild(text);
       }
     }
@@ -239,8 +242,8 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
     for (let i = 0; i < cols; i++) {
       const sensor = Matter.Bodies.rectangle(
         offsetX + i * slotWidth + slotWidth / 2,
-        slotY + 40,
-        slotWidth - 10,
+        slotY + 35,
+        slotWidth - 6,
         10,
         { 
           isStatic: true, 
@@ -341,17 +344,19 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
       
       trailGfx.clear();
       
+      const ballSize = game.ballRadius;
+      
       ballsRef.current.forEach((ball) => {
         const { x, y } = ball.body.position;
         
         ball.trail.unshift({ x, y, alpha: 0.6 });
-        if (ball.trail.length > 15) {
+        if (ball.trail.length > 12) {
           ball.trail.pop();
         }
         
         ball.trail.forEach((point, i) => {
           const alpha = point.alpha * (1 - i / ball.trail.length);
-          const size = 10 * (1 - i / ball.trail.length * 0.5);
+          const size = ballSize * (1 - i / ball.trail.length * 0.5);
           
           trailGfx.beginFill(0xFFFFFF, alpha * 0.3);
           trailGfx.drawCircle(point.x, point.y, size);
@@ -360,25 +365,28 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
         
         ball.graphics.clear();
         
-        for (let g = 4; g >= 0; g--) {
-          ball.graphics.beginFill(0xFFFFFF, 0.08 * (5 - g));
-          ball.graphics.drawCircle(x, y, 10 + 12 - g * 2);
+        // 球体光晕
+        for (let g = 3; g >= 0; g--) {
+          ball.graphics.beginFill(0xFFFFFF, 0.06 * (4 - g));
+          ball.graphics.drawCircle(x, y, ballSize + 8 - g * 2);
           ball.graphics.endFill();
         }
         
+        // 球体渐变
         const ballGradient = [0xFFFFFF, 0xE0E0E0, 0xA0A0A0];
         ballGradient.forEach((color, i) => {
           ball.graphics.beginFill(color, 1 - i * 0.15);
-          ball.graphics.drawCircle(x - i * 1, y - i * 1, 10 - i * 1.5);
+          ball.graphics.drawCircle(x - i * 0.8, y - i * 0.8, ballSize - i * 1.2);
           ball.graphics.endFill();
         });
         
+        // 高光
         ball.graphics.beginFill(0xFFFFFF, 0.9);
-        ball.graphics.drawCircle(x - 3, y - 3, 10 * 0.25);
+        ball.graphics.drawCircle(x - 2, y - 2, ballSize * 0.25);
         ball.graphics.endFill();
         
         ball.graphics.beginFill(0xFFFFFF, 0.4);
-        ball.graphics.drawCircle(x + 2, y + 2, 10 * 0.15);
+        ball.graphics.drawCircle(x + 1.5, y + 1.5, ballSize * 0.12);
         ball.graphics.endFill();
       });
       

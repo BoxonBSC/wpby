@@ -1,22 +1,22 @@
-// Plinko 游戏配置 - 造富效应经济模型（BNB奖励版）
+// Plinko 游戏配置 - 多等级造富效应模型
 
 export const PLINKO_CONFIG = {
   // 物理引擎参数
   physics: {
-    gravity: { x: 0, y: 1.5 },
+    gravity: { x: 0, y: 1.8 },
     restitution: 0.5,
     friction: 0.1,
     frictionAir: 0.02,
     density: 0.001,
   },
   
-  // 游戏参数
+  // 游戏参数 - 增加行数获得更多槽位
   game: {
-    rows: 12,
-    pegRadius: 6,
-    ballRadius: 10,
-    pegSpacing: 40,
-    dropZoneWidth: 30,
+    rows: 16,                    // 16行 = 17个槽位
+    pegRadius: 5,                // 稍小的钉子
+    ballRadius: 8,               // 稍小的球
+    pegSpacing: 32,              // 更紧凑的间距
+    dropZoneWidth: 25,
   },
   
   // 视觉参数
@@ -30,129 +30,148 @@ export const PLINKO_CONFIG = {
   
   // 动画参数
   animation: {
-    trailLength: 15,
+    trailLength: 12,
     trailOpacity: 0.3,
-    collisionParticles: 8,
+    collisionParticles: 6,
     winCelebrationDuration: 2000,
   },
 };
 
 // ========================================
-// 造富效应奖励系统 - 分散式槽位设计
+// 多等级BNB奖励系统
 // ========================================
 // 
-// 设计原则：
-// 1. 奖励槽位分散分布，提升游戏体验
-// 2. 大奖在边缘（难命中），小奖分散在中间
-// 3. 奖励基于合约BNB奖池比例
+// 奖励等级：30%, 35%, 40%, 45%, 50%, 55%, 60%, 65%, 70%
+// 17个槽位分布（对称，边缘高倍率）：
 // 
-// 13个槽位分布（对称，分散）：
-// 0: 70%奖池 | 1: 未中奖 | 2: 35%奖池 | 3: 未中奖 | 4: 0.5x | 5: 未中奖
-// 6: 50%奖池（中间大奖）
-// 7: 未中奖 | 8: 0.5x | 9: 未中奖 | 10: 35%奖池 | 11: 未中奖 | 12: 70%奖池
+// 中奖槽位分散，大部分是未中奖，增加难度
 
 // 奖励类型
 export type RewardType = 
-  | 'super_jackpot'  // 超级大奖 - 奖池70%
-  | 'jackpot'        // 大奖 - 奖池50%
-  | 'big_win'        // 中奖 - 奖池35%
-  | 'small_win'      // 小奖 - 返还50%投注
-  | 'no_win';        // 未中奖
+  | 'tier_70'    // 70% BNB
+  | 'tier_65'    // 65% BNB
+  | 'tier_60'    // 60% BNB
+  | 'tier_55'    // 55% BNB
+  | 'tier_50'    // 50% BNB
+  | 'tier_45'    // 45% BNB
+  | 'tier_40'    // 40% BNB
+  | 'tier_35'    // 35% BNB
+  | 'tier_30'    // 30% BNB
+  | 'no_win';    // 未中奖
 
 // 槽位奖励配置
 export interface SlotReward {
   type: RewardType;
-  label: string;           // 简短标签（用于画布显示）
-  fullLabel: string;       // 完整标签（用于结果显示）
-  poolPercent?: number;    // 奖池百分比（大奖用）
-  betReturn?: number;      // 投注返还比例（小奖用）
+  label: string;           // 画布显示标签
+  fullLabel: string;       // 结果显示标签
+  poolPercent?: number;    // BNB奖池百分比
   color: number;           // 显示颜色
 }
 
-// 13个槽位的奖励配置（分散式分布）
+// 颜色渐变：红(高) -> 橙 -> 黄 -> 绿(低) -> 灰(无)
+const COLORS = {
+  tier_70: 0xFF0000,   // 深红
+  tier_65: 0xFF2200,   // 红
+  tier_60: 0xFF4400,   // 红橙
+  tier_55: 0xFF6600,   // 橙
+  tier_50: 0xFF8800,   // 橙黄
+  tier_45: 0xFFAA00,   // 黄橙
+  tier_40: 0xFFCC00,   // 黄
+  tier_35: 0xDDDD00,   // 黄绿
+  tier_30: 0xAADD00,   // 绿黄
+  no_win: 0x333333,    // 深灰
+};
+
+// 17个槽位的奖励配置（对称分布）
+// 布局：70-×-60-×-50-×-40-×-30-×-40-×-50-×-60-×-70
+// 边缘最高，中间最低，分散中奖槽位
 export const SLOT_REWARDS: SlotReward[] = [
-  // 槽位 0 - 最左边（超级大奖）
-  { type: 'super_jackpot', label: '70%', fullLabel: '70% BNB', poolPercent: 0.70, color: 0xFF0000 },
-  // 槽位 1 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: 0x333333 },
-  // 槽位 2 - 中奖
-  { type: 'big_win', label: '35%', fullLabel: '35% BNB', poolPercent: 0.35, color: 0xFF8800 },
-  // 槽位 3 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: 0x333333 },
-  // 槽位 4 - 小奖
-  { type: 'small_win', label: '0.5x', fullLabel: '返还50%', betReturn: 0.50, color: 0xFFAA00 },
-  // 槽位 5 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: 0x333333 },
-  // 槽位 6 - 中间（大奖！增加刺激感）
-  { type: 'jackpot', label: '50%', fullLabel: '50% BNB', poolPercent: 0.50, color: 0xFF4444 },
-  // 槽位 7 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: 0x333333 },
-  // 槽位 8 - 小奖
-  { type: 'small_win', label: '0.5x', fullLabel: '返还50%', betReturn: 0.50, color: 0xFFAA00 },
-  // 槽位 9 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: 0x333333 },
-  // 槽位 10 - 中奖
-  { type: 'big_win', label: '35%', fullLabel: '35% BNB', poolPercent: 0.35, color: 0xFF8800 },
-  // 槽位 11 - 未中奖
-  { type: 'no_win', label: '×', fullLabel: '未中奖', color: 0x333333 },
-  // 槽位 12 - 最右边（超级大奖）
-  { type: 'super_jackpot', label: '70%', fullLabel: '70% BNB', poolPercent: 0.70, color: 0xFF0000 },
+  // 槽位 0 - 最左（最难命中）
+  { type: 'tier_70', label: '70%', fullLabel: '70% BNB', poolPercent: 0.70, color: COLORS.tier_70 },
+  // 槽位 1
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 2
+  { type: 'tier_60', label: '60%', fullLabel: '60% BNB', poolPercent: 0.60, color: COLORS.tier_60 },
+  // 槽位 3
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 4
+  { type: 'tier_50', label: '50%', fullLabel: '50% BNB', poolPercent: 0.50, color: COLORS.tier_50 },
+  // 槽位 5
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 6
+  { type: 'tier_40', label: '40%', fullLabel: '40% BNB', poolPercent: 0.40, color: COLORS.tier_40 },
+  // 槽位 7
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 8 - 中间（最容易命中）
+  { type: 'tier_30', label: '30%', fullLabel: '30% BNB', poolPercent: 0.30, color: COLORS.tier_30 },
+  // 槽位 9
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 10
+  { type: 'tier_40', label: '40%', fullLabel: '40% BNB', poolPercent: 0.40, color: COLORS.tier_40 },
+  // 槽位 11
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 12
+  { type: 'tier_50', label: '50%', fullLabel: '50% BNB', poolPercent: 0.50, color: COLORS.tier_50 },
+  // 槽位 13
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 14
+  { type: 'tier_60', label: '60%', fullLabel: '60% BNB', poolPercent: 0.60, color: COLORS.tier_60 },
+  // 槽位 15
+  { type: 'no_win', label: '×', fullLabel: '未中奖', color: COLORS.no_win },
+  // 槽位 16 - 最右（最难命中）
+  { type: 'tier_70', label: '70%', fullLabel: '70% BNB', poolPercent: 0.70, color: COLORS.tier_70 },
 ];
 
-// 旧版倍率表（保留兼容性）
+// 旧版倍率表（兼容）
 export const MULTIPLIER_TABLE: number[] = SLOT_REWARDS.map(reward => {
   if (reward.poolPercent) return reward.poolPercent * 100;
-  if (reward.betReturn) return reward.betReturn;
   return 0;
 });
 
 // 获取槽位颜色
 export function getSlotColor(slotIndex: number): number {
-  return SLOT_REWARDS[slotIndex]?.color || 0x333333;
+  return SLOT_REWARDS[slotIndex]?.color || COLORS.no_win;
 }
 
 // 计算实际奖励金额（BNB奖池）
 export function calculateReward(
   slotIndex: number,
   betAmount: number,
-  prizePoolBNB: number  // 合约中的BNB总额
+  prizePoolBNB: number
 ): { amount: number; type: RewardType; label: string; bnbAmount: number } {
   const reward = SLOT_REWARDS[slotIndex];
   
-  if (!reward) {
+  if (!reward || reward.type === 'no_win') {
     return { amount: 0, type: 'no_win', label: '未中奖', bnbAmount: 0 };
   }
   
-  let bnbAmount = 0;
-  let creditsAmount = 0;
-  
-  if (reward.poolPercent) {
-    // 大奖：基于BNB奖池比例
-    bnbAmount = prizePoolBNB * reward.poolPercent;
-  } else if (reward.betReturn) {
-    // 小奖：返还部分投注凭证
-    creditsAmount = Math.floor(betAmount * reward.betReturn);
-  }
+  const bnbAmount = prizePoolBNB * (reward.poolPercent || 0);
   
   return {
-    amount: creditsAmount,
+    amount: 0,
     type: reward.type,
     label: reward.fullLabel,
     bnbAmount,
   };
 }
 
-// 判断是否为大奖（用于音效和特效）
+// 判断奖励等级
 export function isJackpot(type: RewardType): boolean {
-  return type === 'super_jackpot' || type === 'jackpot';
+  return type === 'tier_70' || type === 'tier_65';
 }
 
 export function isBigWin(type: RewardType): boolean {
-  return type === 'super_jackpot' || type === 'jackpot' || type === 'big_win';
+  return type === 'tier_70' || type === 'tier_65' || type === 'tier_60' || type === 'tier_55' || type === 'tier_50';
 }
 
 export function isWin(type: RewardType): boolean {
   return type !== 'no_win';
+}
+
+// 获取奖励等级数值
+export function getRewardPercent(type: RewardType): number {
+  const match = type.match(/tier_(\d+)/);
+  return match ? parseInt(match[1]) : 0;
 }
 
 // 下注等级（用游戏凭证）
@@ -177,8 +196,8 @@ export const AUTO_DROP_OPTIONS = [
 export type PlinkoResult = {
   id: string;
   betAmount: number;
-  winAmount: number;      // 凭证奖励
-  bnbWinAmount: number;   // BNB奖励
+  winAmount: number;
+  bnbWinAmount: number;
   rewardType: RewardType;
   rewardLabel: string;
   slotIndex: number;
@@ -186,18 +205,19 @@ export type PlinkoResult = {
 };
 
 // ========================================
-// 合约设计参考
+// 经济模型说明
 // ========================================
 // 
-// 奖池来源：代币交易税收的BNB自动进入合约
+// 槽位分布（17个，对称）：
+// [70%][×][60%][×][50%][×][40%][×][30%][×][40%][×][50%][×][60%][×][70%]
 // 
-// 开奖逻辑：
-// - super_jackpot (70%): 获得合约BNB余额的70%
-// - jackpot (50%): 获得合约BNB余额的50%
-// - big_win (35%): 获得合约BNB余额的35%
-// - small_win (0.5x): 返还投注凭证的50%
-// - no_win: 无奖励
+// 命中概率估算（基于物理模拟，16行钉子）：
+// - 边缘 70%: ~0.01% (极难)
+// - 60%: ~0.5%
+// - 50%: ~3%
+// - 40%: ~8%
+// - 30% (中间): ~15%
+// - 未中奖: ~50%+ (大部分)
 // 
-// 安全限制：
-// - 每次只能获得当前奖池的最大70%
-// - 奖池低于阈值时可暂停大奖
+// 整体中奖率约 ~50%，但大部分是低等级(30-40%)
+// 高等级(60-70%)极难命中，创造造富效应

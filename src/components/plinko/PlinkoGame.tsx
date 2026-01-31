@@ -304,8 +304,8 @@ export function PlinkoGame() {
           className="flex justify-center"
         >
           <PlinkoCanvas
-            width={600}
-            height={620}
+            width={620}
+            height={700}
             onBallLanded={handleBallLanded}
             onCollision={handleCollision}
             dropBallTrigger={dropTrigger}
