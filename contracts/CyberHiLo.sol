@@ -207,8 +207,10 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     
     /**
      * @notice 开始新游戏
+     * @dev 仅允许 EOA 地址，防止闪电贷和 MEV 机器人攻击
      */
     function startGame(uint256 betAmount) external nonReentrant whenNotPaused returns (uint8 firstCard) {
+        require(msg.sender == tx.origin, "Only EOA allowed");
         require(isValidBetAmount(betAmount), "Invalid bet amount");
         require(!gameSessions[msg.sender].active, "Game already active");
         require(pendingRequest[msg.sender] == 0, "Pending request exists");
