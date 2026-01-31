@@ -286,20 +286,20 @@ export function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Desktop Nav - 紧跟Logo */}
+          <div className="hidden md:flex items-center gap-1 ml-6">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="relative px-5 py-2.5 flex items-center gap-2 transition-all duration-300 group"
+                  className="relative px-4 py-2 flex items-center gap-2 transition-all duration-300 group"
                   style={{
                     fontFamily: '"Cinzel", "Noto Serif SC", serif',
-                    fontSize: '0.85rem',
+                    fontSize: '0.8rem',
                     fontWeight: 700,
-                    letterSpacing: '0.15em',
+                    letterSpacing: '0.12em',
                     textTransform: 'uppercase',
                     color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.85)',
                     textShadow: isActive ? '0 0 20px rgba(255, 215, 0, 0.8)' : 'none',
