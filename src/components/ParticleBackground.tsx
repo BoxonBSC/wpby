@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface Particle {
@@ -14,7 +13,7 @@ interface Particle {
 }
 
 export function ParticleBackground() {
-  const particles: Particle[] = Array.from({ length: 60 }, (_, i) => ({
+  const particles: Particle[] = Array.from({ length: 80 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
@@ -22,20 +21,66 @@ export function ParticleBackground() {
     speedY: Math.random() * 0.3 + 0.1,
     speedX: (Math.random() - 0.5) * 0.2,
     opacity: Math.random() * 0.5 + 0.2,
-    delay: Math.random() * 8,
-    duration: Math.random() * 15 + 10,
+    delay: Math.random() * 10,
+    duration: Math.random() * 20 + 15,
   }));
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {/* 深色渐变背景 */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-[#0a0805] to-[#0d0a06]" />
+      {/* 深色渐变背景 - 更深邃 */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 50% 100%, hsl(30, 20%, 5%) 0%, transparent 50%),
+            radial-gradient(ellipse 60% 40% at 50% 0%, hsl(220, 20%, 8%) 0%, transparent 50%),
+            linear-gradient(180deg, hsl(0, 0%, 2%) 0%, hsl(20, 10%, 4%) 50%, hsl(0, 0%, 2%) 100%)
+          `,
+        }}
+      />
+
+      {/* 金属纹理叠加 */}
+      <div 
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(
+              0deg,
+              transparent,
+              transparent 2px,
+              rgba(255,255,255,0.01) 2px,
+              rgba(255,255,255,0.01) 4px
+            )
+          `,
+        }}
+      />
       
-      {/* 中央聚光灯 */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-primary/8 via-primary/3 to-transparent blur-3xl" />
+      {/* 中央聚光灯效果 */}
+      <motion.div 
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        style={{
+          width: 1000,
+          height: 1000,
+          background: 'radial-gradient(circle, hsl(45 100% 50% / 0.06) 0%, hsl(45 100% 50% / 0.02) 30%, transparent 60%)',
+        }}
+        animate={{
+          opacity: [0.8, 1, 0.8],
+          scale: [1, 1.05, 1],
+        }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
       
-      {/* 底部金色光晕 */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[400px] bg-gradient-to-t from-primary/5 via-transparent to-transparent" />
+      {/* 底部金色反射 */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-96"
+        style={{
+          background: 'linear-gradient(to top, hsl(45 100% 50% / 0.04), transparent)',
+        }}
+      />
 
       {/* 飘落的金色粒子 */}
       {particles.map((particle) => (
@@ -47,7 +92,7 @@ export function ParticleBackground() {
             width: particle.size,
             height: particle.size,
             background: `radial-gradient(circle, hsl(45 100% 70%) 0%, hsl(45 100% 50%) 50%, transparent 100%)`,
-            boxShadow: `0 0 ${particle.size * 3}px hsl(45 100% 50% / ${particle.opacity})`,
+            boxShadow: `0 0 ${particle.size * 4}px hsl(45 100% 50% / ${particle.opacity})`,
           }}
           initial={{ 
             y: '-5%',
@@ -56,7 +101,7 @@ export function ParticleBackground() {
           animate={{ 
             y: '105vh',
             opacity: [0, particle.opacity, particle.opacity, 0],
-            x: [0, particle.speedX * 100, particle.speedX * -100, 0],
+            x: [0, particle.speedX * 150, particle.speedX * -150, 0],
           }}
           transition={{
             duration: particle.duration,
@@ -67,59 +112,90 @@ export function ParticleBackground() {
         />
       ))}
 
-      {/* 闪烁的星星 */}
-      {Array.from({ length: 30 }).map((_, i) => (
+      {/* 闪烁的星星 - 更密集 */}
+      {Array.from({ length: 50 }).map((_, i) => (
         <motion.div
           key={`star-${i}`}
           className="absolute"
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
-            width: 2,
-            height: 2,
+            width: 2 + Math.random() * 2,
+            height: 2 + Math.random() * 2,
           }}
           animate={{
-            opacity: [0.1, 0.8, 0.1],
-            scale: [0.8, 1.2, 0.8],
+            opacity: [0.05, 0.6, 0.05],
+            scale: [0.8, 1.3, 0.8],
           }}
           transition={{
-            duration: 2 + Math.random() * 3,
-            delay: Math.random() * 5,
+            duration: 2 + Math.random() * 4,
+            delay: Math.random() * 6,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
         >
           <div 
-            className="w-full h-full rounded-full bg-primary"
+            className="w-full h-full rounded-full"
             style={{
-              boxShadow: '0 0 6px hsl(45 100% 50% / 0.8)',
+              background: 'hsl(45 100% 70%)',
+              boxShadow: '0 0 8px hsl(45 100% 50% / 0.8)',
             }}
           />
         </motion.div>
       ))}
 
-      {/* 光束效果 */}
+      {/* 光束扫描效果 */}
       <motion.div
-        className="absolute top-0 left-1/4 w-1 h-full opacity-10"
+        className="absolute top-0 left-0 w-2 h-full"
         style={{
-          background: 'linear-gradient(to bottom, transparent, hsl(45 100% 50%), transparent)',
+          background: 'linear-gradient(to right, transparent, hsl(45 100% 50% / 0.1), transparent)',
+          filter: 'blur(20px)',
         }}
         animate={{
-          x: ['0vw', '50vw'],
-          opacity: [0, 0.15, 0],
+          x: ['-100vw', '200vw'],
         }}
         transition={{
-          duration: 8,
+          duration: 12,
           repeat: Infinity,
-          repeatDelay: 5,
+          repeatDelay: 8,
+          ease: 'linear',
         }}
       />
 
-      {/* 暗角效果 */}
+      {/* 第二道光束 */}
+      <motion.div
+        className="absolute top-0 left-0 w-1 h-full"
+        style={{
+          background: 'linear-gradient(to right, transparent, hsl(200 100% 60% / 0.08), transparent)',
+          filter: 'blur(15px)',
+        }}
+        animate={{
+          x: ['-100vw', '200vw'],
+        }}
+        transition={{
+          duration: 10,
+          delay: 5,
+          repeat: Infinity,
+          repeatDelay: 10,
+          ease: 'linear',
+        }}
+      />
+
+      {/* 暗角效果 - 更强 */}
       <div 
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(0,0,0,0.6) 100%)',
+          background: `
+            radial-gradient(ellipse 70% 60% at center, transparent 0%, transparent 30%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.8) 100%)
+          `,
+        }}
+      />
+
+      {/* 顶部渐隐 */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-32"
+        style={{
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.5), transparent)',
         }}
       />
     </div>
