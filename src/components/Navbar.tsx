@@ -149,10 +149,14 @@ export function Navbar() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="relative px-4 py-2 rounded-lg flex items-center gap-2 font-display text-sm transition-all duration-300"
+                  className="relative px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300"
                   style={{
+                    fontFamily: '"Orbitron", sans-serif',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
                     color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.7)',
-                    textShadow: isActive ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none',
+                    textShadow: isActive ? '0 0 15px rgba(255, 215, 0, 0.6)' : 'none',
                   }}
                 >
                   <item.icon className="w-4 h-4" />
