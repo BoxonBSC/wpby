@@ -174,16 +174,23 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
                       </div>
                       <div>
                         <div 
-                          className="text-xs font-bold"
+                          className="text-xs font-bold flex items-center gap-1"
                           style={{ color: isActive ? colors.text : 'rgba(201, 163, 71, 0.4)' }}
                         >
-                          {tier.label}
+                          {tier.milestone ? (
+                            <>
+                              <span>{tier.milestone.emoji}</span>
+                              <span>{tier.milestone.label}</span>
+                            </>
+                          ) : (
+                            <span>{tier.streak}连胜</span>
+                          )}
                         </div>
                         <div 
                           className="text-[10px]"
                           style={{ color: isActive ? colors.text + '99' : 'rgba(201, 163, 71, 0.3)' }}
                         >
-                          {tier.percentage}%
+                          奖池 {tier.percentage}%
                         </div>
                       </div>
                     </div>
