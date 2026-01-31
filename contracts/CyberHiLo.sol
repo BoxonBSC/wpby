@@ -595,7 +595,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     // ============ 管理函数（无资金提取权限） ============
     
     /**
-     * @notice 调整投注档位（只能降低，保护玩家）
+     * @notice 调整投注档位（可增可减，适应币价变化）
+     * @dev 仍需保持递增顺序和最低门槛
      */
     function setBetLevels(
         uint256 _level1,
@@ -604,13 +605,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         uint256 _level4,
         uint256 _level5
     ) external onlyOwner {
-        require(_level1 <= betLevel1, "Can only lower level 1");
-        require(_level2 <= betLevel2, "Can only lower level 2");
-        require(_level3 <= betLevel3, "Can only lower level 3");
-        require(_level4 <= betLevel4, "Can only lower level 4");
-        require(_level5 <= betLevel5, "Can only lower level 5");
         require(_level1 < _level2 && _level2 < _level3 && _level3 < _level4 && _level4 < _level5, "Levels must be ascending");
-        require(_level1 >= 10000 * 10**18, "Min level is 10000 tokens");
+        require(_level1 >= 1000 * 10**18, "Min level is 1000 tokens");
         
         betLevel1 = _level1;
         betLevel2 = _level2;
@@ -622,7 +618,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     }
     
     /**
-     * @notice 调整最大连胜限制（只能提高，利于玩家）
+     * @notice 调整最大连胜限制（可增可减，适应运营需求）
+     * @dev 仍需保持递增顺序，且不超过20级
      */
     function setMaxStreaks(
         uint8 _max1,
@@ -631,12 +628,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         uint8 _max4,
         uint8 _max5
     ) external onlyOwner {
-        require(_max1 >= maxStreak1, "Can only increase max streak 1");
-        require(_max2 >= maxStreak2, "Can only increase max streak 2");
-        require(_max3 >= maxStreak3, "Can only increase max streak 3");
-        require(_max4 >= maxStreak4, "Can only increase max streak 4");
-        require(_max5 >= maxStreak5, "Can only increase max streak 5");
-        require(_max1 < _max2 && _max2 < _max3 && _max3 < _max4 && _max4 < _max5, "Must be ascending");
+        require(_max1 >= 1 && _max1 < _max2 && _max2 < _max3 && _max3 < _max4 && _max4 < _max5, "Must be ascending and >= 1");
         require(_max5 <= 20, "Max streak cannot exceed 20");
         
         maxStreak1 = _max1;
@@ -649,17 +641,16 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     }
     
     /**
-     * @notice 调整奖励百分比（只能提高，利于玩家）
+     * @notice 调整奖励百分比（可增可减，适应运营需求）
+     * @dev 仍需保持递增顺序，且不超过100%
      */
     function setRewardPercentages(uint16[20] calldata _percentages) external onlyOwner {
-        // 验证每个值只能提高
-        for (uint8 i = 0; i < 20; i++) {
-            require(_percentages[i] >= rewardPercentages[i], "Can only increase rewards");
-        }
         // 验证递增
         for (uint8 i = 1; i < 20; i++) {
             require(_percentages[i] > _percentages[i-1], "Must be ascending");
         }
+        // 验证最小值 > 0
+        require(_percentages[0] > 0, "Min reward must be > 0");
         // 验证最大不超过100%
         require(_percentages[19] <= 10000, "Max 100%");
         
