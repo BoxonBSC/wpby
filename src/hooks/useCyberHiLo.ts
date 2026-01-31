@@ -59,6 +59,13 @@ export interface GuessResultEvent {
   txHash?: string;
 }
 
+export interface VRFWaitingState {
+  isWaiting: boolean;
+  requestId: bigint;
+  startTime: number;
+  pollCount: number;
+}
+
 export interface UseCyberHiLoReturn extends HiLoContractState {
   startGame: (betAmount: number) => Promise<number | null>; // 返回首张牌
   guess: (guessHigh: boolean) => Promise<string | null>;
@@ -71,6 +78,8 @@ export interface UseCyberHiLoReturn extends HiLoContractState {
   calculatePotentialReward: (streak: number) => string;
   isPlaying: boolean;
   isWaitingVRF: boolean;
+  vrfState: VRFWaitingState;
+  lastGuessResult: GuessResultEvent | null;
 }
 
 const USE_TESTNET = false;
@@ -171,6 +180,13 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isWaitingVRF, setIsWaitingVRF] = useState(false);
+  const [vrfState, setVrfState] = useState<VRFWaitingState>({
+    isWaiting: false,
+    requestId: 0n,
+    startTime: 0,
+    pollCount: 0,
+  });
+  const [lastGuessResult, setLastGuessResult] = useState<GuessResultEvent | null>(null);
   
   const signerContractRef = useRef<Contract | null>(null);
   const tokenContractRef = useRef<Contract | null>(null);
@@ -303,7 +319,36 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
       };
 
       setIsPlaying(session.active);
-      setIsWaitingVRF(pendingRequest > 0n);
+      const wasWaiting = vrfState.isWaiting;
+      const nowWaiting = pendingRequest > 0n;
+      
+      setIsWaitingVRF(nowWaiting);
+      
+      // 更新VRF状态
+      if (nowWaiting && !wasWaiting) {
+        // 开始等待
+        setVrfState({
+          isWaiting: true,
+          requestId: pendingRequest,
+          startTime: Date.now(),
+          pollCount: 0,
+        });
+      } else if (nowWaiting && wasWaiting) {
+        // 继续等待，增加轮询计数
+        setVrfState(prev => ({
+          ...prev,
+          requestId: pendingRequest,
+          pollCount: prev.pollCount + 1,
+        }));
+      } else if (!nowWaiting && wasWaiting) {
+        // VRF完成
+        setVrfState({
+          isWaiting: false,
+          requestId: 0n,
+          startTime: 0,
+          pollCount: 0,
+        });
+      }
 
       setState(prev => ({
         ...prev,
@@ -609,5 +654,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     calculatePotentialReward,
     isPlaying,
     isWaitingVRF,
+    vrfState,
+    lastGuessResult,
   };
 }
