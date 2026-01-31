@@ -159,7 +159,16 @@ export function CompactGameHistory() {
                       {item.address}
                     </span>
                   </div>
-                  <span className={`font-display text-[10px] px-1.5 py-0.5 rounded ${item.prizeColor} bg-background/50`}>
+                  <span className={`
+                    font-display text-[11px] px-2 py-0.5 rounded-full font-bold
+                    ${item.prizeType === 'super_jackpot' ? 'bg-neon-yellow/30 text-neon-yellow border border-neon-yellow/50 animate-pulse' :
+                      item.prizeType === 'jackpot' ? 'bg-neon-purple/30 text-neon-purple border border-neon-purple/50' :
+                      item.prizeType === 'first' ? 'bg-neon-pink/25 text-neon-pink border border-neon-pink/40' :
+                      item.prizeType === 'second' ? 'bg-neon-cyan/25 text-neon-cyan border border-neon-cyan/40' :
+                      item.prizeType === 'third' ? 'bg-neon-blue/25 text-neon-blue border border-neon-blue/40' :
+                      item.prizeType === 'small' ? 'bg-neon-green/25 text-neon-green border border-neon-green/40' :
+                      'bg-muted/30 text-muted-foreground border border-border/50'}
+                  `}>
                     {item.prizeName}
                   </span>
                 </div>
