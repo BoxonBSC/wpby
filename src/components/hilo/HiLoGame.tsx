@@ -166,22 +166,41 @@ export function HiLoGame() {
   const lowerProb = currentCard ? (calculateWinProbability(currentCard.value, 'lower') * 100).toFixed(1) : '0';
 
   return (
-    <div className="min-h-screen bg-[#0a0908] pt-4">
-      <div className="container mx-auto px-4">
-        {/* 顶部信息栏 */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
-            <div className="px-4 py-2 rounded-xl bg-[#C9A347]/10 border border-[#C9A347]/20">
-              <span className="text-[#C9A347]/60 text-sm">凭证: </span>
-              <span className="text-[#C9A347] font-bold">{credits.toLocaleString()}</span>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 pt-4">
+        {/* 顶部信息栏 - 与主系统风格一致 */}
+        <div 
+          className="flex justify-between items-center mb-6 px-4 py-3 rounded-xl backdrop-blur-lg"
+          style={{
+            background: 'linear-gradient(180deg, rgba(15, 12, 7, 0.9) 0%, rgba(10, 9, 8, 0.95) 100%)',
+            border: '1px solid rgba(201, 163, 71, 0.2)',
+          }}
+        >
+          {/* 左侧 - 游戏名称 */}
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🃏</span>
+            <span className="font-display text-xl text-neon-cyan font-bold tracking-wide">
+              王牌博弈
+            </span>
+          </div>
+
+          {/* 中间 - 凭证和奖池 */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/50">
+              <span className="text-muted-foreground text-sm">凭证</span>
+              <span className="text-foreground font-bold">{credits.toLocaleString()}</span>
             </div>
-            <div className="px-4 py-2 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/20">
-              <span className="text-[#FFD700]/60 text-sm">奖池: </span>
-              <span className="text-[#FFD700] font-bold">{prizePool} BNB</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neon-gold/10 border border-neon-gold/30">
+              <span className="text-neon-gold/70 text-sm">奖池</span>
+              <span className="text-neon-gold font-bold">{prizePool} BNB</span>
             </div>
           </div>
           
-          <Button variant="outline" className="border-[#C9A347]/30 text-[#C9A347]">
+          {/* 右侧 - 连接钱包 */}
+          <Button 
+            variant="outline" 
+            className="border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10 hover:border-neon-cyan/50"
+          >
             <Wallet className="w-4 h-4 mr-2" />
             连接钱包
           </Button>
