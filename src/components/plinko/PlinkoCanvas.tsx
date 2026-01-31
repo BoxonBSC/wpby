@@ -353,7 +353,7 @@ export const PlinkoCanvas = forwardRef<PlinkoCanvasRef, PlinkoCanvasProps>(
       });
     });
 
-    // 渲染循环 - 添加引导力
+    // 渲染循环 - 添加引导力（优化防卡住）
     app.ticker.add(() => {
       Matter.Engine.update(engine, 1000 / 60);
       
@@ -363,25 +363,29 @@ export const PlinkoCanvas = forwardRef<PlinkoCanvasRef, PlinkoCanvasProps>(
       
       ballsRef.current.forEach((ball) => {
         const { x, y } = ball.body.position;
+        const velocity = ball.body.velocity;
         
-        // 如果有目标槽位，施加引导力
-        if (ball.targetSlot !== undefined) {
+        // 防卡住机制：如果球速度太低，给它一个向下的推力
+        const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+        if (speed < 0.5 && y < slotY - 50) {
+          Matter.Body.applyForce(ball.body, ball.body.position, {
+            x: (Math.random() - 0.5) * 0.0002,
+            y: 0.0003,
+          });
+        }
+        
+        // 如果有目标槽位，施加轻微引导力（仅在接近底部时）
+        if (ball.targetSlot !== undefined && y > slotY - 200) {
           const targetX = getSlotCenterX(ball.targetSlot);
           const dx = targetX - x;
           
-          // 只在球下落到一定位置后开始施加力
-          if (y > offsetY + 100) {
-            // 根据距离计算引导力，越接近目标越小
-            const progress = Math.min(1, (y - offsetY - 100) / (slotY - offsetY - 150));
-            const forceStrength = 0.00008 * (1 + progress * 2);
-            
-            // 施加水平引导力
-            if (Math.abs(dx) > 5) {
-              Matter.Body.applyForce(ball.body, ball.body.position, {
-                x: Math.sign(dx) * forceStrength,
-                y: 0,
-              });
-            }
+          // 只在需要较大调整时施加力，且力度很小
+          if (Math.abs(dx) > 10) {
+            const forceStrength = 0.00003; // 减小力度
+            Matter.Body.applyForce(ball.body, ball.body.position, {
+              x: Math.sign(dx) * forceStrength,
+              y: 0,
+            });
           }
         }
         
