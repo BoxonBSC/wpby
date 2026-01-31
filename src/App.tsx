@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { AudioProvider } from "@/contexts/AudioContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { GoldParticles } from "@/components/GoldParticles";
 import Index from "./pages/Index";
 import History from "./pages/History";
 import Rules from "./pages/Rules";
@@ -25,6 +26,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <GoldParticles />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/history" element={<History />} />
