@@ -7,6 +7,7 @@ interface PlinkoCanvasProps {
   width: number;
   height: number;
   onBallLanded: (slotIndex: number) => void;
+  onCollision?: () => void;
   dropBallTrigger: number;
 }
 
@@ -29,7 +30,7 @@ interface Particle {
   color: number;
 }
 
-export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: PlinkoCanvasProps) {
+export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBallTrigger }: PlinkoCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const engineRef = useRef<Matter.Engine | null>(null);
@@ -40,39 +41,21 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
   const lastDropTrigger = useRef(0);
   const isInitializedRef = useRef(false);
   const onBallLandedRef = useRef(onBallLanded);
+  const onCollisionRef = useRef(onCollision);
 
-  // 保持回调最新
   useEffect(() => {
     onBallLandedRef.current = onBallLanded;
-  }, [onBallLanded]);
+    onCollisionRef.current = onCollision;
+  }, [onBallLanded, onCollision]);
 
-  const { game, physics, visuals, animation } = PLINKO_CONFIG;
+  const { game, physics, visuals } = PLINKO_CONFIG;
   
   const cols = game.rows + 1;
   const boardWidth = cols * game.pegSpacing;
   const offsetX = (width - boardWidth) / 2;
   const offsetY = 80;
 
-  // 创建碰撞粒子
-  const createCollisionParticles = useCallback((x: number, y: number, color: number = visuals.pegGlowColor) => {
-    const count = animation.collisionParticles;
-    for (let i = 0; i < count; i++) {
-      const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
-      const speed = 2 + Math.random() * 3;
-      particlesRef.current.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 1,
-        maxLife: 30 + Math.random() * 20,
-        size: 2 + Math.random() * 3,
-        color,
-      });
-    }
-  }, [animation.collisionParticles, visuals.pegGlowColor]);
-
-  // 初始化 PIXI 和 Matter - 只运行一次
+  // 初始化 PIXI 和 Matter
   useEffect(() => {
     if (!containerRef.current || isInitializedRef.current) return;
     isInitializedRef.current = true;
@@ -91,7 +74,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
     // 背景装饰层
     const bgLayer = new PIXI.Graphics();
     
-    // 渐变背景
     for (let i = 0; i < height; i += 2) {
       const alpha = Math.sin((i / height) * Math.PI) * 0.05;
       bgLayer.beginFill(visuals.pegColor, alpha);
@@ -99,7 +81,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
       bgLayer.endFill();
     }
     
-    // 装饰线条
     bgLayer.lineStyle(1, visuals.pegColor, 0.1);
     for (let i = 0; i < width; i += 50) {
       bgLayer.moveTo(i, 0);
@@ -111,18 +92,15 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
     }
     app.stage.addChild(bgLayer);
 
-    // 拖尾层
     const trailGfx = new PIXI.Graphics();
     app.stage.addChild(trailGfx);
     trailGraphicsRef.current = trailGfx;
 
-    // 创建 Matter 引擎
     const engine = Matter.Engine.create({
       gravity: physics.gravity,
     });
     engineRef.current = engine;
 
-    // 创建钉子
     const pegs: Matter.Body[] = [];
 
     for (let row = 0; row < game.rows; row++) {
@@ -142,17 +120,14 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
         });
         pegs.push(peg);
 
-        // 高级钉子渲染
         const pegContainer = new PIXI.Graphics();
         
-        // 外发光 - 多层
         for (let g = 3; g >= 0; g--) {
           pegContainer.beginFill(visuals.pegGlowColor, 0.05 * (4 - g));
           pegContainer.drawCircle(x, y, game.pegRadius + 8 - g * 2);
           pegContainer.endFill();
         }
         
-        // 金属渐变主体
         const gradient = [0xE8D490, 0xC9A347, 0x8B7230];
         gradient.forEach((color, i) => {
           pegContainer.beginFill(color, 1 - i * 0.2);
@@ -160,7 +135,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
           pegContainer.endFill();
         });
         
-        // 高光
         pegContainer.beginFill(0xFFFFFF, 0.7);
         pegContainer.drawCircle(x - 2, y - 2, game.pegRadius * 0.25);
         pegContainer.endFill();
@@ -171,17 +145,14 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
     
     Matter.Composite.add(engine.world, pegs);
 
-    // 创建底部槽位
     const slots: Matter.Body[] = [];
     const slotWidth = game.pegSpacing;
     const slotY = offsetY + game.rows * game.pegSpacing + 80;
     
-    // 槽位背景容器
     const slotsContainer = new PIXI.Container();
     app.stage.addChild(slotsContainer);
     
     for (let i = 0; i <= cols; i++) {
-      // 槽位分隔墙
       if (i <= cols) {
         const wall = Matter.Bodies.rectangle(
           offsetX + i * slotWidth,
@@ -192,10 +163,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
         );
         slots.push(wall);
         
-        // 金属分隔墙
         const wallGfx = new PIXI.Graphics();
-        
-        // 墙体渐变
         const wallGradient = [0xE8D490, 0xC9A347, 0x6B5220];
         wallGradient.forEach((color, idx) => {
           wallGfx.beginFill(color);
@@ -206,14 +174,12 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
         slotsContainer.addChild(wallGfx);
       }
       
-      // 绘制槽位背景和赔率
       if (i < cols) {
         const multiplier = MULTIPLIER_TABLE[i] || 1;
         const color = getSlotColor(multiplier);
         
         const slotGfx = new PIXI.Graphics();
         
-        // 发光背景
         slotGfx.beginFill(color, 0.15);
         slotGfx.drawRoundedRect(
           offsetX + i * slotWidth + 3,
@@ -224,7 +190,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
         );
         slotGfx.endFill();
         
-        // 底部强调
         slotGfx.beginFill(color, 0.4);
         slotGfx.drawRect(
           offsetX + i * slotWidth + 3,
@@ -236,7 +201,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
         
         slotsContainer.addChild(slotGfx);
         
-        // 赔率文字 - 带阴影
         const textStyle = new PIXI.TextStyle({
           fontFamily: 'Arial, sans-serif',
           fontSize: multiplier >= 100 ? 11 : 13,
@@ -257,7 +221,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
       }
     }
     
-    // 底部感应器
     for (let i = 0; i < cols; i++) {
       const sensor = Matter.Bodies.rectangle(
         offsetX + i * slotWidth + slotWidth / 2,
@@ -275,12 +238,10 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
     
     Matter.Composite.add(engine.world, slots);
 
-    // 边界墙
     const leftWall = Matter.Bodies.rectangle(offsetX - 20, height / 2, 10, height, { isStatic: true });
     const rightWall = Matter.Bodies.rectangle(offsetX + boardWidth + 20, height / 2, 10, height, { isStatic: true });
     Matter.Composite.add(engine.world, [leftWall, rightWall]);
 
-    // 粒子层
     const particleGfx = new PIXI.Graphics();
     app.stage.addChild(particleGfx);
     particleGraphicsRef.current = particleGfx;
@@ -290,14 +251,13 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
       event.pairs.forEach((pair) => {
         const labels = [pair.bodyA.label, pair.bodyB.label];
         
-        // 球撞击钉子 - 产生粒子
         if (labels.includes('peg') && labels.includes('ball')) {
           const pegBody = pair.bodyA.label === 'peg' ? pair.bodyA : pair.bodyB;
           const ballBody = pair.bodyA.label === 'ball' ? pair.bodyA : pair.bodyB;
           
           const ball = ballsRef.current.find(b => b.body === ballBody);
           if (ball && Date.now() - ball.lastCollisionTime > 50) {
-            // 使用内联的粒子创建
+            // 粒子效果
             const count = 8;
             for (let i = 0; i < count; i++) {
               const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
@@ -314,10 +274,12 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
               });
             }
             ball.lastCollisionTime = Date.now();
+            
+            // 播放碰撞音效
+            onCollisionRef.current?.();
           }
         }
         
-        // 检测球落入槽位
         labels.forEach((label) => {
           if (label.startsWith('slot_')) {
             const slotIndex = parseInt(label.split('_')[1]);
@@ -328,7 +290,6 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
               const multiplier = MULTIPLIER_TABLE[slotIndex] || 1;
               const color = getSlotColor(multiplier);
               
-              // 落入槽位的爆炸粒子
               for (let j = 0; j < 20; j++) {
                 const angle = (Math.PI * 2 / 20) * j + Math.random() * 0.5;
                 const speed = 2 + Math.random() * 3;
@@ -363,20 +324,16 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
     app.ticker.add(() => {
       Matter.Engine.update(engine, 1000 / 60);
       
-      // 清除拖尾层
       trailGfx.clear();
       
-      // 更新球位置和拖尾
       ballsRef.current.forEach((ball) => {
         const { x, y } = ball.body.position;
         
-        // 更新拖尾历史
         ball.trail.unshift({ x, y, alpha: 0.6 });
         if (ball.trail.length > 15) {
           ball.trail.pop();
         }
         
-        // 绘制拖尾
         ball.trail.forEach((point, i) => {
           const alpha = point.alpha * (1 - i / ball.trail.length);
           const size = 10 * (1 - i / ball.trail.length * 0.5);
@@ -386,17 +343,14 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
           trailGfx.endFill();
         });
         
-        // 更新球位置
         ball.graphics.clear();
         
-        // 外发光 - 多层
         for (let g = 4; g >= 0; g--) {
           ball.graphics.beginFill(0xFFFFFF, 0.08 * (5 - g));
           ball.graphics.drawCircle(x, y, 10 + 12 - g * 2);
           ball.graphics.endFill();
         }
         
-        // 金属球体渐变
         const ballGradient = [0xFFFFFF, 0xE0E0E0, 0xA0A0A0];
         ballGradient.forEach((color, i) => {
           ball.graphics.beginFill(color, 1 - i * 0.15);
@@ -404,24 +358,21 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
           ball.graphics.endFill();
         });
         
-        // 高光
         ball.graphics.beginFill(0xFFFFFF, 0.9);
         ball.graphics.drawCircle(x - 3, y - 3, 10 * 0.25);
         ball.graphics.endFill();
         
-        // 次级高光
         ball.graphics.beginFill(0xFFFFFF, 0.4);
         ball.graphics.drawCircle(x + 2, y + 2, 10 * 0.15);
         ball.graphics.endFill();
       });
       
-      // 更新粒子
       particleGfx.clear();
       particlesRef.current = particlesRef.current.filter(p => {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.1; // 重力
-        p.vx *= 0.98; // 阻力
+        p.vy += 0.1;
+        p.vx *= 0.98;
         p.life -= 1 / p.maxLife;
         
         if (p.life <= 0) return false;
@@ -441,7 +392,7 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
       engineRef.current = null;
       isInitializedRef.current = false;
     };
-  }, [width, height]); // 只依赖宽高
+  }, [width, height]);
 
   // 投放新球
   const dropBall = useCallback(() => {
@@ -475,10 +426,22 @@ export function PlinkoCanvas({ width, height, onBallLanded, dropBallTrigger }: P
     ballsRef.current.push(ballObj);
     
     // 投放粒子效果
-    createCollisionParticles(startX, startY, visuals.ballGlowColor);
-  }, [offsetX, boardWidth, game, physics, visuals, createCollisionParticles]);
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 / 8) * i + Math.random() * 0.5;
+      const speed = 2 + Math.random() * 3;
+      particlesRef.current.push({
+        x: startX,
+        y: startY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        maxLife: 30 + Math.random() * 20,
+        size: 2 + Math.random() * 3,
+        color: 0xFFFFFF,
+      });
+    }
+  }, [offsetX, boardWidth, game, physics]);
 
-  // 监听投球触发器
   useEffect(() => {
     if (dropBallTrigger > lastDropTrigger.current) {
       dropBall();
