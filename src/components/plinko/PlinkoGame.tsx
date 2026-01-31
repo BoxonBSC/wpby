@@ -7,55 +7,8 @@ import { SoundControls } from './SoundControls';
 import { PlinkoResult, SLOT_REWARDS, calculateReward, isJackpot, isBigWin, isWin } from '@/config/plinko';
 import { useWallet } from '@/contexts/WalletContext';
 import { usePlinkoSounds } from '@/hooks/usePlinkoSounds';
-import { Sparkles, Crown, Star, Coins } from 'lucide-react';
-
-// 模拟BNB奖池（实际应从合约读取）
-const DEMO_BNB_POOL = 5.5; // 5.5 BNB
-
-// ========================================
-// 模拟合约概率计算（Chainlink VRF 替代）
-// ========================================
-// 超低中奖率模型 - 20行二项分布概率表
-// 只有边缘槽位有奖励，中间全部未中奖
-const SLOT_PROBABILITIES = [
-  0.000001,  // 槽位0:  0.0001% - 50% 超级大奖
-  0.000019,  // 槽位1:  0.0019% - 未中奖
-  0.000181,  // 槽位2:  0.018% - 30% 大奖
-  0.001087,  // 槽位3:  0.109% - 未中奖
-  0.004621,  // 槽位4:  0.46% - 15% 中奖
-  0.014786,  // 槽位5:  1.48% - 未中奖
-  0.036964,  // 槽位6:  3.7% - 5% 小奖
-  0.073929,  // 槽位7:  7.4% - 未中奖
-  0.120134,  // 槽位8:  12% - 未中奖
-  0.160179,  // 槽位9:  16% - 未中奖
-  0.176197,  // 槽位10: 17.6% - 未中奖（中间最高概率）
-  0.160179,  // 槽位11: 16% - 未中奖
-  0.120134,  // 槽位12: 12% - 未中奖
-  0.073929,  // 槽位13: 7.4% - 未中奖
-  0.036964,  // 槽位14: 3.7% - 5% 小奖
-  0.014786,  // 槽位15: 1.48% - 未中奖
-  0.004621,  // 槽位16: 0.46% - 15% 中奖
-  0.001087,  // 槽位17: 0.109% - 未中奖
-  0.000181,  // 槽位18: 0.018% - 30% 大奖
-  0.000019,  // 槽位19: 0.0019% - 未中奖
-  0.000001,  // 槽位20: 0.0001% - 50% 超级大奖
-];
-
-// 模拟 Chainlink VRF 随机数生成并选择槽位
-function simulateContractResult(): number {
-  const random = Math.random();
-  let cumulative = 0;
-  
-  for (let i = 0; i < SLOT_PROBABILITIES.length; i++) {
-    cumulative += SLOT_PROBABILITIES[i];
-    if (random < cumulative) {
-      return i;
-    }
-  }
-  
-  // 默认返回中间槽位
-  return 10;
-}
+import { useCyberPlinko } from '@/hooks/useCyberPlinko';
+import { Sparkles, Crown, Star, Coins, AlertCircle } from 'lucide-react';
 
 // 背景粒子
 function BackgroundParticles() {
@@ -94,11 +47,31 @@ function BackgroundParticles() {
   );
 }
 
+// 演示模式概率表（18行二项分布）
+const DEMO_SLOT_PROBABILITIES = [
+  0.000001, 0.000019, 0.000181, 0.001087, 0.004621,
+  0.014786, 0.036964, 0.073929, 0.120134, 0.160179,
+  0.176197, 0.160179, 0.120134, 0.073929, 0.036964,
+  0.014786, 0.004621, 0.001087, 0.000181, 0.000019,
+  0.000001,
+];
+
+function simulateDemoResult(): number {
+  const random = Math.random();
+  let cumulative = 0;
+  for (let i = 0; i < DEMO_SLOT_PROBABILITIES.length; i++) {
+    cumulative += DEMO_SLOT_PROBABILITIES[i];
+    if (random < cumulative) return i;
+  }
+  return 10;
+}
+
 export function PlinkoGame() {
-  const { gameCredits, isConnected } = useWallet();
+  const { isConnected } = useWallet();
   const sounds = usePlinkoSounds();
+  const plinko = useCyberPlinko();
   
-  const [betAmount, setBetAmount] = useState(10000);
+  const [betAmount, setBetAmount] = useState(20000);
   const [autoDropCount, setAutoDropCount] = useState(0);
   const [isDropping, setIsDropping] = useState(false);
   const [remainingDrops, setRemainingDrops] = useState(0);
@@ -108,18 +81,31 @@ export function PlinkoGame() {
   const [showWinOverlay, setShowWinOverlay] = useState(false);
   const [lastWin, setLastWin] = useState<{ label: string; amount: number; bnbAmount: number; isJackpot: boolean } | null>(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [bnbPool, setBnbPool] = useState(DEMO_BNB_POOL);
   const [volume, setVolume] = useState(0.5);
-  
-
   const [demoCredits, setDemoCredits] = useState(100000);
-  const credits = isConnected ? gameCredits : demoCredits;
+  const [demoBnbPool, setDemoBnbPool] = useState(5.5);
+
+  // 使用合约数据或演示数据
+  const useContract = isConnected && plinko.isContractDeployed;
+  const credits = useContract ? Math.floor(parseFloat(plinko.gameCredits) * 1) : demoCredits;
+  const bnbPool = useContract ? parseFloat(plinko.availablePool) : demoBnbPool;
 
   const autoDropTimer = useRef<NodeJS.Timeout | null>(null);
   const pendingDrops = useRef(0);
 
   const totalWin = results.reduce((sum, r) => sum + r.winAmount, 0);
   const totalBet = results.reduce((sum, r) => sum + r.betAmount, 0);
+
+  // 监听合约结果
+  useEffect(() => {
+    if (plinko.lastDropResult && useContract) {
+      const { slotIndex, winAmount, rewardType } = plinko.lastDropResult;
+      
+      // 播放动画到指定槽位
+      setTargetSlot(slotIndex);
+      setDropTrigger(prev => prev + 1);
+    }
+  }, [plinko.lastDropResult, useContract]);
 
   // 音量控制
   const handleToggleMute = useCallback(() => {
@@ -132,7 +118,6 @@ export function PlinkoGame() {
     setVolume(vol);
   }, [sounds]);
 
-  // 碰撞音效回调
   const handleCollision = useCallback(() => {
     sounds.playCollisionSound(0.5 + Math.random() * 0.5);
   }, [sounds]);
@@ -141,7 +126,6 @@ export function PlinkoGame() {
   const handleBallLanded = useCallback((slotIndex: number) => {
     const reward = calculateReward(slotIndex, betAmount, bnbPool);
     
-    // 播放音效 - 根据新的奖励类型
     if (isJackpot(reward.type)) {
       sounds.playJackpotSound();
     } else if (isBigWin(reward.type)) {
@@ -165,17 +149,14 @@ export function PlinkoGame() {
 
     setResults(prev => [result, ...prev]);
     
-    // 更新凭证和BNB奖池（演示模式）
-    if (!isConnected) {
-      // 模拟BNB奖池变化 - 中奖时减少奖池
+    // 演示模式更新
+    if (!useContract) {
       if (reward.bnbAmount > 0) {
-        setBnbPool(prev => Math.max(0.1, prev - reward.bnbAmount));
+        setDemoBnbPool(prev => Math.max(0.1, prev - reward.bnbAmount));
       }
-      // 模拟交易税补充奖池（每次投注补充少量）
-      setBnbPool(prev => prev + 0.001);
+      setDemoBnbPool(prev => prev + 0.001);
     }
 
-    // 显示大奖特效
     if (isBigWin(reward.type)) {
       setLastWin({ 
         label: reward.label, 
@@ -193,24 +174,30 @@ export function PlinkoGame() {
     if (pendingDrops.current <= 0) {
       setIsDropping(false);
     }
-  }, [betAmount, isConnected, bnbPool, sounds]);
+  }, [betAmount, bnbPool, sounds, useContract]);
 
-  // 执行投球 - 使用合约模拟决定结果
-  const executeDrop = useCallback(() => {
-    if (!isConnected) {
+  // 执行投球
+  const executeDrop = useCallback(async () => {
+    if (useContract) {
+      // 合约模式：调用合约投球
+      const txHash = await plinko.drop(betAmount);
+      if (!txHash) {
+        setIsDropping(false);
+        return;
+      }
+      // 等待合约返回结果，会触发 lastDropResult 更新
+    } else {
+      // 演示模式：本地模拟
       setDemoCredits(prev => prev - betAmount);
+      const contractResult = simulateDemoResult();
+      setTargetSlot(contractResult);
+      sounds.playDropSound();
+      setDropTrigger(prev => prev + 1);
     }
-    
-    // 模拟合约调用：先确定结果，再播放动画
-    const contractResult = simulateContractResult();
-    setTargetSlot(contractResult);
-    
-    sounds.playDropSound();
-    setDropTrigger(prev => prev + 1);
-  }, [betAmount, isConnected, sounds]);
+  }, [betAmount, useContract, plinko, sounds]);
 
   // 开始投球
-  const handleDrop = useCallback(() => {
+  const handleDrop = useCallback(async () => {
     if (credits < betAmount) return;
     
     sounds.playClickSound();
@@ -220,15 +207,15 @@ export function PlinkoGame() {
     setRemainingDrops(totalDrops);
     setIsDropping(true);
     
-    executeDrop();
+    await executeDrop();
   }, [credits, betAmount, autoDropCount, executeDrop, sounds]);
 
   // 自动投球
   useEffect(() => {
-    if (isDropping && remainingDrops > 1 && credits >= betAmount) {
+    if (isDropping && remainingDrops > 1 && credits >= betAmount && !plinko.isDropping) {
       autoDropTimer.current = setTimeout(() => {
         executeDrop();
-      }, 600);
+      }, useContract ? 5000 : 600); // 合约模式等待更长
     }
 
     return () => {
@@ -236,9 +223,8 @@ export function PlinkoGame() {
         clearTimeout(autoDropTimer.current);
       }
     };
-  }, [isDropping, remainingDrops, credits, betAmount, executeDrop]);
+  }, [isDropping, remainingDrops, credits, betAmount, executeDrop, useContract, plinko.isDropping]);
 
-  // 按钮点击音效
   const handleBetChange = useCallback((amount: number) => {
     sounds.playClickSound();
     setBetAmount(amount);
@@ -299,7 +285,6 @@ export function PlinkoGame() {
             — 弹珠落下，财富开启 —
           </p>
           
-          {/* 音量控制 */}
           <SoundControls
             isMuted={isMuted}
             volume={volume}
@@ -325,6 +310,18 @@ export function PlinkoGame() {
             {bnbPool.toFixed(4)} BNB
           </span>
         </motion.div>
+        
+        {/* 合约状态指示 */}
+        {isConnected && !plinko.isContractDeployed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-2 inline-flex items-center gap-2 px-4 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40"
+          >
+            <AlertCircle className="w-4 h-4 text-yellow-500" />
+            <span className="text-yellow-500 text-sm">合约未部署，当前为演示模式</span>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* 主游戏区域 */}
@@ -342,7 +339,7 @@ export function PlinkoGame() {
             autoDropCount={autoDropCount}
             onAutoDropChange={handleAutoDropChange}
             onDrop={handleDrop}
-            isDropping={isDropping}
+            isDropping={isDropping || plinko.isDropping}
             remainingDrops={remainingDrops}
           />
         </motion.div>
@@ -393,17 +390,11 @@ export function PlinkoGame() {
               backdropFilter: 'blur(8px)',
             }}
           >
-            {/* 爆炸粒子 */}
             {Array.from({ length: 20 }).map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute"
-                initial={{ 
-                  x: 0, 
-                  y: 0, 
-                  scale: 0,
-                  opacity: 1 
-                }}
+                initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
                 animate={{ 
                   x: (Math.random() - 0.5) * 400,
                   y: (Math.random() - 0.5) * 400,
@@ -414,10 +405,7 @@ export function PlinkoGame() {
               >
                 <Star 
                   className={lastWin.isJackpot ? 'text-[#FF4444]' : 'text-[#FFD700]'}
-                  style={{ 
-                    width: 10 + Math.random() * 20,
-                    height: 10 + Math.random() * 20,
-                  }}
+                  style={{ width: 10 + Math.random() * 20, height: 10 + Math.random() * 20 }}
                 />
               </motion.div>
             ))}
@@ -430,10 +418,7 @@ export function PlinkoGame() {
               className="text-center relative"
             >
               <motion.div
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 5, -5, 0],
-                }}
+                animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 0.5, repeat: Infinity }}
               >
                 <Sparkles className={`w-20 h-20 mx-auto mb-4 ${lastWin.isJackpot ? 'text-[#FF4444]' : 'text-[#FFD700]'}`} />
@@ -449,14 +434,6 @@ export function PlinkoGame() {
                   WebkitTextFillColor: 'transparent',
                   filter: `drop-shadow(0 0 30px ${lastWin.isJackpot ? 'rgba(255, 68, 68, 0.8)' : 'rgba(255, 215, 0, 0.8)'})`,
                 }}
-                animate={{
-                  textShadow: [
-                    `0 0 20px ${lastWin.isJackpot ? 'rgba(255, 68, 68, 0.5)' : 'rgba(255, 215, 0, 0.5)'}`,
-                    `0 0 60px ${lastWin.isJackpot ? 'rgba(255, 68, 68, 1)' : 'rgba(255, 215, 0, 1)'}`,
-                    `0 0 20px ${lastWin.isJackpot ? 'rgba(255, 68, 68, 0.5)' : 'rgba(255, 215, 0, 0.5)'}`,
-                  ],
-                }}
-                transition={{ duration: 0.5, repeat: Infinity }}
               >
                 {lastWin.label}
               </motion.div>
@@ -487,22 +464,24 @@ export function PlinkoGame() {
       </AnimatePresence>
 
       {/* 演示模式提示 */}
-      {!isConnected && (
+      {!useContract && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20"
         >
           <div 
-            className="px-6 py-3 rounded-full text-sm font-medium"
+            className="px-6 py-3 rounded-2xl flex items-center gap-3"
             style={{
-              background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.2) 0%, rgba(201, 163, 71, 0.1) 100%)',
+              background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.15) 0%, rgba(139, 114, 48, 0.1) 100%)',
               border: '1px solid rgba(201, 163, 71, 0.3)',
-              color: '#C9A347',
               backdropFilter: 'blur(10px)',
             }}
           >
-            🎮 演示模式 — 连接钱包开始真实游戏
+            <div className="w-2 h-2 rounded-full bg-[#C9A347] animate-pulse" />
+            <span className="text-[#C9A347]/90 text-sm font-medium">
+              演示模式 - {isConnected ? '合约未部署' : '连接钱包体验真实游戏'}
+            </span>
           </div>
         </motion.div>
       )}
