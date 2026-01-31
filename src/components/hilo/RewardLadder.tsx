@@ -107,7 +107,7 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
                       {reward.toFixed(4)} BNB
                     </div>
                     <div className={`text-[10px] ${isActive ? 'text-[#C9A347]/60' : 'text-[#C9A347]/30'}`}>
-                      上限 {tier.maxBNB} BNB
+                      ~{tier.probability}% 概率
                     </div>
                   </>
                 ) : (

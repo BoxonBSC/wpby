@@ -77,23 +77,29 @@ export function getBetTier(betAmount: number): BetTier {
 }
 
 // ========================================
-// 超低风险奖励配置
+// 纯百分比奖励配置（概率自然保护奖池）
 // ========================================
+// 设计理念：
+// - 连胜越高，概率越低，但奖励越大
+// - 无绝对上限，纯百分比计算
+// - 概率自然限制风险（7连胜仅~0.8%概率）
+
 export interface RewardTier {
   streak: number;
   percentage: number;     // 奖池百分比
-  maxBNB: number;         // 绝对上限
+  probability: number;    // 理论到达概率
   label: string;
 }
 
+// 奖励阶梯：概率越低，奖励越高
 export const REWARD_TIERS: RewardTier[] = [
-  { streak: 1, percentage: 0.01, maxBNB: 0.001, label: '入门' },
-  { streak: 2, percentage: 0.02, maxBNB: 0.002, label: '初级' },
-  { streak: 3, percentage: 0.05, maxBNB: 0.005, label: '中级' },      // 青铜上限
-  { streak: 4, percentage: 0.1, maxBNB: 0.01, label: '高级' },
-  { streak: 5, percentage: 0.2, maxBNB: 0.02, label: '精英' },        // 白银上限
-  { streak: 6, percentage: 0.3, maxBNB: 0.03, label: '大师' },
-  { streak: 7, percentage: 0.5, maxBNB: 0.05, label: '传奇' },        // 黄金上限
+  { streak: 1, percentage: 0.1,  probability: 50,    label: '入门' },
+  { streak: 2, percentage: 0.3,  probability: 25,    label: '初级' },
+  { streak: 3, percentage: 0.8,  probability: 12.5,  label: '中级' },      // 青铜上限
+  { streak: 4, percentage: 1.5,  probability: 6.25,  label: '高级' },
+  { streak: 5, percentage: 3,    probability: 3.1,   label: '精英' },      // 白银上限
+  { streak: 6, percentage: 5,    probability: 1.5,   label: '大师' },
+  { streak: 7, percentage: 10,   probability: 0.8,   label: '传奇' },      // 黄金上限
 ];
 
 // 获取当前奖励等级（受门槛限制）
@@ -106,7 +112,7 @@ export function getCurrentRewardTier(streak: number, maxStreak: number): RewardT
   return tier || null;
 }
 
-// 计算实际BNB奖励
+// 计算实际BNB奖励（纯百分比，无上限）
 export function calculateHiLoReward(
   streak: number,
   maxStreak: number,
@@ -115,8 +121,8 @@ export function calculateHiLoReward(
   const tier = getCurrentRewardTier(streak, maxStreak);
   if (!tier) return 0;
   
-  const percentageReward = prizePoolBNB * (tier.percentage / 100);
-  return Math.min(percentageReward, tier.maxBNB);
+  // 纯百分比计算，奖池越大奖励越大
+  return prizePoolBNB * (tier.percentage / 100);
 }
 
 // 计算猜对概率
