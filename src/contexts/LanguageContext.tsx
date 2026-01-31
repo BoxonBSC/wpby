@@ -106,6 +106,7 @@ const translations: Record<Language, Record<string, string>> = {
     'exchange.needTokens': '需要 {amount} 代币',
     
     // 钱包
+    'wallet.title': '钱包中心',
     'wallet.connect': '连接钱包',
     'wallet.connecting': '连接中...',
     'wallet.connected': '已连接',
@@ -114,6 +115,13 @@ const translations: Record<Language, Record<string, string>> = {
     'wallet.needConnect': '需要连接钱包才能开始游戏',
     'wallet.insufficientCredits': '凭证不足',
     'wallet.needCredits': '需要 {amount} 游戏凭证。请先销毁代币兑换凭证。',
+    
+    // 钱包面板流程
+    'exchange.howToPlay': '游戏流程',
+    'exchange.step1': '连接BSC钱包',
+    'exchange.step2': '焚毁代币兑换游戏凭证',
+    'exchange.step3': '使用凭证参与游戏',
+    'exchange.step4': '赢取BNB奖池奖励',
     
     // 钱包UI
     'walletUI.selectWallet': '选择钱包',
@@ -549,6 +557,7 @@ const translations: Record<Language, Record<string, string>> = {
     'exchange.needTokens': 'Need {amount} tokens',
     
     // Wallet
+    'wallet.title': 'Wallet Center',
     'wallet.connect': 'Connect Wallet',
     'wallet.connecting': 'Connecting...',
     'wallet.connected': 'Connected',
@@ -557,6 +566,13 @@ const translations: Record<Language, Record<string, string>> = {
     'wallet.needConnect': 'Connect wallet to start playing',
     'wallet.insufficientCredits': 'Insufficient Credits',
     'wallet.needCredits': 'Need {amount} credits. Please burn tokens first.',
+    
+    // Wallet Panel Flow
+    'exchange.howToPlay': 'How to Play',
+    'exchange.step1': 'Connect BSC Wallet',
+    'exchange.step2': 'Burn tokens for game credits',
+    'exchange.step3': 'Use credits to play games',
+    'exchange.step4': 'Win BNB from prize pool',
     
     // Wallet UI
     'walletUI.selectWallet': 'Select Wallet',
