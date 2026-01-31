@@ -111,38 +111,42 @@ export interface RewardTier {
   streak: number;
   percentage: number;     // 奖池百分比
   zone: RewardZone;       // 所属区域
-  label: string;
+  milestone?: {           // 关键节点（门槛上限）
+    tier: string;         // 对应的门槛ID
+    emoji: string;        // 徽章emoji
+    label: string;        // 徽章文字
+  };
 }
 
 // 20级奖励阶梯
 export const REWARD_TIERS: RewardTier[] = [
   // 常见区（1-5连胜）
-  { streak: 1, percentage: 0.02, zone: 'common', label: '入门' },
-  { streak: 2, percentage: 0.05, zone: 'common', label: '初级' },
-  { streak: 3, percentage: 0.1, zone: 'common', label: '中级' },
-  { streak: 4, percentage: 0.15, zone: 'common', label: '高级' },
-  { streak: 5, percentage: 0.25, zone: 'common', label: '青铜上限' },
+  { streak: 1, percentage: 0.02, zone: 'common' },
+  { streak: 2, percentage: 0.05, zone: 'common' },
+  { streak: 3, percentage: 0.1, zone: 'common' },
+  { streak: 4, percentage: 0.15, zone: 'common' },
+  { streak: 5, percentage: 0.25, zone: 'common', milestone: { tier: 'bronze', emoji: '🥉', label: '青铜上限' } },
   
   // 进阶区（6-10连胜）
-  { streak: 6, percentage: 0.4, zone: 'advanced', label: '进阶' },
-  { streak: 7, percentage: 0.6, zone: 'advanced', label: '熟练' },
-  { streak: 8, percentage: 1, zone: 'advanced', label: '白银上限' },
-  { streak: 9, percentage: 1.5, zone: 'advanced', label: '精通' },
-  { streak: 10, percentage: 2.5, zone: 'advanced', label: '大师' },
+  { streak: 6, percentage: 0.4, zone: 'advanced' },
+  { streak: 7, percentage: 0.6, zone: 'advanced' },
+  { streak: 8, percentage: 1, zone: 'advanced', milestone: { tier: 'silver', emoji: '🥈', label: '白银上限' } },
+  { streak: 9, percentage: 1.5, zone: 'advanced' },
+  { streak: 10, percentage: 2.5, zone: 'advanced' },
   
   // 精英区（11-15连胜）
-  { streak: 11, percentage: 4, zone: 'elite', label: '精英' },
-  { streak: 12, percentage: 6, zone: 'elite', label: '黄金上限' },
-  { streak: 13, percentage: 9, zone: 'elite', label: '专家' },
-  { streak: 14, percentage: 13, zone: 'elite', label: '宗师' },
-  { streak: 15, percentage: 18, zone: 'elite', label: '王者' },
+  { streak: 11, percentage: 4, zone: 'elite' },
+  { streak: 12, percentage: 6, zone: 'elite', milestone: { tier: 'gold', emoji: '🥇', label: '黄金上限' } },
+  { streak: 13, percentage: 9, zone: 'elite' },
+  { streak: 14, percentage: 13, zone: 'elite' },
+  { streak: 15, percentage: 18, zone: 'elite' },
   
   // 传奇区（16-20连胜）
-  { streak: 16, percentage: 25, zone: 'legendary', label: '铂金上限' },
-  { streak: 17, percentage: 35, zone: 'legendary', label: '传说' },
-  { streak: 18, percentage: 50, zone: 'legendary', label: '神话' },
-  { streak: 19, percentage: 70, zone: 'legendary', label: '至尊' },
-  { streak: 20, percentage: 100, zone: 'legendary', label: '清空奖池' },
+  { streak: 16, percentage: 25, zone: 'legendary', milestone: { tier: 'platinum', emoji: '💎', label: '铂金上限' } },
+  { streak: 17, percentage: 35, zone: 'legendary' },
+  { streak: 18, percentage: 50, zone: 'legendary' },
+  { streak: 19, percentage: 70, zone: 'legendary' },
+  { streak: 20, percentage: 100, zone: 'legendary', milestone: { tier: 'diamond', emoji: '👑', label: '清空奖池' } },
 ];
 
 // 获取当前奖励等级（受门槛限制）
