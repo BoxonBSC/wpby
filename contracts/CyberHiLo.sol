@@ -273,6 +273,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
      * @param guessType 0=猜小, 1=猜大, 2=猜相同
      */
     function guess(uint8 guessType) external nonReentrant whenNotPaused returns (uint256 requestId) {
+        require(msg.sender == tx.origin, "Only EOA allowed");
         require(guessType <= 2, "Invalid guess type");
         
         GameSession storage session = gameSessions[msg.sender];
