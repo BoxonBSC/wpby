@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlayingCard } from './PlayingCard';
 import { RewardLadder } from './RewardLadder';
 import { HiLoResults } from './HiLoResults';
 import { CreditsExchange } from '@/components/CreditsExchange';
 import { useWallet } from '@/contexts/WalletContext';
-import { useCyberSlots } from '@/hooks/useCyberSlots';
+import { useCyberHiLo } from '@/hooks/useCyberHiLo';
 import { 
   HILO_CONFIG,
   HiLoGameState,
@@ -14,24 +14,50 @@ import {
   Guess,
   BET_TIERS,
   REWARD_TIERS,
+  SUITS,
+  RANKS,
+  RANK_VALUES,
   generateRandomCard,
   calculateHiLoReward,
   calculateWinProbability,
-  getCurrentRewardTier,
-  getBetTier,
 } from '@/config/hilo';
 import { Button } from '@/components/ui/button';
-import { Wallet, ChevronUp, ChevronDown, Equal, HandCoins, Play } from 'lucide-react';
+import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2, AlertCircle } from 'lucide-react';
 import { useAudio } from '@/hooks/useAudio';
+import { toast } from '@/hooks/use-toast';
+import { formatEther } from 'ethers';
 
-// 模拟数据
-const MOCK_CREDITS = 1000000;
-const MOCK_PRIZE_POOL = 10;
+// 合约是否已部署（部署后改为true）
+const CONTRACT_DEPLOYED = false;
+
+// 将合约牌值转换为Card对象
+function cardFromValue(value: number): Card {
+  const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+  const rank = RANKS[value - 1];
+  return { suit, rank, value };
+}
 
 export function HiLoGame() {
-  // 钱包和代币状态
+  // 钱包状态
   const { isConnected } = useWallet();
-  const { gameCredits } = useCyberSlots();
+  
+  // 合约Hook
+  const {
+    prizePool,
+    gameCredits,
+    gameSession,
+    pendingRequest,
+    unclaimedPrize,
+    isPlaying: contractIsPlaying,
+    isWaitingVRF,
+    startGame: contractStartGame,
+    guess: contractGuess,
+    cashOut: contractCashOut,
+    claimPrize,
+    calculatePotentialReward,
+    refreshData,
+    error: contractError,
+  } = useCyberHiLo();
   
   // 音效
   const { 
@@ -44,150 +70,215 @@ export function HiLoGame() {
     playClickSound,
   } = useAudio();
 
-  // 游戏状态
+  // UI状态
   const [gameState, setGameState] = useState<HiLoGameState>('idle');
   const [currentCard, setCurrentCard] = useState<Card | null>(null);
   const [nextCard, setNextCard] = useState<Card | null>(null);
   const [streak, setStreak] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
-  
-  // 玩家状态
-  const [credits, setCredits] = useState(MOCK_CREDITS);
-  const [prizePool] = useState(MOCK_PRIZE_POOL);
-  const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null); // 开始游戏时锁定的奖池快照
   const [selectedTierIndex, setSelectedTierIndex] = useState(0);
   const [currentBetTier, setCurrentBetTier] = useState(BET_TIERS[0]);
-  
-  // 历史记录
   const [results, setResults] = useState<HiLoResult[]>([]);
   const [guessCorrect, setGuessCorrect] = useState<boolean | null>(null);
+  const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null);
   
-  // 获取用于计算奖励的奖池（游戏中用快照，否则用实时）
-  const effectivePrizePool = prizePoolSnapshot ?? prizePool;
+  // 模拟模式状态（合约未部署时使用）
+  const [mockCredits, setMockCredits] = useState(1000000);
+  
+  // 获取实际使用的凭证余额
+  const credits = CONTRACT_DEPLOYED ? Number(gameCredits) : mockCredits;
+  const effectivePrizePool = prizePoolSnapshot ?? (CONTRACT_DEPLOYED ? Number(prizePool) : 10);
+  
+  // 同步合约游戏状态到UI
+  useEffect(() => {
+    if (!CONTRACT_DEPLOYED || !gameSession) return;
+    
+    if (gameSession.active) {
+      setGameState('playing');
+      setCurrentCard(cardFromValue(gameSession.currentCard));
+      setStreak(gameSession.currentStreak);
+      setCurrentBetTier(BET_TIERS[gameSession.betTierIndex] || BET_TIERS[0]);
+      setPrizePoolSnapshot(Number(formatEther(gameSession.prizePoolSnapshot)));
+    }
+  }, [gameSession]);
+
+  // 监听VRF结果
+  useEffect(() => {
+    if (!CONTRACT_DEPLOYED) return;
+    
+    // 当VRF完成时刷新数据
+    if (!isWaitingVRF && pendingRequest === 0n && gameState === 'playing') {
+      refreshData();
+    }
+  }, [isWaitingVRF, pendingRequest, gameState, refreshData]);
 
   // 开始游戏
-  const startGame = useCallback(() => {
+  const startGame = useCallback(async () => {
     const tier = BET_TIERS[selectedTierIndex];
     if (credits < tier.betAmount) return;
     
     playClickSound();
-    playCardFlipSound();
     
-    setCredits(prev => prev - tier.betAmount);
-    setCurrentBetTier(tier);
-    setCurrentCard(generateRandomCard());
-    setNextCard(null);
-    setStreak(0);
-    setGameState('playing');
-    setGuessCorrect(null);
-    // 锁定当前奖池快照 - 整局游戏的奖励都基于此计算
-    setPrizePoolSnapshot(prizePool);
-  }, [credits, selectedTierIndex, prizePool, playClickSound, playCardFlipSound]);
+    if (CONTRACT_DEPLOYED) {
+      // 真实合约调用
+      const firstCard = await contractStartGame(tier.betAmount);
+      if (firstCard !== null) {
+        playCardFlipSound();
+        setCurrentCard(cardFromValue(firstCard));
+        setCurrentBetTier(tier);
+        setStreak(0);
+        setGameState('playing');
+        setGuessCorrect(null);
+        setPrizePoolSnapshot(Number(prizePool));
+      }
+    } else {
+      // 模拟模式
+      playCardFlipSound();
+      setMockCredits(prev => prev - tier.betAmount);
+      setCurrentBetTier(tier);
+      setCurrentCard(generateRandomCard());
+      setNextCard(null);
+      setStreak(0);
+      setGameState('playing');
+      setGuessCorrect(null);
+      setPrizePoolSnapshot(10); // 模拟10 BNB奖池
+    }
+  }, [credits, selectedTierIndex, prizePool, playClickSound, playCardFlipSound, contractStartGame]);
 
   // 猜测
-  const makeGuess = useCallback((guess: Guess) => {
+  const makeGuess = useCallback(async (guess: Guess) => {
     if (gameState !== 'playing' || !currentCard || isRevealing) return;
     
     playClickSound();
-    setIsRevealing(true);
     
-    // 生成下一张牌
-    const newCard = generateRandomCard();
-    setNextCard(newCard);
-    
-    // 播放翻牌音效
-    setTimeout(() => {
-      playCardFlipSound();
-    }, 200);
-    
-    // 判断结果
-    setTimeout(() => {
-      let correct = false;
-      
-      if (guess === 'higher') {
-        correct = newCard.value > currentCard.value;
-      } else if (guess === 'lower') {
-        correct = newCard.value < currentCard.value;
-      } else {
-        correct = newCard.value === currentCard.value;
+    if (CONTRACT_DEPLOYED) {
+      // 真实合约调用
+      const guessHigh = guess === 'higher';
+      if (guess === 'same') {
+        toast({ title: '合约不支持"相同"选项', variant: 'destructive' });
+        return;
       }
       
-      setGuessCorrect(correct);
+      setIsRevealing(true);
+      const txHash = await contractGuess(guessHigh);
       
-      if (correct) {
-        const newStreak = streak + 1;
-        setStreak(newStreak);
+      if (!txHash) {
+        setIsRevealing(false);
+        return;
+      }
+      
+      // 等待VRF回调，通过轮询检测结果
+      // useCyberHiLo会自动轮询并更新gameSession
+    } else {
+      // 模拟模式
+      setIsRevealing(true);
+      
+      const newCard = generateRandomCard();
+      setNextCard(newCard);
+      
+      setTimeout(() => {
+        playCardFlipSound();
+      }, 200);
+      
+      setTimeout(() => {
+        let correct = false;
         
-        // 播放猜对音效
-        playCorrectGuessSound();
-        
-        // 检查是否是里程碑（3次、5次、7次等）
-        if (newStreak % 2 === 1 && newStreak > 1) {
-          setTimeout(() => playMilestoneSound(), 300);
+        if (guess === 'higher') {
+          correct = newCard.value > currentCard.value;
+        } else if (guess === 'lower') {
+          correct = newCard.value < currentCard.value;
+        } else {
+          correct = newCard.value === currentCard.value;
         }
         
-        // 检查是否达到门槛上限
-        if (newStreak >= currentBetTier.maxStreak) {
-          // 自动兑现 - 使用锁定的奖池快照
-          const reward = calculateHiLoReward(newStreak, currentBetTier.maxStreak, effectivePrizePool);
-          setGameState('won');
-          setTimeout(() => playCashOutSound(), 500);
+        setGuessCorrect(correct);
+        
+        if (correct) {
+          const newStreak = streak + 1;
+          setStreak(newStreak);
+          playCorrectGuessSound();
+          
+          if (newStreak % 2 === 1 && newStreak > 1) {
+            setTimeout(() => playMilestoneSound(), 300);
+          }
+          
+          if (newStreak >= currentBetTier.maxStreak) {
+            const reward = calculateHiLoReward(newStreak, currentBetTier.maxStreak, effectivePrizePool);
+            setGameState('won');
+            setTimeout(() => playCashOutSound(), 500);
+            const result: HiLoResult = {
+              id: `${Date.now()}-${Math.random()}`,
+              betAmount: currentBetTier.betAmount,
+              betTier: currentBetTier.name,
+              streak: newStreak,
+              bnbWon: reward,
+              cashedOut: true,
+              timestamp: Date.now(),
+            };
+            setResults(prev => [result, ...prev]);
+          } else {
+            setCurrentCard(newCard);
+            setNextCard(null);
+            setGameState('playing');
+          }
+        } else {
+          playWrongGuessSound();
+          setGameState('lost');
           const result: HiLoResult = {
             id: `${Date.now()}-${Math.random()}`,
             betAmount: currentBetTier.betAmount,
             betTier: currentBetTier.name,
-            streak: newStreak,
-            bnbWon: reward,
-            cashedOut: true,
+            streak,
+            bnbWon: 0,
+            cashedOut: false,
             timestamp: Date.now(),
           };
           setResults(prev => [result, ...prev]);
-        } else {
-          setCurrentCard(newCard);
-          setNextCard(null);
-          setGameState('playing');
         }
-      } else {
-        // 猜错 - 游戏结束
-        playWrongGuessSound();
-        setGameState('lost');
+        
+        setIsRevealing(false);
+      }, HILO_CONFIG.animation.flipDuration + HILO_CONFIG.animation.revealDelay);
+    }
+  }, [gameState, currentCard, isRevealing, streak, currentBetTier, effectivePrizePool, playClickSound, playCardFlipSound, playCorrectGuessSound, playWrongGuessSound, playMilestoneSound, playCashOutSound, contractGuess]);
+
+  // 收手兑现
+  const cashOut = useCallback(async () => {
+    if (gameState !== 'playing' || streak <= 0) return;
+    
+    playCashOutSound();
+    
+    if (CONTRACT_DEPLOYED) {
+      const success = await contractCashOut();
+      if (success) {
+        setGameState('won');
+        const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
         const result: HiLoResult = {
           id: `${Date.now()}-${Math.random()}`,
           betAmount: currentBetTier.betAmount,
           betTier: currentBetTier.name,
           streak,
-          bnbWon: 0,
-          cashedOut: false,
+          bnbWon: reward,
+          cashedOut: true,
           timestamp: Date.now(),
         };
         setResults(prev => [result, ...prev]);
       }
+    } else {
+      const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
+      setGameState('won');
       
-      setIsRevealing(false);
-    }, HILO_CONFIG.animation.flipDuration + HILO_CONFIG.animation.revealDelay);
-  }, [gameState, currentCard, isRevealing, streak, currentBetTier, effectivePrizePool, playClickSound, playCardFlipSound, playCorrectGuessSound, playWrongGuessSound, playMilestoneSound, playCashOutSound]);
-
-  // 收手兑现
-  const cashOut = useCallback(() => {
-    if (gameState !== 'playing' || streak <= 0) return;
-    
-    playCashOutSound();
-    
-    // 使用锁定的奖池快照计算奖励
-    const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
-    setGameState('won');
-    
-    const result: HiLoResult = {
-      id: `${Date.now()}-${Math.random()}`,
-      betAmount: currentBetTier.betAmount,
-      betTier: currentBetTier.name,
-      streak,
-      bnbWon: reward,
-      cashedOut: true,
-      timestamp: Date.now(),
-    };
-    setResults(prev => [result, ...prev]);
-  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound]);
+      const result: HiLoResult = {
+        id: `${Date.now()}-${Math.random()}`,
+        betAmount: currentBetTier.betAmount,
+        betTier: currentBetTier.name,
+        streak,
+        bnbWon: reward,
+        cashedOut: true,
+        timestamp: Date.now(),
+      };
+      setResults(prev => [result, ...prev]);
+    }
+  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound, contractCashOut]);
 
   // 重新开始
   const resetGame = useCallback(() => {
@@ -197,10 +288,15 @@ export function HiLoGame() {
     setNextCard(null);
     setStreak(0);
     setGuessCorrect(null);
-    setPrizePoolSnapshot(null); // 清除快照，下局重新锁定
-  }, [playClickSound]);
+    setPrizePoolSnapshot(null);
+    setIsRevealing(false);
+    
+    if (CONTRACT_DEPLOYED) {
+      refreshData();
+    }
+  }, [playClickSound, refreshData]);
 
-  // 选择门槛处理函数
+  // 选择门槛
   const handleSelectTier = useCallback((index: number, canAfford: boolean) => {
     if (canAfford) {
       playSelectTierSound();
@@ -208,15 +304,67 @@ export function HiLoGame() {
     }
   }, [playSelectTierSound]);
 
-  const currentReward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
+  // 领取奖励
+  const handleClaimPrize = useCallback(async () => {
+    if (CONTRACT_DEPLOYED && Number(unclaimedPrize) > 0) {
+      const success = await claimPrize();
+      if (success) {
+        toast({ title: '奖励已领取!' });
+      }
+    }
+  }, [claimPrize, unclaimedPrize]);
 
-  // 计算概率显示
+  const currentReward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
   const higherProb = currentCard ? (calculateWinProbability(currentCard.value, 'higher') * 100).toFixed(1) : '0';
   const lowerProb = currentCard ? (calculateWinProbability(currentCard.value, 'lower') * 100).toFixed(1) : '0';
+
+  // 显示合约错误
+  useEffect(() => {
+    if (contractError) {
+      toast({ title: contractError, variant: 'destructive' });
+    }
+  }, [contractError]);
 
   return (
     <div className="min-h-screen bg-background pt-4">
       <div className="container mx-auto px-4">
+        {/* 合约未部署提示 */}
+        {!CONTRACT_DEPLOYED && (
+          <div 
+            className="mb-4 px-4 py-2 rounded-lg flex items-center gap-2 text-sm"
+            style={{
+              background: 'rgba(255, 200, 100, 0.1)',
+              border: '1px solid rgba(255, 200, 100, 0.3)',
+              color: '#FFC864',
+            }}
+          >
+            <AlertCircle className="w-4 h-4" />
+            <span>演示模式 - 合约部署后将连接真实链上游戏</span>
+          </div>
+        )}
+        
+        {/* 待领取奖励提示 */}
+        {CONTRACT_DEPLOYED && Number(unclaimedPrize) > 0 && (
+          <div 
+            className="mb-4 px-4 py-3 rounded-lg flex items-center justify-between"
+            style={{
+              background: 'rgba(0, 255, 200, 0.1)',
+              border: '1px solid rgba(0, 255, 200, 0.3)',
+            }}
+          >
+            <span style={{ color: '#00FFC8' }}>
+              您有 {Number(unclaimedPrize).toFixed(4)} BNB 待领取
+            </span>
+            <Button
+              onClick={handleClaimPrize}
+              size="sm"
+              className="bg-[#00FFC8] text-black hover:bg-[#00FFC8]/80"
+            >
+              领取奖励
+            </Button>
+          </div>
+        )}
+
         {/* 主游戏区域 */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* 左侧 - 奖励阶梯 */}
@@ -238,6 +386,21 @@ export function HiLoGame() {
                 minHeight: '500px',
               }}
             >
+              {/* VRF等待提示 */}
+              {isWaitingVRF && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 bg-black/60 rounded-2xl flex items-center justify-center z-10"
+                >
+                  <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: '#FFD700' }} />
+                    <div className="text-[#FFD700] text-lg font-bold">等待链上确认...</div>
+                    <div className="text-[#C9A347]/60 text-sm mt-2">VRF正在生成随机数</div>
+                  </div>
+                </motion.div>
+              )}
+              
               {/* 连胜显示 */}
               {gameState === 'playing' && streak > 0 && (() => {
                 const currentTier = REWARD_TIERS.find(t => t.streak === streak);
@@ -261,18 +424,15 @@ export function HiLoGame() {
 
               {/* 牌区 */}
               <div className="flex items-center justify-center gap-8 min-h-[300px]">
-                {/* 当前牌 */}
                 <div className="text-center">
                   <div className="text-[#C9A347]/60 text-sm mb-2">当前牌</div>
                   <PlayingCard card={currentCard} isFlipped={false} />
                 </div>
 
-                {/* 箭头指示 */}
-                {gameState === 'playing' && !isRevealing && (
+                {gameState === 'playing' && !isRevealing && !isWaitingVRF && (
                   <div className="text-[#C9A347]/40 text-4xl">→</div>
                 )}
 
-                {/* 下一张牌 */}
                 {nextCard && (
                   <div className="text-center">
                     <div className="text-[#C9A347]/60 text-sm mb-2">下一张</div>
@@ -312,7 +472,6 @@ export function HiLoGame() {
                   <div className="space-y-4">
                     <div>
                       <label className="text-[#C9A347]/60 text-sm mb-3 block">选择门槛等级</label>
-                      {/* 5列布局 - 第一行3个，第二行2个居中 */}
                       <div className="space-y-3">
                         <div className="grid grid-cols-3 gap-3">
                           {BET_TIERS.slice(0, 3).map((tier, index) => {
@@ -337,10 +496,7 @@ export function HiLoGame() {
                                   boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
                                 }}
                               >
-                                <div 
-                                  className="font-bold text-base"
-                                  style={{ color: tier.color }}
-                                >
+                                <div className="font-bold text-base" style={{ color: tier.color }}>
                                   {tier.name}
                                 </div>
                                 <div className="text-[#C9A347]/60 text-xs">
@@ -377,10 +533,7 @@ export function HiLoGame() {
                                   boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
                                 }}
                               >
-                                <div 
-                                  className="font-bold text-base"
-                                  style={{ color: tier.color }}
-                                >
+                                <div className="font-bold text-base" style={{ color: tier.color }}>
                                   {tier.name}
                                 </div>
                                 <div className="text-[#C9A347]/60 text-xs">
@@ -398,39 +551,35 @@ export function HiLoGame() {
                     
                     <Button
                       onClick={startGame}
-                      disabled={credits < BET_TIERS[selectedTierIndex].betAmount}
+                      disabled={credits < BET_TIERS[selectedTierIndex].betAmount || !isConnected}
                       className="w-full h-14 text-lg font-bold"
                       style={{
-                        background: `linear-gradient(135deg, ${BET_TIERS[selectedTierIndex].color} 0%, ${BET_TIERS[selectedTierIndex].color}CC 100%)`,
-                        color: '#000',
+                        background: credits >= BET_TIERS[selectedTierIndex].betAmount && isConnected
+                          ? `linear-gradient(135deg, ${BET_TIERS[selectedTierIndex].color} 0%, ${BET_TIERS[selectedTierIndex].color}CC 100%)`
+                          : 'rgba(201, 163, 71, 0.2)',
+                        color: credits >= BET_TIERS[selectedTierIndex].betAmount && isConnected ? '#000' : 'rgba(201, 163, 71, 0.5)',
                       }}
                     >
                       <Play className="w-5 h-5 mr-2" />
-                      开始游戏 ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
-                        ? `${BET_TIERS[selectedTierIndex].betAmount / 1000000}M` 
-                        : `${BET_TIERS[selectedTierIndex].betAmount / 1000}K`})
+                      {!isConnected ? '请先连接钱包' : (
+                        <>开始游戏 ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
+                          ? `${BET_TIERS[selectedTierIndex].betAmount / 1000000}M` 
+                          : `${BET_TIERS[selectedTierIndex].betAmount / 1000}K`})</>
+                      )}
                     </Button>
                   </div>
                 )}
 
                 {/* 游戏中 - 选择 */}
-                {gameState === 'playing' && !isRevealing && (
+                {gameState === 'playing' && !isRevealing && !isWaitingVRF && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <Button
                         onClick={() => makeGuess('higher')}
                         className="h-16 flex flex-col items-center justify-center bg-green-600/80 hover:bg-green-500"
                       >
                         <ChevronUp className="w-6 h-6" />
                         <span className="text-sm">更高 ({higherProb}%)</span>
-                      </Button>
-                      
-                      <Button
-                        onClick={() => makeGuess('same')}
-                        className="h-16 flex flex-col items-center justify-center bg-[#C9A347]/80 hover:bg-[#C9A347]"
-                      >
-                        <Equal className="w-6 h-6" />
-                        <span className="text-sm">相同</span>
                       </Button>
                       
                       <Button
@@ -441,6 +590,17 @@ export function HiLoGame() {
                         <span className="text-sm">更低 ({lowerProb}%)</span>
                       </Button>
                     </div>
+
+                    {/* 相同选项 - 仅模拟模式 */}
+                    {!CONTRACT_DEPLOYED && (
+                      <Button
+                        onClick={() => makeGuess('same')}
+                        className="w-full h-12 bg-[#C9A347]/60 hover:bg-[#C9A347]/80"
+                      >
+                        <Equal className="w-5 h-5 mr-2" />
+                        相同 (仅演示)
+                      </Button>
+                    )}
 
                     {/* 收手按钮 */}
                     {streak > 0 && (() => {
@@ -459,7 +619,7 @@ export function HiLoGame() {
                 )}
 
                 {/* 等待揭示 */}
-                {isRevealing && (
+                {isRevealing && !isWaitingVRF && (
                   <div className="text-center py-8">
                     <div className="text-[#C9A347] text-xl animate-pulse">揭示中...</div>
                   </div>
@@ -471,10 +631,7 @@ export function HiLoGame() {
                   return (
                     <div className="text-center space-y-4">
                       <div 
-                        className={`
-                          text-2xl font-bold py-4
-                          ${gameState === 'won' ? 'text-[#FFD700]' : 'text-red-400'}
-                        `}
+                        className={`text-2xl font-bold py-4 ${gameState === 'won' ? 'text-[#FFD700]' : 'text-red-400'}`}
                       >
                         {gameState === 'won' ? (
                           <>
@@ -506,10 +663,7 @@ export function HiLoGame() {
 
           {/* 右侧 - 代币兑换 + 历史记录 */}
           <div className="lg:col-span-3 space-y-4">
-            {/* 代币兑换入口 */}
             <CreditsExchange />
-            
-            {/* 历史记录 */}
             <HiLoResults results={results} />
           </div>
         </div>
