@@ -2,66 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Cyberpunk Design System - Neon colors, dark theme */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+/* Luxury Casino Design System - Gold & Black Theme */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Cyberpunk Neon Colors */
+    /* Luxury Gold Colors */
+    --gold: 45 100% 50%;
+    --gold-light: 45 100% 65%;
+    --gold-dark: 45 80% 35%;
+    --gold-muted: 45 40% 40%;
+    
+    /* Rich Accent Colors */
+    --ruby: 350 85% 50%;
+    --emerald: 160 70% 40%;
+    --sapphire: 220 80% 55%;
+    --diamond: 200 30% 90%;
+    
+    /* Dark Luxurious Background */
+    --background: 0 0% 5%;
+    --foreground: 45 30% 90%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 45 30% 90%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 45 30% 90%;
+
+    --primary: 45 100% 50%;
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 45 60% 30%;
+    --secondary-foreground: 45 30% 90%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 45 20% 60%;
+
+    --accent: 350 85% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 45 30% 20%;
+    --input: 0 0% 12%;
+    --ring: 45 100% 50%;
+
+    --radius: 0.5rem;
+
+    /* Luxury Glow Effects */
+    --glow-gold: 0 0 20px hsl(45 100% 50% / 0.5), 0 0 40px hsl(45 100% 50% / 0.3);
+    --glow-ruby: 0 0 20px hsl(350 85% 50% / 0.5), 0 0 40px hsl(350 85% 50% / 0.3);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 45 30% 90%;
+    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 350 85% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 45 30% 20%;
+    --sidebar-ring: 45 100% 50%;
+
+    /* Legacy neon colors for compatibility */
     --neon-blue: 195 100% 50%;
     --neon-purple: 280 100% 60%;
     --neon-pink: 320 100% 60%;
     --neon-cyan: 180 100% 50%;
     --neon-green: 150 100% 50%;
-    --neon-yellow: 50 100% 50%;
+    --neon-yellow: 45 100% 50%;
     --neon-orange: 25 100% 55%;
-    
-    /* Dark Background Palette */
-    --background: 240 20% 4%;
-    --foreground: 195 100% 90%;
-
-    --card: 240 15% 8%;
-    --card-foreground: 195 100% 90%;
-
-    --popover: 240 15% 10%;
-    --popover-foreground: 195 100% 90%;
-
-    --primary: 195 100% 50%;
-    --primary-foreground: 240 20% 4%;
-
-    --secondary: 280 100% 60%;
-    --secondary-foreground: 240 20% 4%;
-
-    --muted: 240 15% 15%;
-    --muted-foreground: 195 50% 60%;
-
-    --accent: 320 100% 60%;
-    --accent-foreground: 240 20% 4%;
-
-    --destructive: 0 100% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 195 50% 20%;
-    --input: 240 15% 12%;
-    --ring: 195 100% 50%;
-
-    --radius: 0.5rem;
-
-    /* Glow Effects */
-    --glow-blue: 0 0 20px hsl(195 100% 50% / 0.5), 0 0 40px hsl(195 100% 50% / 0.3);
-    --glow-purple: 0 0 20px hsl(280 100% 60% / 0.5), 0 0 40px hsl(280 100% 60% / 0.3);
-    --glow-pink: 0 0 20px hsl(320 100% 60% / 0.5), 0 0 40px hsl(320 100% 60% / 0.3);
-    --glow-cyan: 0 0 20px hsl(180 100% 50% / 0.5), 0 0 40px hsl(180 100% 50% / 0.3);
-
-    /* Sidebar */
-    --sidebar-background: 240 15% 6%;
-    --sidebar-foreground: 195 100% 90%;
-    --sidebar-primary: 195 100% 50%;
-    --sidebar-primary-foreground: 240 20% 4%;
-    --sidebar-accent: 280 100% 60%;
-    --sidebar-accent-foreground: 240 20% 4%;
-    --sidebar-border: 195 50% 20%;
-    --sidebar-ring: 195 100% 50%;
   }
 }
 
@@ -72,371 +82,45 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Cormorant Garamond', serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Cinzel', serif;
   }
 }
 
 @layer components {
-  /* Neon Text Effects */
-  .neon-text-blue {
-    color: hsl(var(--neon-blue));
-    text-shadow: var(--glow-blue);
+  /* Luxury Display Font */
+  .font-display {
+    font-family: 'Cinzel', serif;
   }
 
-  .neon-text-purple {
-    color: hsl(var(--neon-purple));
-    text-shadow: var(--glow-purple);
+  /* Gold Text Effects */
+  .text-gold {
+    color: hsl(var(--gold));
   }
 
-  .neon-text-pink {
-    color: hsl(var(--neon-pink));
-    text-shadow: var(--glow-pink);
-  }
-
-  .neon-text-cyan {
-    color: hsl(var(--neon-cyan));
-    text-shadow: var(--glow-cyan);
-  }
-
-  /* Neon Border Effects */
-  .neon-border {
-    border: 1px solid hsl(var(--neon-blue));
-    box-shadow: var(--glow-blue), inset 0 0 20px hsl(var(--neon-blue) / 0.1);
-  }
-
-  .neon-border-purple {
-    border: 1px solid hsl(var(--neon-purple));
-    box-shadow: var(--glow-purple), inset 0 0 20px hsl(var(--neon-purple) / 0.1);
-  }
-
-  .neon-border-pink {
-    border: 1px solid hsl(var(--neon-pink));
-    box-shadow: var(--glow-pink), inset 0 0 20px hsl(var(--neon-pink) / 0.1);
-  }
-
-  .neon-border-cyan {
-    border: 1px solid hsl(var(--neon-cyan));
-    box-shadow: var(--glow-cyan), inset 0 0 20px hsl(var(--neon-cyan) / 0.1);
-  }
-
-  .neon-border-yellow {
-    border: 1px solid hsl(var(--neon-yellow));
-    box-shadow: 0 0 20px hsl(var(--neon-yellow) / 0.5), 0 0 40px hsl(var(--neon-yellow) / 0.3), inset 0 0 20px hsl(var(--neon-yellow) / 0.1);
-  }
-
-  .neon-border-green {
-    border: 1px solid hsl(var(--neon-green));
-    box-shadow: 0 0 20px hsl(var(--neon-green) / 0.5), 0 0 40px hsl(var(--neon-green) / 0.3), inset 0 0 20px hsl(var(--neon-green) / 0.1);
-  }
-
-  /* Cyberpunk Button */
-  .cyber-button {
-    @apply relative overflow-hidden px-8 py-4 font-bold uppercase tracking-wider;
-    font-family: 'Orbitron', sans-serif;
-    background: linear-gradient(135deg, hsl(var(--neon-blue) / 0.2), hsl(var(--neon-purple) / 0.2));
-    border: 2px solid hsl(var(--neon-blue));
-    box-shadow: var(--glow-blue);
-    transition: all 0.3s ease;
-  }
-
-  .cyber-button:hover {
-    background: linear-gradient(135deg, hsl(var(--neon-blue) / 0.4), hsl(var(--neon-purple) / 0.4));
-    box-shadow: 0 0 30px hsl(var(--neon-blue) / 0.8), 0 0 60px hsl(var(--neon-blue) / 0.4);
-    transform: translateY(-2px);
-  }
-
-  .cyber-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  /* Cyberpunk Card */
-  .cyber-card {
-    @apply relative p-6 rounded-lg;
-    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(240 15% 12%) 100%);
-    border: 1px solid hsl(var(--neon-blue) / 0.3);
-    box-shadow: 
-      0 0 20px hsl(var(--neon-blue) / 0.1),
-      inset 0 1px 0 hsl(var(--neon-blue) / 0.2);
-  }
-
-  /* Glitch Effect */
-  .glitch {
-    position: relative;
-    animation: glitch 2s infinite;
-  }
-
-  @keyframes glitch {
-    0%, 90%, 100% {
-      transform: translate(0);
-    }
-    92% {
-      transform: translate(-2px, 2px);
-    }
-    94% {
-      transform: translate(2px, -2px);
-    }
-    96% {
-      transform: translate(-2px, -2px);
-    }
-    98% {
-      transform: translate(2px, 2px);
-    }
-  }
-
-  /* Grid Background */
-  .cyber-grid {
-    background-image: 
-      linear-gradient(hsl(var(--neon-blue) / 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--neon-blue) / 0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-
-  /* Scanline Effect */
-  .scanlines::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      hsl(0 0% 0% / 0.1) 2px,
-      hsl(0 0% 0% / 0.1) 4px
-    );
-    pointer-events: none;
-  }
-
-  /* Neon Pulse Animation */
-  @keyframes neon-pulse {
-    0%, 100% {
-      opacity: 1;
-      filter: brightness(1);
-    }
-    50% {
-      opacity: 0.8;
-      filter: brightness(1.2);
-    }
-  }
-
-  .neon-pulse {
-    animation: neon-pulse 2s ease-in-out infinite;
-  }
-
-  /* Slot Reel Styles */
-  .slot-reel {
-    background: linear-gradient(180deg, 
-      hsl(240 20% 2%) 0%, 
-      hsl(240 15% 8%) 10%, 
-      hsl(240 15% 12%) 50%, 
-      hsl(240 15% 8%) 90%, 
-      hsl(240 20% 2%) 100%
-    );
-    border: 2px solid hsl(var(--neon-purple) / 0.5);
-    box-shadow: 
-      inset 0 0 30px hsl(var(--neon-purple) / 0.2),
-      0 0 20px hsl(var(--neon-purple) / 0.3);
-  }
-
-  /* Win Animation */
-  @keyframes win-flash {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(var(--neon-yellow) / 0.5);
-    }
-    50% {
-      box-shadow: 0 0 60px hsl(var(--neon-yellow) / 1), 0 0 100px hsl(var(--neon-yellow) / 0.5);
-    }
-  }
-
-  .win-animation {
-    animation: win-flash 0.5s ease-in-out infinite;
-  }
-
-  /* Jackpot Celebration */
-  @keyframes jackpot {
-    0% {
-      transform: scale(1) rotate(0deg);
-    }
-    25% {
-      transform: scale(1.1) rotate(-5deg);
-    }
-    50% {
-      transform: scale(1.2) rotate(5deg);
-    }
-    75% {
-      transform: scale(1.1) rotate(-5deg);
-    }
-    100% {
-      transform: scale(1) rotate(0deg);
-    }
-  }
-
-  .jackpot {
-    animation: jackpot 0.5s ease-in-out infinite;
-  }
-
-  /* Floating Animation */
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0) rotate(0deg);
-    }
-    50% {
-      transform: translateY(-10px) rotate(3deg);
-    }
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  /* Sparkle Effect */
-  @keyframes sparkle {
-    0%, 100% {
-      opacity: 0;
-      transform: scale(0) rotate(0deg);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1) rotate(180deg);
-    }
-  }
-
-  .sparkle {
-    animation: sparkle 2s ease-in-out infinite;
-  }
-
-  /* Rainbow Glow */
-  @keyframes rainbow-glow {
-    0% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
-    25% { box-shadow: 0 0 20px hsl(var(--neon-purple) / 0.5), 0 0 40px hsl(var(--neon-purple) / 0.3); }
-    50% { box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.5), 0 0 40px hsl(var(--neon-pink) / 0.3); }
-    75% { box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.5), 0 0 40px hsl(var(--neon-cyan) / 0.3); }
-    100% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
-  }
-
-  .rainbow-glow {
-    animation: rainbow-glow 4s linear infinite;
-  }
-
-  /* Shine Effect */
-  @keyframes shine {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  .shine-effect {
+  .text-gold-gradient {
     background: linear-gradient(
-      90deg,
-      transparent 0%,
-      hsl(var(--neon-yellow) / 0.3) 50%,
-      transparent 100%
+      135deg,
+      hsl(45 100% 70%) 0%,
+      hsl(45 100% 50%) 50%,
+      hsl(45 80% 35%) 100%
     );
-    background-size: 200% 100%;
-    animation: shine 3s ease-in-out infinite;
-  }
-
-  /* Coin Rain */
-  @keyframes coin-fall {
-    0% {
-      transform: translateY(-100%) rotate(0deg);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(100vh) rotate(720deg);
-      opacity: 0;
-    }
-  }
-
-  .coin-rain {
-    animation: coin-fall 3s linear infinite;
-  }
-
-  /* Pulse Ring */
-  @keyframes pulse-ring {
-    0% {
-      transform: scale(0.8);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(2);
-      opacity: 0;
-    }
-  }
-
-  .pulse-ring {
-    animation: pulse-ring 1.5s ease-out infinite;
-  }
-
-  /* Electric Border */
-  @keyframes electric-border {
-    0%, 100% {
-      border-color: hsl(var(--neon-blue));
-      box-shadow: 0 0 10px hsl(var(--neon-blue) / 0.5);
-    }
-    25% {
-      border-color: hsl(var(--neon-cyan));
-      box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.7);
-    }
-    50% {
-      border-color: hsl(var(--neon-purple));
-      box-shadow: 0 0 30px hsl(var(--neon-purple) / 0.7);
-    }
-    75% {
-      border-color: hsl(var(--neon-pink));
-      box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.7);
-    }
-  }
-
-  .electric-border {
-    animation: electric-border 2s linear infinite;
-  }
-
-  /* Bounce In */
-  @keyframes bounce-in {
-    0% {
-      transform: scale(0);
-      opacity: 0;
-    }
-    50% {
-      transform: scale(1.2);
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .bounce-in {
-    animation: bounce-in 0.5s ease-out;
-  }
-
-  /* Text Shimmer */
-  @keyframes text-shimmer {
-    0% {
-      background-position: -200% center;
-    }
-    100% {
-      background-position: 200% center;
-    }
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .text-shimmer {
     background: linear-gradient(
       90deg,
-      hsl(var(--neon-yellow)) 0%,
-      hsl(var(--neon-orange)) 25%,
-      hsl(var(--neon-pink)) 50%,
-      hsl(var(--neon-purple)) 75%,
-      hsl(var(--neon-yellow)) 100%
+      hsl(45 100% 40%) 0%,
+      hsl(45 100% 70%) 25%,
+      hsl(45 100% 50%) 50%,
+      hsl(45 100% 70%) 75%,
+      hsl(45 100% 40%) 100%
     );
     background-size: 200% auto;
     background-clip: text;
@@ -445,119 +129,263 @@
     animation: text-shimmer 3s linear infinite;
   }
 
-  /* Glow Button Hover */
-  .glow-hover {
+  @keyframes text-shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  /* Gold Glow Effects */
+  .glow-gold {
+    text-shadow: var(--glow-gold);
+  }
+
+  .glow-gold-box {
+    box-shadow: var(--glow-gold);
+  }
+
+  /* Luxury Border */
+  .border-gold {
+    border: 1px solid hsl(var(--gold));
+    box-shadow: var(--glow-gold), inset 0 0 20px hsl(var(--gold) / 0.1);
+  }
+
+  .border-gold-subtle {
+    border: 1px solid hsl(var(--gold) / 0.3);
+    box-shadow: 0 0 10px hsl(var(--gold) / 0.1);
+  }
+
+  /* Luxury Card */
+  .luxury-card {
+    @apply relative p-6 rounded-xl;
+    background: linear-gradient(
+      135deg,
+      hsl(0 0% 10%) 0%,
+      hsl(0 0% 6%) 50%,
+      hsl(0 0% 8%) 100%
+    );
+    border: 1px solid hsl(var(--gold) / 0.3);
+    box-shadow: 
+      0 0 30px hsl(var(--gold) / 0.1),
+      inset 0 1px 0 hsl(var(--gold) / 0.2),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.5);
+  }
+
+  .luxury-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gold) / 0.5) 0%,
+      transparent 50%,
+      hsl(var(--gold) / 0.3) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Luxury Button */
+  .luxury-button {
+    @apply relative overflow-hidden px-8 py-4 font-semibold uppercase tracking-widest rounded-lg;
+    font-family: 'Cinzel', serif;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gold-dark)) 0%,
+      hsl(var(--gold)) 50%,
+      hsl(var(--gold-dark)) 100%
+    );
+    color: hsl(0 0% 5%);
+    border: 2px solid hsl(var(--gold-light));
+    box-shadow: 
+      0 0 20px hsl(var(--gold) / 0.4),
+      inset 0 2px 0 hsl(var(--gold-light) / 0.5),
+      inset 0 -2px 0 hsl(var(--gold-dark) / 0.5);
     transition: all 0.3s ease;
   }
 
-  .glow-hover:hover {
-    transform: translateY(-3px);
+  .luxury-button:hover {
+    transform: translateY(-2px);
     box-shadow: 
-      0 0 20px hsl(var(--neon-blue) / 0.6),
-      0 0 40px hsl(var(--neon-blue) / 0.4),
-      0 0 60px hsl(var(--neon-blue) / 0.2);
+      0 0 40px hsl(var(--gold) / 0.6),
+      0 0 60px hsl(var(--gold) / 0.3),
+      inset 0 2px 0 hsl(var(--gold-light) / 0.5),
+      inset 0 -2px 0 hsl(var(--gold-dark) / 0.5);
   }
 
-  /* Slot Reel Animations - GPU accelerated */
-  @keyframes scan-line {
-    0% {
-      transform: translateY(-100%);
-      opacity: 0.3;
+  .luxury-button:active {
+    transform: translateY(0);
+  }
+
+  .luxury-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Ornamental Divider */
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ornament::before,
+  .ornament::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--gold) / 0.5) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Luxury Background Pattern */
+  .luxury-pattern {
+    background-image: 
+      radial-gradient(hsl(var(--gold) / 0.03) 1px, transparent 1px),
+      radial-gradient(hsl(var(--gold) / 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+  }
+
+  /* Vignette Effect */
+  .vignette {
+    position: relative;
+  }
+
+  .vignette::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      transparent 50%,
+      hsl(0 0% 0% / 0.8) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Spotlight Effect */
+  .spotlight {
+    position: relative;
+  }
+
+  .spotlight::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200%;
+    height: 100%;
+    background: radial-gradient(
+      ellipse at center top,
+      hsl(var(--gold) / 0.15) 0%,
+      transparent 60%
+    );
+    pointer-events: none;
+  }
+
+  /* Gold Pulse Animation */
+  @keyframes gold-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--gold) / 0.4);
     }
     50% {
+      box-shadow: 0 0 40px hsl(var(--gold) / 0.7), 0 0 60px hsl(var(--gold) / 0.4);
+    }
+  }
+
+  .gold-pulse {
+    animation: gold-pulse 2s ease-in-out infinite;
+  }
+
+  /* Spin Glow Animation */
+  @keyframes spin-glow {
+    0% { filter: drop-shadow(0 0 20px hsl(var(--gold) / 0.5)); }
+    50% { filter: drop-shadow(0 0 40px hsl(var(--gold) / 0.8)); }
+    100% { filter: drop-shadow(0 0 20px hsl(var(--gold) / 0.5)); }
+  }
+
+  .spin-glow {
+    animation: spin-glow 1s ease-in-out infinite;
+  }
+
+  /* Floating Animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Particle Effect */
+  @keyframes particle-rise {
+    0% {
+      transform: translateY(0) scale(1);
       opacity: 1;
     }
     100% {
-      transform: translateY(200%);
-      opacity: 0.3;
-    }
-  }
-
-  .animate-scan-line {
-    animation: scan-line 0.8s linear infinite;
-    will-change: transform;
-  }
-
-  @keyframes flash {
-    0% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.5;
-      transform: scale(1.02);
-    }
-    100% {
+      transform: translateY(-100px) scale(0);
       opacity: 0;
-      transform: scale(1);
     }
   }
 
-  .animate-flash {
-    animation: flash 0.3s ease-out forwards;
+  .particle {
+    animation: particle-rise 2s ease-out infinite;
   }
 
-  /* Slot symbol bounce */
-  @keyframes symbol-bounce {
-    0%, 100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.15);
-    }
+  /* Legacy cyber classes for compatibility */
+  .cyber-button {
+    @apply luxury-button;
   }
 
-  .animate-symbol-bounce {
-    animation: symbol-bounce 0.6s ease-in-out infinite;
+  .cyber-card {
+    @apply luxury-card;
   }
 
-  /* Landing bounce animation */
-  @keyframes landing-bounce {
-    0% {
-      transform: scale(1.05);
-    }
-    30% {
-      transform: scale(0.98);
-    }
-    60% {
-      transform: scale(1.02);
-    }
-    100% {
-      transform: scale(1);
-    }
+  .cyber-grid {
+    @apply luxury-pattern;
   }
 
-  .animate-landing {
-    animation: landing-bounce 0.4s ease-out;
-  }
+  .neon-text-blue { color: hsl(var(--sapphire)); }
+  .neon-text-purple { color: hsl(280 100% 60%); }
+  .neon-text-pink { color: hsl(var(--ruby)); }
+  .neon-text-cyan { color: hsl(180 100% 50%); }
+  .neon-text-green { color: hsl(var(--emerald)); }
+  
+  .neon-border { @apply border-gold-subtle; }
+  .neon-border-purple { @apply border-gold-subtle; }
+  .neon-border-pink { @apply border-gold-subtle; }
+  .neon-border-yellow { @apply border-gold; }
+  .neon-border-green { @apply border-gold-subtle; }
+}
 
-  /* Reel glow pulse */
-  @keyframes reel-glow {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(195 100% 50% / 0.3);
-    }
-    50% {
-      box-shadow: 0 0 35px hsl(195 100% 50% / 0.5);
-    }
-  }
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
 
-  .animate-reel-glow {
-    animation: reel-glow 1s ease-in-out infinite;
-  }
+::-webkit-scrollbar-track {
+  background: hsl(0 0% 8%);
+}
 
-  /* Win celebration */
-  @keyframes win-pulse {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(50 100% 50% / 0.4);
-      border-color: hsl(50 100% 50% / 0.6);
-    }
-    50% {
-      box-shadow: 0 0 40px hsl(50 100% 50% / 0.7);
-      border-color: hsl(50 100% 50% / 1);
-    }
-  }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--gold) / 0.3);
+  border-radius: 4px;
+}
 
-  .animate-win-pulse {
-    animation: win-pulse 0.5s ease-in-out infinite;
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--gold) / 0.5);
 }

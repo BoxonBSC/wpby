@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Orbitron', 'sans-serif'],
-        sans: ['Rajdhani', 'sans-serif'],
+        display: ['Cinzel', 'serif'],
+        sans: ['Cormorant Garamond', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,6 +51,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        gold: {
+          DEFAULT: "hsl(var(--gold))",
+          light: "hsl(var(--gold-light))",
+          dark: "hsl(var(--gold-dark))",
+          muted: "hsl(var(--gold-muted))",
+        },
+        ruby: "hsl(var(--ruby))",
+        emerald: "hsl(var(--emerald))",
+        sapphire: "hsl(var(--sapphire))",
+        diamond: "hsl(var(--diamond))",
         neon: {
           blue: "hsl(var(--neon-blue))",
           purple: "hsl(var(--neon-purple))",
