@@ -17,15 +17,19 @@ export function WheelSectors({ sectors, theme, size, winningSector }: WheelSecto
   const sectorAngle = 360 / sectors.length;
 
   const getSectorColors = (index: number) => {
-    const baseHue = theme === 'gold' ? 45 : theme === 'roseGold' ? 350 : 220;
-    const hueShift = (index * 25) % 60 - 30;
-    const isEven = index % 2 === 0;
+    // 拉斯维加斯豪华赌场配色
+    const vegasColors = [
+      { main: '#C9A347', light: '#E8D5A3', dark: '#8B7432' }, // 金色
+      { main: '#4A0E1E', light: '#7A2E3E', dark: '#2A0010' }, // 酒红
+      { main: '#C9A347', light: '#E8D5A3', dark: '#8B7432' }, // 金色
+      { main: '#1a1814', light: '#3a3834', dark: '#0a0804' }, // 深黑
+      { main: '#8B7432', light: '#C9A347', dark: '#5A4A22' }, // 暗金
+      { main: '#6a1e2e', light: '#9A4E5E', dark: '#4A0E1E' }, // 浅酒红
+      { main: '#C9A347', light: '#E8D5A3', dark: '#8B7432' }, // 金色
+      { main: '#2a1f1a', light: '#4a3f3a', dark: '#1a0f0a' }, // 深棕
+    ];
     
-    return {
-      main: `hsl(${baseHue + hueShift}, ${isEven ? '75%' : '60%'}, ${isEven ? '45%' : '30%'})`,
-      light: `hsl(${baseHue + hueShift}, ${isEven ? '85%' : '70%'}, ${isEven ? '60%' : '45%'})`,
-      dark: `hsl(${baseHue + hueShift}, ${isEven ? '65%' : '50%'}, ${isEven ? '30%' : '20%'})`,
-    };
+    return vegasColors[index % vegasColors.length];
   };
 
   const createSectorPath = (startAngle: number, endAngle: number): string => {

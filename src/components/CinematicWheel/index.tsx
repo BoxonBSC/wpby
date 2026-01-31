@@ -13,8 +13,9 @@ export function CinematicWheel({
   sectors, 
   prizePool, 
   theme = 'gold',
-  onSpinComplete 
-}: CinematicWheelProps) {
+  onSpinComplete,
+  demoMode = false // 演示模式：无需钱包即可旋转
+}: CinematicWheelProps & { demoMode?: boolean }) {
   const { isConnected, connect, gameCredits } = useWallet();
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -54,22 +55,25 @@ export function CinematicWheel({
 
   // 执行旋转动画
   const handleSpin = async () => {
-    if (!isConnected) {
-      toast({
-        title: '请先连接钱包',
-        description: '需要连接钱包才能开始游戏',
-        variant: 'destructive',
-      });
-      return;
-    }
+    // 演示模式跳过钱包检查
+    if (!demoMode) {
+      if (!isConnected) {
+        toast({
+          title: '请先连接钱包',
+          description: '需要连接钱包才能开始游戏',
+          variant: 'destructive',
+        });
+        return;
+      }
 
-    if (gameCredits < 10000) {
-      toast({
-        title: '凭证不足',
-        description: '请先充值游戏凭证',
-        variant: 'destructive',
-      });
-      return;
+      if (gameCredits < 10000) {
+        toast({
+          title: '凭证不足',
+          description: '请先充值游戏凭证',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     if (isSpinning) return;
@@ -282,7 +286,7 @@ export function CinematicWheel({
 
       {/* 旋转按钮 */}
       <motion.button
-        onClick={isConnected ? handleSpin : () => connect()}
+        onClick={demoMode ? handleSpin : (isConnected ? handleSpin : () => connect())}
         disabled={isSpinning}
         className="mt-8 relative overflow-hidden group"
         whileHover={{ scale: isSpinning ? 1 : 1.03 }}
@@ -329,6 +333,11 @@ export function CinematicWheel({
               {spinPhase === 'charging' ? '蓄力中...' : 
                spinPhase === 'spinning' ? '旋转中...' : 
                spinPhase === 'decelerating' ? '即将揭晓...' : '处理中...'}
+            </span>
+          ) : demoMode ? (
+            <span className="flex items-center justify-center gap-3">
+              <Crown className="w-6 h-6" />
+              立即旋转
             </span>
           ) : isConnected ? (
             <span className="flex items-center justify-center gap-3">
