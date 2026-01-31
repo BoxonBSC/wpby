@@ -111,6 +111,36 @@ export function CreditsExchange() {
         </div>
       </div>
 
+      {/* 说明区域 */}
+      <div 
+        className="px-4 py-3"
+        style={{
+          background: 'rgba(201, 163, 71, 0.03)',
+          borderBottom: '1px solid rgba(201, 163, 71, 0.1)',
+        }}
+      >
+        <div className="space-y-1.5">
+          <div className="flex items-start gap-2">
+            <span style={{ color: '#FFD700' }}>•</span>
+            <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.8)' }}>
+              <strong style={{ color: '#FFD700' }}>1代币 = 1凭证</strong>，销毁代币永久获得游戏凭证
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span style={{ color: '#FFD700' }}>•</span>
+            <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.8)' }}>
+              凭证<strong style={{ color: '#FF6B35' }}>不可转让、不可买卖</strong>，绑定当前钱包
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span style={{ color: '#FFD700' }}>•</span>
+            <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.8)' }}>
+              凭证<strong style={{ color: '#00FFC8' }}>专用于王牌博弈游戏</strong>，中奖直发BNB到钱包
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="p-4 space-y-4">
         {/* 余额卡片 */}
         <div className="grid grid-cols-2 gap-2">
