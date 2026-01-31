@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Gamepad2, History, FileText, Menu, X, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { AudioControls } from './AudioControls';
+import { NavbarWalletButton } from './NavbarWalletButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import aceCardIcon from '@/assets/ace-card-icon.png';
 
@@ -347,8 +348,13 @@ export function Navbar() {
           </div>
           </div>
 
-          {/* Audio Controls & Language & Mobile Menu */}
+          {/* Audio Controls & Language & Wallet & Mobile Menu */}
           <div className="flex items-center gap-2">
+            {/* Wallet Button */}
+            <div className="hidden sm:block">
+              <NavbarWalletButton />
+            </div>
+
             {/* Language Toggle */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -421,6 +427,11 @@ export function Navbar() {
         />
         
         <div className="container mx-auto px-4 py-3 relative">
+          {/* 移动端钱包按钮 */}
+          <div className="mb-3 pb-3" style={{ borderBottom: '1px solid rgba(201, 163, 71, 0.2)' }}>
+            <NavbarWalletButton />
+          </div>
+          
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             return (
