@@ -164,12 +164,12 @@ export function Navbar() {
                   to={item.path}
                   className="relative px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300"
                   style={{
-                    fontFamily: '"Orbitron", sans-serif',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    letterSpacing: '0.08em',
-                    color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.7)',
-                    textShadow: isActive ? '0 0 15px rgba(255, 215, 0, 0.6)' : 'none',
+                    fontFamily: '"Cinzel", "Noto Serif SC", serif',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.12em',
+                    color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.8)',
+                    textShadow: isActive ? '0 0 20px rgba(255, 215, 0, 0.7)' : 'none',
                   }}
                 >
                   <item.icon className="w-4 h-4" />
@@ -256,11 +256,14 @@ export function Navbar() {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg font-display transition-all duration-300"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300"
                 style={{
-                  color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.7)',
+                  fontFamily: '"Cinzel", "Noto Serif SC", serif',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  color: isActive ? '#FFD700' : 'rgba(201, 163, 71, 0.8)',
                   background: isActive ? 'rgba(201, 163, 71, 0.1)' : 'transparent',
-                  textShadow: isActive ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none',
+                  textShadow: isActive ? '0 0 15px rgba(255, 215, 0, 0.6)' : 'none',
                 }}
               >
                 <item.icon className="w-5 h-5" />
