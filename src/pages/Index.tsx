@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AdvancedSlotMachine } from '@/components/AdvancedSlotMachine';
+import { LuckyWheel } from '@/components/LuckyWheel';
+import { GameSwitcher, GameType } from '@/components/GameSwitcher';
 import { WalletConnect } from '@/components/WalletConnect';
 import { CompactRewardTiers } from '@/components/CompactRewardTiers';
 import { CompactGameHistory } from '@/components/CompactGameHistory';
@@ -17,6 +20,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const Index = () => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  const [currentGame, setCurrentGame] = useState<GameType>('slots');
+  const [prizePool] = useState(10.5); // 模拟奖池
 
   return (
     <div className="min-h-screen bg-background cyber-grid relative overflow-x-hidden">
@@ -129,17 +134,33 @@ const Index = () => {
           >
             <JackpotTicker />
           </motion.div>
+
+          {/* 游戏切换器 */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-4"
+          >
+            <GameSwitcher currentGame={currentGame} onGameChange={setCurrentGame} />
+          </motion.div>
         </motion.div>
 
         {/* 手机端布局 - 单列 */}
         <div className="lg:hidden space-y-3">
-          {/* 老虎机 */}
+          {/* 游戏区域 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <AdvancedSlotMachine />
+            {currentGame === 'slots' ? (
+              <AdvancedSlotMachine />
+            ) : (
+              <div className="cyber-card p-4">
+                <LuckyWheel prizePool={prizePool} />
+              </div>
+            )}
           </motion.div>
           
           {/* 钱包 + 凭证兑换 */}
@@ -179,13 +200,19 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* 中间 - 老虎机 */}
+          {/* 中间 - 游戏区域 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <AdvancedSlotMachine />
+            {currentGame === 'slots' ? (
+              <AdvancedSlotMachine />
+            ) : (
+              <div className="cyber-card p-6">
+                <LuckyWheel prizePool={prizePool} />
+              </div>
+            )}
           </motion.div>
 
           {/* 右侧 - 赔付表 */}
