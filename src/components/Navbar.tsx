@@ -27,14 +27,14 @@ export function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <motion.span
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              animate={{ rotateY: [0, 180, 360] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="text-2xl"
             >
-              🎰
+              🃏
             </motion.span>
-            <span className="font-display text-xl neon-text-blue hidden sm:block">
-              BURN SLOTS
+            <span className="font-display text-xl neon-text-cyan hidden sm:block tracking-wide">
+              王牌博弈
             </span>
           </Link>
 
