@@ -1,0 +1,355 @@
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PlinkoCanvas } from './PlinkoCanvas';
+import { PlinkoControls } from './PlinkoControls';
+import { PlinkoResults } from './PlinkoResults';
+import { PlinkoResult, MULTIPLIER_TABLE } from '@/config/plinko';
+import { useWallet } from '@/contexts/WalletContext';
+import { Sparkles, Crown, Star } from 'lucide-react';
+
+// 背景粒子
+function BackgroundParticles() {
+  const particles = Array.from({ length: 30 }, (_, i) => ({
+    id: i,
+    left: `${Math.random() * 100}%`,
+    delay: Math.random() * 10,
+    duration: 15 + Math.random() * 20,
+    size: 2 + Math.random() * 4,
+    opacity: 0.1 + Math.random() * 0.2,
+  }));
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full bg-[#C9A347]"
+          style={{
+            left: p.left,
+            width: p.size,
+            height: p.size,
+            opacity: p.opacity,
+          }}
+          initial={{ y: '100vh' }}
+          animate={{ y: '-20px' }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function PlinkoGame() {
+  const { gameCredits, isConnected } = useWallet();
+  
+  const [betAmount, setBetAmount] = useState(10000);
+  const [autoDropCount, setAutoDropCount] = useState(0);
+  const [isDropping, setIsDropping] = useState(false);
+  const [remainingDrops, setRemainingDrops] = useState(0);
+  const [results, setResults] = useState<PlinkoResult[]>([]);
+  const [dropTrigger, setDropTrigger] = useState(0);
+  const [showWinOverlay, setShowWinOverlay] = useState(false);
+  const [lastWin, setLastWin] = useState<{ multiplier: number; amount: number } | null>(null);
+
+  const [demoCredits, setDemoCredits] = useState(100000);
+  const credits = isConnected ? gameCredits : demoCredits;
+
+  const autoDropTimer = useRef<NodeJS.Timeout | null>(null);
+  const pendingDrops = useRef(0);
+
+  const totalWin = results.reduce((sum, r) => sum + r.winAmount, 0);
+  const totalBet = results.reduce((sum, r) => sum + r.betAmount, 0);
+
+  const handleBallLanded = useCallback((slotIndex: number) => {
+    const multiplier = MULTIPLIER_TABLE[slotIndex] || 1;
+    const winAmount = Math.floor(betAmount * multiplier);
+    
+    const result: PlinkoResult = {
+      id: `${Date.now()}_${Math.random()}`,
+      betAmount,
+      multiplier,
+      winAmount,
+      slotIndex,
+      timestamp: Date.now(),
+    };
+
+    setResults(prev => [result, ...prev]);
+    
+    if (!isConnected) {
+      setDemoCredits(prev => prev + winAmount);
+    }
+
+    if (multiplier >= 10) {
+      setLastWin({ multiplier, amount: winAmount });
+      setShowWinOverlay(true);
+      setTimeout(() => setShowWinOverlay(false), 2500);
+    }
+
+    pendingDrops.current = Math.max(0, pendingDrops.current - 1);
+    setRemainingDrops(pendingDrops.current);
+    
+    if (pendingDrops.current <= 0) {
+      setIsDropping(false);
+    }
+  }, [betAmount, isConnected]);
+
+  const executeDrop = useCallback(() => {
+    if (!isConnected) {
+      setDemoCredits(prev => prev - betAmount);
+    }
+    setDropTrigger(prev => prev + 1);
+  }, [betAmount, isConnected]);
+
+  const handleDrop = useCallback(() => {
+    if (credits < betAmount) return;
+    
+    const totalDrops = autoDropCount > 0 ? autoDropCount : 1;
+    pendingDrops.current = totalDrops;
+    setRemainingDrops(totalDrops);
+    setIsDropping(true);
+    
+    executeDrop();
+  }, [credits, betAmount, autoDropCount, executeDrop]);
+
+  useEffect(() => {
+    if (isDropping && remainingDrops > 1 && credits >= betAmount) {
+      autoDropTimer.current = setTimeout(() => {
+        executeDrop();
+      }, 600);
+    }
+
+    return () => {
+      if (autoDropTimer.current) {
+        clearTimeout(autoDropTimer.current);
+      }
+    };
+  }, [isDropping, remainingDrops, credits, betAmount, executeDrop]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0806] via-[#12100a] to-[#0a0806] p-4 md:p-8 relative">
+      <BackgroundParticles />
+      
+      {/* 装饰光晕 */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#C9A347]/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#C9A347]/3 rounded-full blur-[120px]" />
+      </div>
+      
+      {/* 标题 */}
+      <motion.div 
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-6 relative z-10"
+      >
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <Crown className="w-8 h-8 md:w-10 md:h-10 text-[#FFD700]" />
+          </motion.div>
+          
+          <h1 
+            className="text-5xl md:text-6xl font-bold tracking-wider"
+            style={{
+              background: 'linear-gradient(135deg, #E8D490 0%, #C9A347 30%, #FFD700 50%, #C9A347 70%, #8B7230 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 0 40px rgba(201, 163, 71, 0.5)',
+              filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.3))',
+            }}
+          >
+            PLINKO
+          </h1>
+          
+          <motion.div
+            animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.1, 1] }}
+            transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+          >
+            <Crown className="w-8 h-8 md:w-10 md:h-10 text-[#FFD700]" />
+          </motion.div>
+        </div>
+        
+        <p className="text-[#C9A347]/60 text-lg tracking-widest">
+          — 弹珠落下，财富开启 —
+        </p>
+      </motion.div>
+
+      {/* 主游戏区域 */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] gap-6 relative z-10">
+        {/* 左侧控制面板 */}
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, type: 'spring', damping: 20 }}
+        >
+          <PlinkoControls
+            credits={credits}
+            betAmount={betAmount}
+            onBetChange={setBetAmount}
+            autoDropCount={autoDropCount}
+            onAutoDropChange={setAutoDropCount}
+            onDrop={handleDrop}
+            isDropping={isDropping}
+            remainingDrops={remainingDrops}
+          />
+        </motion.div>
+
+        {/* 中央游戏画布 */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1, type: 'spring', damping: 15 }}
+          className="flex justify-center"
+        >
+          <PlinkoCanvas
+            width={600}
+            height={620}
+            onBallLanded={handleBallLanded}
+            dropBallTrigger={dropTrigger}
+          />
+        </motion.div>
+
+        {/* 右侧结果面板 */}
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, type: 'spring', damping: 20 }}
+        >
+          <PlinkoResults
+            results={results}
+            totalWin={totalWin}
+            totalBet={totalBet}
+          />
+        </motion.div>
+      </div>
+
+      {/* 大奖特效遮罩 */}
+      <AnimatePresence>
+        {showWinOverlay && lastWin && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{
+              background: 'radial-gradient(circle at center, rgba(201, 163, 71, 0.2) 0%, rgba(0, 0, 0, 0.8) 70%)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            {/* 爆炸粒子 */}
+            {Array.from({ length: 20 }).map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute"
+                initial={{ 
+                  x: 0, 
+                  y: 0, 
+                  scale: 0,
+                  opacity: 1 
+                }}
+                animate={{ 
+                  x: (Math.random() - 0.5) * 400,
+                  y: (Math.random() - 0.5) * 400,
+                  scale: [0, 1.5, 0],
+                  opacity: [1, 1, 0],
+                }}
+                transition={{ duration: 1.5, ease: 'easeOut' }}
+              >
+                <Star 
+                  className="text-[#FFD700]" 
+                  style={{ 
+                    width: 10 + Math.random() * 20,
+                    height: 10 + Math.random() * 20,
+                  }}
+                />
+              </motion.div>
+            ))}
+            
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 180 }}
+              transition={{ type: 'spring', damping: 10, stiffness: 100 }}
+              className="text-center relative"
+            >
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 5, -5, 0],
+                }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+              >
+                <Sparkles className="w-20 h-20 text-[#FFD700] mx-auto mb-4" />
+              </motion.div>
+              
+              <motion.div 
+                className="text-7xl md:text-8xl font-bold mb-4"
+                style={{
+                  background: 'linear-gradient(135deg, #FFD700 0%, #FFF 50%, #FFD700 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.8))',
+                }}
+                animate={{
+                  textShadow: [
+                    '0 0 20px rgba(255, 215, 0, 0.5)',
+                    '0 0 60px rgba(255, 215, 0, 1)',
+                    '0 0 20px rgba(255, 215, 0, 0.5)',
+                  ],
+                }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+              >
+                {lastWin.multiplier}x
+              </motion.div>
+              
+              <motion.div 
+                className="text-4xl text-[#FFD700] font-bold"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                +{lastWin.amount.toLocaleString()}
+              </motion.div>
+              
+              <motion.div
+                className="mt-4 text-[#C9A347]/80 text-lg"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                恭喜获得大奖！
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 演示模式提示 */}
+      {!isConnected && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20"
+        >
+          <div 
+            className="px-6 py-3 rounded-full text-sm font-medium"
+            style={{
+              background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.2) 0%, rgba(201, 163, 71, 0.1) 100%)',
+              border: '1px solid rgba(201, 163, 71, 0.3)',
+              color: '#C9A347',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            🎮 演示模式 — 连接钱包开始真实游戏
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
