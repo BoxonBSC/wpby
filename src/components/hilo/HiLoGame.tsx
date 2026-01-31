@@ -191,7 +191,9 @@ export function HiLoGame() {
         setGuessCorrect(correct);
         
         if (correct) {
-          const newStreak = streak + 1;
+          // 猜相同成功跳2级（7.7%胜率补偿），其他跳1级
+          const streakIncrease = guess === 'same' ? HILO_CONFIG.sameGuessStreakBonus : 1;
+          const newStreak = Math.min(streak + streakIncrease, currentBetTier.maxStreak);
           setStreak(newStreak);
           playCorrectGuessSound();
           
@@ -583,13 +585,14 @@ export function HiLoGame() {
                       </Button>
                     </div>
 
-                    {/* 相同选项 - 高风险高回报 (7.7%胜率) */}
+                    {/* 相同选项 - 高风险高回报 (7.7%胜率，成功跳2级) */}
                     <Button
                       onClick={() => makeGuess('same')}
-                      className="w-full h-12 bg-[#C9A347]/60 hover:bg-[#C9A347]/80"
+                      className="w-full h-12 bg-gradient-to-r from-[#C9A347]/60 to-[#FFD700]/40 hover:from-[#C9A347]/80 hover:to-[#FFD700]/60 border border-[#C9A347]/40"
                     >
                       <Equal className="w-5 h-5 mr-2" />
-                      相同 (7.7%胜率)
+                      <span>相同 (7.7%)</span>
+                      <span className="ml-2 px-2 py-0.5 rounded bg-[#FFD700]/20 text-[#FFD700] text-xs">+2级</span>
                     </Button>
 
                     {/* 收手按钮 */}

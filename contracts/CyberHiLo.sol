@@ -320,7 +320,14 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         
         if (won) {
             // 赢了，更新连胜
-            session.currentStreak++;
+            // 猜相同成功跳2级（7.7%胜率补偿），其他跳1级
+            uint8 streakIncrease = (request.guessType == 2) ? 2 : 1;
+            uint8 maxStreak = getMaxStreakForTier(session.betTierIndex);
+            uint8 newStreak = session.currentStreak + streakIncrease;
+            if (newStreak > maxStreak) {
+                newStreak = maxStreak;
+            }
+            session.currentStreak = newStreak;
             session.currentCard = newCard;
             
             // 更新最大连胜记录
@@ -334,7 +341,6 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
             emit GuessResult(request.player, requestId, oldCard, newCard, true, session.currentStreak, potentialReward);
             
             // 达到最大连胜，自动结算
-            uint8 maxStreak = getMaxStreakForTier(session.betTierIndex);
             if (session.currentStreak >= maxStreak) {
                 _cashOut(request.player);
             }

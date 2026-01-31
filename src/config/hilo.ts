@@ -199,6 +199,8 @@ export const HILO_CONFIG = {
     flipDuration: 600,
     revealDelay: 300,
   },
+  // 猜相同成功跳级数（7.7%胜率补偿）
+  sameGuessStreakBonus: 2,
 };
 
 // 游戏历史记录
