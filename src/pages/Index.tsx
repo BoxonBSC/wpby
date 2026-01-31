@@ -1,4 +1,4 @@
-import { PlinkoGame } from '@/components/plinko/PlinkoGame';
+import { ChestGame } from '@/components/chest';
 import { Navbar } from '@/components/Navbar';
 
 const Index = () => {
@@ -6,7 +6,7 @@ const Index = () => {
     <div className="min-h-screen bg-[#0f0c07]">
       <Navbar />
       <main className="pt-16">
-        <PlinkoGame />
+        <ChestGame />
       </main>
     </div>
   );
