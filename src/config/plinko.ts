@@ -1,24 +1,24 @@
-// Plinko 游戏配置 - 可持续造富效应模型
-// 设计目标：日均2000-10000次游戏，奖池来源于代币交易税
-// 20行钉子 = 21个槽位，边缘概率极低
+// Plinko 游戏配置 - 交替布局版本
+// 设计目标：15个槽位，中奖/不中奖交替分布
+// 14行钉子 = 15个槽位
 
 export const PLINKO_CONFIG = {
-  // 物理引擎参数 - 增加摩擦让球更难到达边缘
+  // 物理引擎参数
   physics: {
-    gravity: { x: 0, y: 1.6 },      // 稍微降低重力
-    restitution: 0.45,              // 降低弹性
-    friction: 0.15,                 // 增加摩擦
-    frictionAir: 0.025,             // 增加空气阻力
+    gravity: { x: 0, y: 1.6 },
+    restitution: 0.45,
+    friction: 0.15,
+    frictionAir: 0.025,
     density: 0.001,
   },
   
-  // 游戏参数 - 20行 = 21个槽位
+  // 游戏参数 - 14行 = 15个槽位
   game: {
-    rows: 20,                       // 20行钉子
-    pegRadius: 4,                   // 更小的钉子
-    ballRadius: 6,                  // 更小的球
-    pegSpacing: 28,                 // 更紧凑的间距
-    dropZoneWidth: 15,              // 缩小投球区域（关键！）
+    rows: 14,                       // 14行钉子
+    pegRadius: 5,                   // 钉子大小
+    ballRadius: 7,                  // 球大小
+    pegSpacing: 32,                 // 间距
+    dropZoneWidth: 20,              // 投球区域
   },
   
   // 视觉参数
