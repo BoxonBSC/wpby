@@ -16,6 +16,11 @@ export function WheelPegs({ theme, size, count }: WheelPegsProps) {
   const cy = size / 2;
   const pegRingRadius = size / 2 - 10;
 
+  // NOTE: Avoid CSS variables in SVG paint servers (gradients). Some browsers drop them.
+  const metalHighlight = 'hsl(0, 0%, 96%)';
+  const metalMid = 'hsl(0, 0%, 75%)';
+  const metalShadow = 'hsl(30, 30%, 3%)';
+
   return (
     <svg
       width={size}
@@ -27,9 +32,10 @@ export function WheelPegs({ theme, size, count }: WheelPegsProps) {
     >
       <defs>
         <radialGradient id={`peg-fill-${theme}`} cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor={withAlpha('hsl(var(--foreground))', 0.9)} />
-          <stop offset="55%" stopColor={withAlpha(colors.accent, 0.6)} />
-          <stop offset="100%" stopColor={withAlpha('hsl(var(--background))', 0.9)} />
+          <stop offset="0%" style={{ stopColor: withAlpha(metalHighlight, 0.95) }} />
+          <stop offset="45%" style={{ stopColor: withAlpha(metalMid, 0.75) }} />
+          <stop offset="70%" style={{ stopColor: withAlpha(colors.accent, 0.55) }} />
+          <stop offset="100%" style={{ stopColor: withAlpha(metalShadow, 0.9) }} />
         </radialGradient>
       </defs>
 
@@ -45,7 +51,7 @@ export function WheelPegs({ theme, size, count }: WheelPegsProps) {
             {/* Peg body */}
             <circle cx={x} cy={y} r={r} fill={`url(#peg-fill-${theme})`} />
             {/* Specular dot */}
-            <circle cx={x - 0.8} cy={y - 0.8} r={0.9} fill={withAlpha('hsl(var(--foreground))', 0.7)} />
+            <circle cx={x - 0.8} cy={y - 0.8} r={0.9} fill={withAlpha(metalHighlight, 0.75)} />
           </g>
         );
       })}

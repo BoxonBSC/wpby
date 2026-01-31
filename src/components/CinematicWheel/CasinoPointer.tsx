@@ -14,6 +14,11 @@ interface CasinoPointerProps {
 export function CasinoPointer({ isSpinning, theme }: CasinoPointerProps) {
   const colors = THEME_COLORS[theme];
 
+  // NOTE: Avoid CSS variables in SVG gradients for compatibility.
+  const metal1 = 'hsl(0, 0%, 96%)';
+  const metal2 = 'hsl(0, 0%, 70%)';
+  const metal3 = 'hsl(0, 0%, 88%)';
+
   return (
     <div className="absolute top-0 left-1/2 -translate-x-1/2 z-40" style={{ marginTop: -18 }}>
       {/* Subtle shake when spinning */}
@@ -31,9 +36,9 @@ export function CasinoPointer({ isSpinning, theme }: CasinoPointerProps) {
         <svg width="78" height="92" viewBox="0 0 78 92" aria-hidden="true">
           <defs>
             <linearGradient id={`pointer-metal-${theme}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="hsl(var(--diamond))" stopOpacity="0.95" />
-              <stop offset="50%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="hsl(var(--diamond))" stopOpacity="0.9" />
+              <stop offset="0%" stopColor={metal1} stopOpacity="0.95" />
+              <stop offset="50%" stopColor={metal2} stopOpacity="0.55" />
+              <stop offset="100%" stopColor={metal3} stopOpacity="0.9" />
             </linearGradient>
             <linearGradient id={`pointer-flapper-${theme}`} x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor={colors.accent} />
