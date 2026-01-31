@@ -21,10 +21,7 @@ export function CreditsExchange() {
 
   const handleExchange = async () => {
     if (!isConnected) {
-      toast({
-        title: t('wallet.pleaseConnect'),
-        variant: "destructive",
-      });
+      toast({ title: t('wallet.pleaseConnect'), variant: "destructive" });
       return;
     }
 
@@ -76,31 +73,60 @@ export function CreditsExchange() {
   };
 
   return (
-    <div className="rounded-2xl bg-gradient-to-b from-muted/40 to-muted/20 border border-border/50 p-4 backdrop-blur-sm">
-      <h3 className="text-base font-display text-neon-orange mb-3 flex items-center gap-2">
+    <div 
+      className="rounded-2xl p-4 backdrop-blur-sm"
+      style={{
+        background: 'linear-gradient(180deg, rgba(26, 22, 18, 0.95) 0%, rgba(15, 12, 8, 0.95) 100%)',
+        border: '1px solid rgba(201, 163, 71, 0.3)',
+        boxShadow: '0 0 20px rgba(201, 163, 71, 0.1)',
+      }}
+    >
+      <h3 
+        className="text-base mb-3 flex items-center gap-2"
+        style={{ fontFamily: '"Cinzel", serif', color: '#FF6B35' }}
+      >
         <Flame className="w-4 h-4" />
         {t('exchange.title')}
       </h3>
 
       {/* 说明 */}
-      <div className="text-xs text-muted-foreground mb-4 p-2 rounded-lg bg-muted/20 border border-border/30">
+      <div 
+        className="text-xs mb-4 p-2 rounded-lg"
+        style={{
+          background: 'rgba(201, 163, 71, 0.05)',
+          border: '1px solid rgba(201, 163, 71, 0.2)',
+          color: 'rgba(201, 163, 71, 0.7)',
+        }}
+      >
         <p className="flex items-start gap-2">
-          <AlertCircle className="w-3 h-3 mt-0.5 text-neon-yellow flex-shrink-0" />
+          <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: '#FFD700' }} />
           <span>{t('exchange.notice')}</span>
         </p>
       </div>
 
       {/* 当前余额 */}
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="p-2.5 rounded-xl bg-gradient-to-b from-neon-purple/10 to-transparent border border-neon-purple/20 text-center">
-          <div className="text-xs text-muted-foreground mb-1">{t('exchange.tokenBalance')}</div>
-          <div className="text-neon-purple font-display">
+        <div 
+          className="p-2.5 rounded-xl text-center"
+          style={{
+            background: 'linear-gradient(180deg, rgba(201, 163, 71, 0.1) 0%, transparent 100%)',
+            border: '1px solid rgba(201, 163, 71, 0.2)',
+          }}
+        >
+          <div className="text-xs mb-1" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>{t('exchange.tokenBalance')}</div>
+          <div style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}>
             {formatNumber(tokenBalanceNum)}
           </div>
         </div>
-        <div className="p-2.5 rounded-xl bg-gradient-to-b from-neon-cyan/10 to-transparent border border-neon-cyan/20 text-center">
-          <div className="text-xs text-muted-foreground mb-1">{t('exchange.gameCredits')}</div>
-          <div className="text-neon-cyan font-display flex items-center justify-center gap-1">
+        <div 
+          className="p-2.5 rounded-xl text-center"
+          style={{
+            background: 'linear-gradient(180deg, rgba(0, 255, 200, 0.1) 0%, transparent 100%)',
+            border: '1px solid rgba(0, 255, 200, 0.2)',
+          }}
+        >
+          <div className="text-xs mb-1" style={{ color: 'rgba(0, 255, 200, 0.6)' }}>{t('exchange.gameCredits')}</div>
+          <div className="flex items-center justify-center gap-1" style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}>
             <Ticket className="w-3 h-3" />
             {formatNumber(gameCreditsNum)}
           </div>
@@ -116,15 +142,25 @@ export function CreditsExchange() {
             whileTap={{ scale: 0.95 }}
             onClick={() => setSelectedAmount(amount)}
             disabled={tokenBalanceNum < amount}
-            className={`
-              py-2 px-1 rounded-lg text-xs font-display transition-all
-              ${selectedAmount === amount
-                ? 'bg-neon-orange/20 text-neon-orange border-2 border-neon-orange/50'
+            className="py-2 px-1 rounded-lg text-xs transition-all"
+            style={{
+              fontFamily: '"Cinzel", serif',
+              background: selectedAmount === amount
+                ? 'rgba(255, 107, 53, 0.2)'
                 : tokenBalanceNum >= amount
-                ? 'bg-muted/30 text-foreground/80 border border-border/30 hover:bg-muted/50'
-                : 'bg-muted/10 text-muted-foreground/50 border border-border/20 cursor-not-allowed'
-              }
-            `}
+                ? 'rgba(201, 163, 71, 0.1)'
+                : 'rgba(255, 255, 255, 0.02)',
+              color: selectedAmount === amount
+                ? '#FF6B35'
+                : tokenBalanceNum >= amount
+                ? '#C9A347'
+                : 'rgba(201, 163, 71, 0.3)',
+              border: selectedAmount === amount
+                ? '2px solid rgba(255, 107, 53, 0.5)'
+                : '1px solid rgba(201, 163, 71, 0.2)',
+              cursor: tokenBalanceNum >= amount ? 'pointer' : 'not-allowed',
+              opacity: tokenBalanceNum >= amount ? 1 : 0.5,
+            }}
           >
             {formatNumber(amount)}
           </motion.button>
@@ -132,29 +168,32 @@ export function CreditsExchange() {
       </div>
 
       {/* 兑换预览 */}
-      <div className="flex items-center justify-center gap-2 mb-4 p-3 rounded-xl bg-muted/20 border border-border/30">
+      <div 
+        className="flex items-center justify-center gap-2 mb-4 p-3 rounded-xl"
+        style={{
+          background: 'rgba(201, 163, 71, 0.05)',
+          border: '1px solid rgba(201, 163, 71, 0.2)',
+        }}
+      >
         <div className="text-center">
-          <div className="text-xs text-muted-foreground">{t('exchange.burn')}</div>
-          <div className="text-neon-red font-display text-lg">
+          <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>{t('exchange.burn')}</div>
+          <div className="text-lg" style={{ fontFamily: '"Cinzel", serif', color: '#EF4444' }}>
             -{formatNumber(selectedAmount)}
           </div>
-          <div className="text-xs text-muted-foreground">{t('exchange.token')}</div>
+          <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>{t('exchange.token')}</div>
         </div>
         
-        <motion.div
-          animate={{ x: [0, 5, 0] }}
-          transition={{ duration: 1, repeat: Infinity }}
-        >
-          <ArrowRight className="w-6 h-6 text-neon-yellow" />
+        <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 1, repeat: Infinity }}>
+          <ArrowRight className="w-6 h-6" style={{ color: '#FFD700' }} />
         </motion.div>
         
         <div className="text-center">
-          <div className="text-xs text-muted-foreground">{t('exchange.get')}</div>
-          <div className="text-neon-green font-display text-lg flex items-center gap-1">
+          <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>{t('exchange.get')}</div>
+          <div className="text-lg flex items-center gap-1" style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}>
             <Ticket className="w-4 h-4" />
             +{formatNumber(selectedAmount)}
           </div>
-          <div className="text-xs text-muted-foreground">{t('exchange.credit')}</div>
+          <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>{t('exchange.credit')}</div>
         </div>
       </div>
 
@@ -164,13 +203,25 @@ export function CreditsExchange() {
         whileTap={{ scale: 0.98 }}
         onClick={handleExchange}
         disabled={isExchanging || tokenBalanceNum < selectedAmount || !isConnected}
-        className={`
-          w-full py-3 rounded-xl font-display text-sm transition-all relative overflow-hidden
-          ${isExchanging || tokenBalanceNum < selectedAmount || !isConnected
-            ? 'bg-muted/30 text-muted-foreground cursor-not-allowed'
-            : 'bg-gradient-to-r from-neon-orange/20 to-neon-red/20 text-neon-orange border border-neon-orange/50 hover:shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
-          }
-        `}
+        className="w-full py-3 rounded-xl text-sm transition-all relative overflow-hidden"
+        style={{
+          fontFamily: '"Cinzel", serif',
+          background: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            ? 'rgba(201, 163, 71, 0.1)'
+            : 'linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%)',
+          color: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            ? 'rgba(201, 163, 71, 0.4)'
+            : '#FF6B35',
+          border: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            ? '1px solid rgba(201, 163, 71, 0.2)'
+            : '1px solid rgba(255, 107, 53, 0.5)',
+          cursor: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            ? 'not-allowed'
+            : 'pointer',
+          boxShadow: isExchanging || tokenBalanceNum < selectedAmount || !isConnected
+            ? 'none'
+            : '0 0 20px rgba(255, 107, 53, 0.2)',
+        }}
       >
         <AnimatePresence mode="wait">
           {isExchanging ? (
@@ -195,7 +246,8 @@ export function CreditsExchange() {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center justify-center gap-2 text-neon-green"
+              className="flex items-center justify-center gap-2"
+              style={{ color: '#00FFC8' }}
             >
               <CheckCircle className="w-4 h-4" />
               {t('exchange.success')}
