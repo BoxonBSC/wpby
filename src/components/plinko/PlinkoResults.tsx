@@ -150,18 +150,28 @@ export function PlinkoResults({ results, totalWin, totalBet }: PlinkoResultsProp
                     </span>
                     <span className="text-[#C9A347]/30 mx-2">→</span>
                     <span className={`font-bold text-sm ${hasWon ? 'text-green-400' : 'text-red-400'}`}>
-                      {result.winAmount.toLocaleString()}
+                      {result.bnbWinAmount > 0 
+                        ? `${result.bnbWinAmount.toFixed(4)} BNB`
+                        : result.winAmount > 0 
+                          ? result.winAmount.toLocaleString()
+                          : '0'
+                      }
                     </span>
                   </div>
 
-                  {/* 盈亏 */}
+                  {/* 盈亏显示 */}
                   <div 
                     className={`text-xs font-bold px-2 py-1 rounded relative z-10 ${hasWon ? 'text-green-400' : 'text-red-400'}`}
                     style={{
                       background: hasWon ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 0, 0, 0.1)',
                     }}
                   >
-                    {hasWon ? '+' : ''}{(result.winAmount - result.betAmount).toLocaleString()}
+                    {result.bnbWinAmount > 0 
+                      ? `+${result.bnbWinAmount.toFixed(3)}`
+                      : hasWon 
+                        ? `+${(result.winAmount - result.betAmount).toLocaleString()}`
+                        : `-${result.betAmount.toLocaleString()}`
+                    }
                   </div>
                 </motion.div>
               );
