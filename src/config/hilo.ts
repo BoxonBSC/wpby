@@ -61,8 +61,8 @@ export interface BetTier {
 }
 
 export const BET_TIERS: BetTier[] = [
-  { id: 'bronze', name: '青铜', betAmount: 10000, maxStreak: 5, color: '#CD7F32', description: '入门级' },
-  { id: 'silver', name: '白银', betAmount: 50000, maxStreak: 8, color: '#C0C0C0', description: '进阶级' },
+  { id: 'bronze', name: '青铜', betAmount: 50000, maxStreak: 5, color: '#CD7F32', description: '入门级' },
+  { id: 'silver', name: '白银', betAmount: 100000, maxStreak: 8, color: '#C0C0C0', description: '进阶级' },
   { id: 'gold', name: '黄金', betAmount: 200000, maxStreak: 12, color: '#FFD700', description: '精英级' },
   { id: 'platinum', name: '铂金', betAmount: 500000, maxStreak: 16, color: '#E5E4E2', description: '大师级' },
   { id: 'diamond', name: '钻石', betAmount: 1000000, maxStreak: 20, color: '#00D4FF', description: '传奇级' },
