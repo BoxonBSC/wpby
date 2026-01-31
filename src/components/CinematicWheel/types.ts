@@ -13,6 +13,8 @@ export interface CinematicWheelProps {
   prizePool: number;
   theme?: ThemeType;
   onSpinComplete?: (sector: WheelSector, payout: number) => void;
+  /** 演示模式：无需连接钱包即可旋转 */
+  demoMode?: boolean;
 }
 
 export const THEME_COLORS: Record<ThemeType, {
