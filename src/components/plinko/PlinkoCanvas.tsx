@@ -417,14 +417,22 @@ export function PlinkoCanvas({ width, height, onBallLanded, onCollision, dropBal
     };
   }, [width, height]);
 
-  // 投放新球
+  // 投放新球 - 限制在极窄的中间区域
   const dropBall = useCallback(() => {
     const app = appRef.current;
     const engine = engineRef.current;
     if (!app || !engine) return;
 
-    const startX = offsetX + boardWidth / 2 + (Math.random() - 0.5) * game.dropZoneWidth;
-    const startY = 30;
+    // 使用高斯分布模拟，让球集中在中间
+    // Box-Muller 变换生成正态分布随机数
+    const u1 = Math.random();
+    const u2 = Math.random();
+    const gaussian = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    
+    // 限制在 ±0.3 标准差内（约70%集中在极窄区域）
+    const clampedGaussian = Math.max(-0.3, Math.min(0.3, gaussian * 0.15));
+    const startX = offsetX + boardWidth / 2 + clampedGaussian * game.dropZoneWidth;
+    const startY = 25;
 
     const ball = Matter.Bodies.circle(startX, startY, game.ballRadius, {
       restitution: physics.restitution,
