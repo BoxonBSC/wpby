@@ -887,121 +887,44 @@ export function HiLoGame() {
 
               {/* 控制区 */}
               <div className="mt-8">
-                {/* 闲置状态 - 选择门槛 */}
+                {/* 闲置状态 - 单一门槛500K */}
                 {gameState === 'idle' && (
                   <div className="space-y-4">
-                    <div>
-                      <label className="text-[#C9A347]/60 text-sm mb-3 block">{t('hilo.selectTier')}</label>
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3">
-                          {BET_TIERS.slice(0, 3).map((tier, index) => {
-                            const canAfford = credits >= tier.betAmount;
-                            const isSelected = selectedTierIndex === index;
-                            const maxRewardTier = REWARD_TIERS.find(r => r.streak === tier.maxStreak);
-                            const shortfall = tier.betAmount - credits;
-                            const formatShortfall = (n: number) => n >= 1000000 ? `${(n / 1000000).toFixed(1)}M` : `${Math.ceil(n / 1000)}K`;
-                            
-                            return (
-                              <button
-                                key={tier.id}
-                                onClick={() => handleSelectTier(index, canAfford)}
-                                disabled={!canAfford}
-                                className={`
-                                  p-2 sm:p-3 rounded-xl transition-all text-center relative
-                                  ${canAfford ? 'hover:scale-105' : 'opacity-60 cursor-not-allowed'}
-                                `}
-                                style={{
-                                  background: isSelected 
-                                    ? `linear-gradient(135deg, ${tier.color}30 0%, ${tier.color}10 100%)`
-                                    : 'rgba(0,0,0,0.3)',
-                                  border: `2px solid ${isSelected ? tier.color : canAfford ? 'rgba(201, 163, 71, 0.2)' : 'rgba(255, 100, 100, 0.3)'}`,
-                                  boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
-                                }}
-                              >
-                                <div className="font-bold text-sm sm:text-base" style={{ color: canAfford ? tier.color : 'rgba(201, 163, 71, 0.5)' }}>
-                                  {tier.name}
-                                </div>
-                                <div className="text-[#C9A347]/60 text-[10px] sm:text-xs">
-                                  {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
-                                </div>
-                                {canAfford ? (
-                                  <div className="text-[9px] sm:text-[10px] mt-1 text-[#FFD700]">
-                                    {t('hilo.maxPool').replace('{n}', String(maxRewardTier?.percentage ?? 0))}
-                                  </div>
-                                ) : (
-                                  <div className="text-[9px] sm:text-[10px] mt-1 text-[#FF6B6B]">
-                                    {t('hilo.needMore').replace('{n}', formatShortfall(shortfall))}
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-[66%] mx-auto">
-                          {BET_TIERS.slice(3).map((tier, i) => {
-                            const index = i + 3;
-                            const canAfford = credits >= tier.betAmount;
-                            const isSelected = selectedTierIndex === index;
-                            const maxRewardTier = REWARD_TIERS.find(r => r.streak === tier.maxStreak);
-                            const shortfall = tier.betAmount - credits;
-                            const formatShortfall = (n: number) => n >= 1000000 ? `${(n / 1000000).toFixed(1)}M` : `${Math.ceil(n / 1000)}K`;
-                            
-                            return (
-                              <button
-                                key={tier.id}
-                                onClick={() => handleSelectTier(index, canAfford)}
-                                disabled={!canAfford}
-                                className={`
-                                  p-2 sm:p-3 rounded-xl transition-all text-center relative
-                                  ${canAfford ? 'hover:scale-105' : 'opacity-60 cursor-not-allowed'}
-                                `}
-                                style={{
-                                  background: isSelected 
-                                    ? `linear-gradient(135deg, ${tier.color}30 0%, ${tier.color}10 100%)`
-                                    : 'rgba(0,0,0,0.3)',
-                                  border: `2px solid ${isSelected ? tier.color : canAfford ? 'rgba(201, 163, 71, 0.2)' : 'rgba(255, 100, 100, 0.3)'}`,
-                                  boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
-                                }}
-                              >
-                                <div className="font-bold text-sm sm:text-base" style={{ color: canAfford ? tier.color : 'rgba(201, 163, 71, 0.5)' }}>
-                                  {tier.name}
-                                </div>
-                                <div className="text-[#C9A347]/60 text-[10px] sm:text-xs">
-                                  {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
-                                </div>
-                                {canAfford ? (
-                                  <div className="text-[9px] sm:text-[10px] mt-1 text-[#FFD700]">
-                                    {t('hilo.maxPool').replace('{n}', String(maxRewardTier?.percentage ?? 0))}
-                                  </div>
-                                ) : (
-                                  <div className="text-[9px] sm:text-[10px] mt-1 text-[#FF6B6B]">
-                                    {t('hilo.needMore').replace('{n}', formatShortfall(shortfall))}
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
+                    {/* 游戏说明 */}
+                    <div 
+                      className="rounded-xl p-4 text-center"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(201, 163, 71, 0.05) 100%)',
+                        border: '1px solid rgba(255, 215, 0, 0.25)',
+                      }}
+                    >
+                      <div className="text-[#FFD700] font-bold text-lg mb-2" style={{ fontFamily: '"Cinzel", serif' }}>
+                        {t('hilo.gameIntro')}
+                      </div>
+                      <div className="text-[#C9A347]/80 text-sm space-y-1">
+                        <p>🎴 {t('hilo.gameIntroLine1')}</p>
+                        <p>🏆 {t('hilo.gameIntroLine2')}</p>
+                        <p>💰 {t('hilo.gameIntroLine3')}</p>
                       </div>
                     </div>
                     
                     <Button
                       onClick={isConnected ? handleStartGame : () => setShowWalletModal(true)}
-                      disabled={(isConnected && credits < BET_TIERS[selectedTierIndex].betAmount) || isStartingGame}
+                      disabled={(isConnected && credits < BET_TIERS[0].betAmount) || isStartingGame}
                       className="w-full h-14 text-lg font-bold"
                       style={{
                         background: isStartingGame
                           ? 'rgba(201, 163, 71, 0.3)'
                           : !isConnected 
                             ? 'linear-gradient(135deg, #C9A347 0%, #8B7230 100%)'
-                            : credits >= BET_TIERS[selectedTierIndex].betAmount
-                              ? `linear-gradient(135deg, ${BET_TIERS[selectedTierIndex].color} 0%, ${BET_TIERS[selectedTierIndex].color}CC 100%)`
+                            : credits >= BET_TIERS[0].betAmount
+                              ? 'linear-gradient(135deg, #FFD700 0%, #C9A347 100%)'
                               : 'rgba(201, 163, 71, 0.2)',
                         color: isStartingGame
                           ? '#FFD700'
                           : !isConnected 
                             ? '#000' 
-                            : credits >= BET_TIERS[selectedTierIndex].betAmount ? '#000' : 'rgba(201, 163, 71, 0.5)',
+                            : credits >= BET_TIERS[0].betAmount ? '#000' : 'rgba(201, 163, 71, 0.5)',
                       }}
                     >
                       {isStartingGame ? (
@@ -1019,13 +942,18 @@ export function HiLoGame() {
                         <>
                           {!isConnected ? <Wallet className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
                           {!isConnected ? t('hilo.clickConnect') : (
-                            <>{t('hilo.startGame')} ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
-                              ? `${BET_TIERS[selectedTierIndex].betAmount / 1000000}M` 
-                              : `${BET_TIERS[selectedTierIndex].betAmount / 1000}K`})</>
+                            <>{t('hilo.startGame')} (500K {t('hilo.credits')})</>
                           )}
                         </>
                       )}
                     </Button>
+                    
+                    {/* 凭证不足提示 */}
+                    {isConnected && credits < BET_TIERS[0].betAmount && (
+                      <div className="text-center text-sm text-[#FF6B6B]">
+                        {t('hilo.needMore').replace('{n}', `${Math.ceil((BET_TIERS[0].betAmount - credits) / 1000)}K`)}
+                      </div>
+                    )}
                   </div>
                 )}
 
