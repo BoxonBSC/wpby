@@ -137,10 +137,11 @@ const History = () => {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="rounded-2xl p-6"
+            className="rounded-2xl p-6 flex flex-col"
             style={{
               background: 'linear-gradient(180deg, rgba(26, 22, 18, 0.95) 0%, rgba(15, 12, 8, 0.98) 100%)',
               border: '1px solid rgba(201, 163, 71, 0.25)',
+              minHeight: '500px',
             }}
           >
             <div className="flex items-center justify-between mb-4">
@@ -163,7 +164,7 @@ const History = () => {
             </div>
 
             {error ? (
-              <div className="text-center py-8">
+              <div className="text-center py-8 flex-1 flex flex-col justify-center">
                 <AlertCircle className="w-12 h-12 text-red-400/50 mx-auto mb-4" />
                 <p className="text-red-400/70">{error}</p>
                 <Button
@@ -176,18 +177,18 @@ const History = () => {
                 </Button>
               </div>
             ) : isLoading && leaderboard.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-8 flex-1 flex flex-col justify-center">
                 <Loader2 className="w-12 h-12 text-[#C9A347]/50 mx-auto mb-4 animate-spin" />
                 <p className="text-[#C9A347]/50">{t('history.loadingOnchain')}</p>
               </div>
             ) : leaderboard.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-8 flex-1 flex flex-col justify-center">
                 <Crown className="w-16 h-16 text-[#C9A347]/30 mx-auto mb-4" />
                 <p className="text-[#C9A347]/50 text-lg">{t('history.noLeaderboard')}</p>
                 <p className="text-[#C9A347]/30 text-sm mt-2">{t('history.beFirst')}</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 overflow-y-auto pr-2">
                 {leaderboard.map((player, index) => (
                   <motion.div
                     key={player.player}
@@ -241,10 +242,11 @@ const History = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="rounded-2xl p-6"
+            className="rounded-2xl p-6 flex flex-col"
             style={{
               background: 'linear-gradient(180deg, rgba(26, 22, 18, 0.95) 0%, rgba(15, 12, 8, 0.98) 100%)',
               border: '1px solid rgba(201, 163, 71, 0.25)',
+              minHeight: '500px',
             }}
           >
             <h2 
@@ -256,17 +258,17 @@ const History = () => {
             </h2>
 
             {isLoading && recentWins.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-8 flex-1 flex flex-col justify-center">
                 <Loader2 className="w-12 h-12 text-[#C9A347]/50 mx-auto mb-4 animate-spin" />
                 <p className="text-[#C9A347]/50">{t('history.loadingOnchain')}</p>
               </div>
             ) : recentWins.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-8 flex-1 flex flex-col justify-center">
                 <Flame className="w-16 h-16 text-[#C9A347]/30 mx-auto mb-4" />
                 <p className="text-[#C9A347]/50 text-lg">{t('history.noWins')}</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+              <div className="space-y-2 flex-1 overflow-y-auto pr-2">
                 {recentWins.map((record, index) => (
                   <motion.div
                     key={`${record.txHash}-${index}`}
