@@ -4,6 +4,7 @@ import { PlayingCard } from './PlayingCard';
 import { HorizontalRewardTiers } from './HorizontalRewardTiers';
 import { HiLoResults } from './HiLoResults';
 import { VRFWaitingOverlay } from './VRFWaitingOverlay';
+import { SuccessAnimation } from './SuccessAnimation';
 import { CreditsExchange } from '@/components/CreditsExchange';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useWallet } from '@/contexts/WalletContext';
@@ -983,25 +984,11 @@ export function HiLoGame() {
                               </>
                             ) : (
                               <>
-                                {/* 奖励已自动发送到钱包 */}
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                  <CheckCircle className="w-6 h-6 text-[#00FFC8]" />
-                                  <span className="text-[#00FFC8] font-bold text-lg">
-                                    领取成功！
-                                  </span>
-                                </div>
-                                <div className="text-2xl font-bold text-[#00FFC8] mb-2">
-                                  🎉 奖励已自动到账
-                                </div>
-                                <p className="text-[#C9A347]/80 text-sm mb-3">
-                                  {currentReward} BNB（扣除5%手续费）已通过内部交易转入您的钱包
-                                </p>
-                                <p className="text-[#C9A347]/60 text-xs mb-3">
-                                  💡 提示：内部交易不会显示在钱包历史中，但余额已增加。可在BSCScan查看详情。
-                                </p>
+                                {/* 奖励已自动发送到钱包 - 使用醒目动画 */}
+                                <SuccessAnimation amount={currentReward} />
                                 <Button
                                   onClick={() => resetGame()}
-                                  className="w-full h-12 text-lg font-bold"
+                                  className="w-full h-12 text-lg font-bold mt-4"
                                   style={{
                                     background: 'linear-gradient(135deg, #00FFC8 0%, #00AA88 100%)',
                                     color: '#000',
