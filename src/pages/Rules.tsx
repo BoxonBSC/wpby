@@ -439,11 +439,12 @@ const Rules = () => {
             <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30">
               <h4 className="font-bold text-orange-400 mb-2 flex items-center gap-2">
                 <Flame className="w-5 h-5" />
-                关于代币燃烧
+                关于代币燃烧与凭证
               </h4>
               <ul className="text-sm text-[#C9A347]/80 space-y-2">
                 <li>• 兑换凭证时，代币会被<strong className="text-orange-400">永久销毁</strong></li>
                 <li>• 燃烧地址：0x000...dead（黑洞地址）</li>
+                <li>• <strong className="text-[#00D4FF]">游戏凭证不可转账</strong>，仅限游戏使用（合约层面限制）</li>
                 <li>• 这是通缩机制，让代币越来越稀缺</li>
               </ul>
             </div>
