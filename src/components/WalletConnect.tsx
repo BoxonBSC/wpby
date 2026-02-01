@@ -36,10 +36,13 @@ export function WalletConnect() {
     try {
       const success = await claimPrize();
       if (success) {
-        toast({ title: '🎉 领取成功！', description: `已将 ${unclaimedAmount.toFixed(4)} BNB 发送至您的钱包` });
+        toast({ 
+          title: t('wallet.claimSuccess'), 
+          description: t('wallet.claimSuccessDesc').replace('{amount}', unclaimedAmount.toFixed(4)) 
+        });
       }
     } catch (err) {
-      toast({ title: '领取失败', description: '请稍后重试', variant: 'destructive' });
+      toast({ title: t('wallet.claimFailed'), description: t('wallet.claimRetry'), variant: 'destructive' });
     } finally {
       setIsClaiming(false);
     }
@@ -332,7 +335,7 @@ export function WalletConnect() {
                     <div className="flex items-center gap-2">
                       <Gift className="w-5 h-5" style={{ color: '#FFD700' }} />
                       <span className="text-sm font-bold" style={{ color: '#FFD700', fontFamily: '"Cinzel", serif' }}>
-                        🎉 待领取奖励
+                        {t('wallet.unclaimedPrize')}
                       </span>
                     </div>
                   </div>
@@ -364,12 +367,12 @@ export function WalletConnect() {
                     {isClaiming ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        领取中...
+                        {t('wallet.claiming')}
                       </>
                     ) : (
                       <>
                         <Gift className="w-4 h-4" />
-                        立即领取
+                        {t('wallet.claimNow')}
                       </>
                     )}
                   </motion.button>
@@ -417,24 +420,25 @@ export function WalletConnect() {
         disabled={isConnecting}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl transition-all"
+        className="w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
         style={{
-          background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%)',
-          border: '2px solid rgba(255, 215, 0, 0.5)',
-          boxShadow: '0 0 20px rgba(255, 215, 0, 0.2)',
           fontFamily: '"Cinzel", serif',
-          color: '#FFD700',
+          background: 'linear-gradient(135deg, #C9A347 0%, #8B7230 100%)',
+          color: '#000',
+          boxShadow: '0 4px 20px rgba(201, 163, 71, 0.3)',
         }}
       >
         {isConnecting ? (
-          <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-            ⏳
-          </motion.span>
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            {t('wallet.connecting')}
+          </>
         ) : (
-          <Wallet className="w-5 h-5" />
+          <>
+            <Wallet className="w-5 h-5" />
+            {t('wallet.connect')}
+          </>
         )}
-        {isConnecting ? t('wallet.connecting') : t('wallet.connect')}
-        <ChevronDown className="w-4 h-4" />
       </motion.button>
       <WalletSelectorModal />
     </>

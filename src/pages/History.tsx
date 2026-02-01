@@ -27,17 +27,6 @@ const History = () => {
     }
   };
 
-  const getTierName = (tier: string) => {
-    const names: Record<string, string> = {
-      'bronze': '青铜',
-      'silver': '白银', 
-      'gold': '黄金',
-      'platinum': '铂金',
-      'diamond': '钻石',
-    };
-    return names[tier] || tier;
-  };
-
   const shortenAddress = (addr: string) => {
     if (!addr) return '';
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -81,13 +70,13 @@ const History = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            战绩殿堂
+            {t('history.title')}
           </h1>
           <p 
             className="text-[#C9A347]/60"
             style={{ fontFamily: '"Cormorant Garamond", "Noto Serif SC", serif' }}
           >
-            链上数据 · 公开透明
+            {t('history.subtitle')}
           </p>
         </motion.div>
 
@@ -111,7 +100,7 @@ const History = () => {
               <div className="text-2xl font-bold text-[#C9A347]">
                 {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : globalStats.totalGames.toLocaleString()}
               </div>
-              <div className="text-sm text-[#C9A347]/60">全球总对局</div>
+              <div className="text-sm text-[#C9A347]/60">{t('history.totalSpins')}</div>
             </div>
           </div>
           
@@ -129,7 +118,7 @@ const History = () => {
               <div className="text-2xl font-bold text-[#FFD700]">
                 {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : `${globalStats.totalPaidOut.toFixed(4)} BNB`}
               </div>
-              <div className="text-sm text-[#FFD700]/60">累计派奖</div>
+              <div className="text-sm text-[#FFD700]/60">{t('history.totalPaidOut')}</div>
             </div>
           </div>
           
@@ -147,7 +136,7 @@ const History = () => {
               <div className="text-2xl font-bold text-[#00FFC8]">
                 {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : globalStats.totalPlayers}
               </div>
-              <div className="text-sm text-[#00FFC8]/60">获胜玩家数</div>
+              <div className="text-sm text-[#00FFC8]/60">{t('history.totalPlayers')}</div>
             </div>
           </div>
         </motion.div>
@@ -169,7 +158,7 @@ const History = () => {
                 style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
               >
                 <Crown className="w-5 h-5" />
-                王者榜单
+                {t('history.leaderboard')}
               </h2>
               <Button
                 variant="ghost"
@@ -192,19 +181,19 @@ const History = () => {
                   onClick={refresh}
                   className="mt-2 text-[#C9A347]"
                 >
-                  重试
+                  {t('history.retry')}
                 </Button>
               </div>
             ) : isLoading && leaderboard.length === 0 ? (
               <div className="text-center py-8">
                 <Loader2 className="w-12 h-12 text-[#C9A347]/50 mx-auto mb-4 animate-spin" />
-                <p className="text-[#C9A347]/50">加载链上数据...</p>
+                <p className="text-[#C9A347]/50">{t('history.loadingOnchain')}</p>
               </div>
             ) : leaderboard.length === 0 ? (
               <div className="text-center py-8">
                 <Crown className="w-16 h-16 text-[#C9A347]/30 mx-auto mb-4" />
-                <p className="text-[#C9A347]/50 text-lg">暂无获胜记录</p>
-                <p className="text-[#C9A347]/30 text-sm mt-2">成为第一个上榜的王者！</p>
+                <p className="text-[#C9A347]/50 text-lg">{t('history.noLeaderboard')}</p>
+                <p className="text-[#C9A347]/30 text-sm mt-2">{t('history.beFirst')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -241,11 +230,11 @@ const History = () => {
                       <div className="font-bold text-[#C9A347] truncate">
                         {shortenAddress(player.player)}
                         {player.player.toLowerCase() === address?.toLowerCase() && (
-                          <span className="ml-2 text-xs text-[#00FFC8]">(我)</span>
+                          <span className="ml-2 text-xs text-[#00FFC8]">{t('history.me')}</span>
                         )}
                       </div>
                       <div className="text-sm text-[#C9A347]/60">
-                        {player.totalWins} 次胜利 · 最高 {player.maxStreak} 连胜
+                        {player.totalWins} {t('history.wins')} · {t('history.maxStreak').replace('{n}', String(player.maxStreak))}
                       </div>
                     </div>
                     <div className="text-right">
@@ -272,18 +261,18 @@ const History = () => {
               style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
             >
               <Flame className="w-5 h-5" />
-              实时获胜
+              {t('history.realtime')}
             </h2>
 
             {isLoading && recentWins.length === 0 ? (
               <div className="text-center py-8">
                 <Loader2 className="w-12 h-12 text-[#C9A347]/50 mx-auto mb-4 animate-spin" />
-                <p className="text-[#C9A347]/50">加载链上数据...</p>
+                <p className="text-[#C9A347]/50">{t('history.loadingOnchain')}</p>
               </div>
             ) : recentWins.length === 0 ? (
               <div className="text-center py-8">
                 <Flame className="w-16 h-16 text-[#C9A347]/30 mx-auto mb-4" />
-                <p className="text-[#C9A347]/50 text-lg">暂无获胜记录</p>
+                <p className="text-[#C9A347]/50 text-lg">{t('history.noWins')}</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
@@ -302,13 +291,13 @@ const History = () => {
                     <div 
                       className="px-2 py-1 rounded text-xs font-bold bg-[#00FFC8]/20 text-[#00FFC8] border border-[#00FFC8]/40"
                     >
-                      {record.streak}连胜
+                      {t('history.streak').replace('{n}', String(record.streak))}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-[#C9A347] truncate">
                         {shortenAddress(record.player)}
                         {record.player.toLowerCase() === address?.toLowerCase() && (
-                          <span className="ml-2 text-xs text-[#00FFC8]">(我)</span>
+                          <span className="ml-2 text-xs text-[#00FFC8]">{t('history.me')}</span>
                         )}
                       </div>
                       <div className="text-xs text-[#C9A347]/40">
@@ -355,21 +344,21 @@ const History = () => {
               style={{ fontFamily: '"Cinzel", "Noto Serif SC", serif', letterSpacing: '0.08em' }}
             >
               <Trophy className="w-5 h-5" />
-              我的战绩
+              {t('history.myStats')}
             </h2>
             
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-4 rounded-xl bg-[#C9A347]/10">
                 <div className="text-2xl font-bold text-[#C9A347]">{myTotalGames}</div>
-                <div className="text-sm text-[#C9A347]/60">总对局</div>
+                <div className="text-sm text-[#C9A347]/60">{t('history.totalGames')}</div>
               </div>
               <div className="text-center p-4 rounded-xl bg-[#00FFC8]/10">
                 <div className="text-2xl font-bold text-[#00FFC8]">{myTotalWins}</div>
-                <div className="text-sm text-[#00FFC8]/60">成功收手</div>
+                <div className="text-sm text-[#00FFC8]/60">{t('history.successCashout')}</div>
               </div>
               <div className="text-center p-4 rounded-xl bg-[#FFD700]/10">
                 <div className="text-2xl font-bold text-[#FFD700]">{myTotalBnbWon.toFixed(4)} BNB</div>
-                <div className="text-sm text-[#FFD700]/60">累计获得</div>
+                <div className="text-sm text-[#FFD700]/60">{t('history.totalEarned')}</div>
               </div>
             </div>
           </motion.div>

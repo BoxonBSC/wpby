@@ -1,12 +1,15 @@
 import { motion } from 'framer-motion';
 import { HiLoResult } from '@/config/hilo';
 import { History, TrendingUp, TrendingDown, Trophy, Coins, Target, Percent } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HiLoResultsProps {
   results: HiLoResult[];
 }
 
 export function HiLoResults({ results }: HiLoResultsProps) {
+  const { t } = useLanguage();
+  
   const totalBet = results.reduce((sum, r) => sum + r.betAmount, 0);
   const totalWon = results.reduce((sum, r) => sum + r.bnbWon, 0);
   const winCount = results.filter(r => r.bnbWon > 0).length;
@@ -39,13 +42,13 @@ export function HiLoResults({ results }: HiLoResultsProps) {
       >
         <div className="flex items-center gap-1.5">
           <Coins className="w-3 h-3 flex-shrink-0" style={{ color: '#C9A347' }} />
-          <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>消耗</span>
+          <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>{t('hiloResults.consumed')}</span>
           <span className="text-xs font-bold" style={{ color: '#C9A347' }}>{formatBet(totalBet)}</span>
         </div>
         <div className="w-px h-4 bg-[#C9A347]/20" />
         <div className="flex items-center gap-1.5">
           <Target className="w-3 h-3 flex-shrink-0" style={{ color: '#FFD700' }} />
-          <span className="text-[10px]" style={{ color: 'rgba(255, 215, 0, 0.6)' }}>赢得</span>
+          <span className="text-[10px]" style={{ color: 'rgba(255, 215, 0, 0.6)' }}>{t('hiloResults.won')}</span>
           <span className="text-xs font-bold" style={{ color: '#FFD700' }}>{totalWon.toFixed(3)}</span>
         </div>
         <div className="w-px h-4 bg-[#C9A347]/20" />
@@ -63,7 +66,7 @@ export function HiLoResults({ results }: HiLoResultsProps) {
       {/* 历史记录标题 */}
       <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0">
         <History className="w-3.5 h-3.5 text-[#C9A347]" />
-        <h3 className="text-[#C9A347] font-bold text-xs">游戏记录</h3>
+        <h3 className="text-[#C9A347] font-bold text-xs">{t('hiloResults.gameHistory')}</h3>
         <span className="text-[10px] text-[#C9A347]/40">({results.length})</span>
       </div>
 
@@ -71,7 +74,7 @@ export function HiLoResults({ results }: HiLoResultsProps) {
       <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1.5 scrollbar-thin scrollbar-thumb-[#C9A347]/20">
         {results.length === 0 ? (
           <div className="text-center py-6 text-[#C9A347]/40 text-xs">
-            暂无游戏记录
+            {t('hiloResults.noHistory')}
           </div>
         ) : (
           results.slice(0, 20).map((result, index) => (
@@ -93,10 +96,13 @@ export function HiLoResults({ results }: HiLoResultsProps) {
                 )}
                 <div>
                   <div className={`text-xs font-bold ${result.bnbWon > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {result.cashedOut ? `收手 x${result.streak}` : `猜错 x${result.streak}`}
+                    {result.cashedOut 
+                      ? t('hiloResults.cashedOut').replace('{n}', String(result.streak))
+                      : t('hiloResults.guessedWrong').replace('{n}', String(result.streak))
+                    }
                   </div>
                   <div className="text-[10px] text-[#C9A347]/40">
-                    {formatBet(result.betAmount)} 凭证
+                    {formatBet(result.betAmount)} {t('hiloResults.credits')}
                   </div>
                 </div>
               </div>
