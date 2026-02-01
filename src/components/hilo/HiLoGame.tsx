@@ -27,6 +27,8 @@ import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2, AlertCircle } 
 import { useAudio } from '@/hooks/useAudio';
 import { toast } from '@/hooks/use-toast';
 import { formatEther } from 'ethers';
+import { CYBER_HILO_ADDRESS } from '@/config/contracts';
+import { Copy, ExternalLink } from 'lucide-react';
 
 // 合约是否已部署（部署后改为true）
 const CONTRACT_DEPLOYED = false;
@@ -675,6 +677,54 @@ export function HiLoGame() {
             <HiLoResults results={results} />
           </div>
         </div>
+
+        {/* 合约地址展示 */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8 flex justify-center"
+        >
+          <div 
+            className="flex items-center gap-3 px-4 py-2 rounded-xl"
+            style={{
+              background: 'linear-gradient(90deg, rgba(201, 163, 71, 0.08) 0%, rgba(201, 163, 71, 0.03) 100%)',
+              border: '1px solid rgba(201, 163, 71, 0.2)',
+            }}
+          >
+            <span className="text-xs" style={{ color: '#C9A347' }}>🎴 游戏合约:</span>
+            <code 
+              className="text-xs font-mono px-2 py-1 rounded"
+              style={{ 
+                background: 'rgba(0, 0, 0, 0.3)',
+                color: 'rgba(255, 255, 255, 0.8)',
+              }}
+            >
+              {`${CYBER_HILO_ADDRESS.mainnet.slice(0, 10)}...${CYBER_HILO_ADDRESS.mainnet.slice(-8)}`}
+            </code>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(CYBER_HILO_ADDRESS.mainnet);
+                  toast({ title: '合约地址已复制!' });
+                }}
+                className="p-1.5 rounded-lg transition-colors hover:bg-[#C9A347]/20"
+                title="复制地址"
+              >
+                <Copy className="w-3.5 h-3.5" style={{ color: '#C9A347' }} />
+              </button>
+              <a
+                href={`https://bscscan.com/address/${CYBER_HILO_ADDRESS.mainnet}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1.5 rounded-lg transition-colors hover:bg-[#C9A347]/20"
+                title="在 BscScan 查看"
+              >
+                <ExternalLink className="w-3.5 h-3.5" style={{ color: '#C9A347' }} />
+              </a>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
