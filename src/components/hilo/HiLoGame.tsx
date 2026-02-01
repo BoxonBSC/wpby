@@ -327,6 +327,21 @@ export function HiLoGame() {
   return (
     <div className="min-h-screen bg-background pt-4">
       <div className="container mx-auto px-4">
+        {/* 资金分配说明 */}
+        <div 
+          className="mb-4 px-4 py-2 rounded-lg text-xs"
+          style={{
+            background: 'rgba(201, 163, 71, 0.08)',
+            border: '1px solid rgba(201, 163, 71, 0.2)',
+            color: '#C9A347',
+          }}
+        >
+          <span className="font-semibold">💰 资金分配：</span>
+          <span className="ml-2">95% 用于玩家奖励发放</span>
+          <span className="mx-2">|</span>
+          <span>5% 用于 VRF 随机数服务充值</span>
+        </div>
+        
         {/* 合约未部署提示 */}
         {!CONTRACT_DEPLOYED && (
           <div 
