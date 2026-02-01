@@ -608,18 +608,48 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     }
   }, [initSignerContracts, getContractAddress, refreshUserData]);
 
-  // 充值凭证
+  // 充值凭证（自动处理授权）
   const depositCredits = useCallback(async (amount: number): Promise<{ ok: boolean; error?: string }> => {
     await initSignerContracts();
     
-    if (!signerContractRef.current) {
+    if (!signerContractRef.current || !tokenContractRef.current) {
       return { ok: false, error: '请先连接钱包' };
     }
 
     try {
       const amountWei = parseUnits(amount.toString(), 18);
+      const contractAddress = getContractAddress();
+      
+      // 步骤1: 检查当前授权额度
+      console.log('[CyberHiLo] Checking allowance...');
+      const currentAllowance = await tokenContractRef.current.allowance(address, contractAddress);
+      console.log('[CyberHiLo] Current allowance:', currentAllowance.toString(), 'Need:', amountWei.toString());
+      
+      // 步骤2: 如果授权不足，先进行授权
+      if (currentAllowance < amountWei) {
+        console.log('[CyberHiLo] Insufficient allowance, requesting approval...');
+        
+        // 授权一个较大的金额，避免每次都需要授权（用户体验更好）
+        // 这里授权 1亿 代币，足够很长时间使用
+        const approveAmount = parseUnits('100000000', 18); // 100M tokens
+        
+        try {
+          const approveTx = await tokenContractRef.current.approve(contractAddress, approveAmount);
+          console.log('[CyberHiLo] Approval tx sent:', approveTx.hash);
+          await approveTx.wait();
+          console.log('[CyberHiLo] Approval confirmed');
+        } catch (approveErr: unknown) {
+          console.error('[CyberHiLo] Approval failed:', approveErr);
+          return { ok: false, error: '授权失败：' + toFriendlyTxError(approveErr) };
+        }
+      }
+      
+      // 步骤3: 执行充值
+      console.log('[CyberHiLo] Depositing credits...');
       const tx = await signerContractRef.current.depositCredits(amountWei);
       await tx.wait();
+      console.log('[CyberHiLo] Deposit confirmed');
+      
       await refreshUserData();
       return { ok: true };
     } catch (err: unknown) {
@@ -627,7 +657,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
       console.error('[CyberHiLo] Deposit failed:', err);
       return { ok: false, error: errorMsg };
     }
-  }, [initSignerContracts, refreshUserData]);
+  }, [initSignerContracts, refreshUserData, getContractAddress, address]);
 
   // 取消卡住的请求
   const cancelStuckRequest = useCallback(async (): Promise<boolean> => {
