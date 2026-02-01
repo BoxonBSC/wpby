@@ -279,8 +279,19 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
   const refreshUserData = useCallback(async () => {
     const contract = readOnlyContractRef.current;
     const tokenContract = readOnlyTokenContractRef.current;
+    const tokenAddress = getTokenAddress();
     
-    if (!contract || !address) return;
+    console.log('[CyberHiLo] refreshUserData called', {
+      hasContract: !!contract,
+      hasTokenContract: !!tokenContract,
+      address,
+      tokenAddress,
+    });
+    
+    if (!contract || !address) {
+      console.log('[CyberHiLo] Skipping user data refresh - no contract or address');
+      return;
+    }
     
     try {
       const [playerStats, gameSession, gameCredits, pendingRequest, unclaimedPrize] = await Promise.all([
@@ -291,20 +302,43 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
         contract.unclaimedPrizes(address),
       ]);
 
+      console.log('[CyberHiLo] User game data:', {
+        gameCredits: gameCredits.toString(),
+        pendingRequest: pendingRequest.toString(),
+        unclaimedPrize: unclaimedPrize.toString(),
+      });
+
       let tokenBalance = '0';
       let tokenAllowance = '0';
       
-      if (tokenContract) {
+      // 如果tokenContract未初始化但地址有效，重新创建
+      let effectiveTokenContract = tokenContract;
+      if (!effectiveTokenContract && tokenAddress !== '0x0000000000000000000000000000000000000000') {
+        console.log('[CyberHiLo] Token contract not initialized, creating on-demand...');
+        const readOnlyProvider = new JsonRpcProvider(BSC_RPC_URL);
+        effectiveTokenContract = new Contract(tokenAddress, CYBER_TOKEN_ABI, readOnlyProvider);
+      }
+      
+      if (effectiveTokenContract) {
         try {
+          console.log('[CyberHiLo] Fetching token balance for address:', address);
           const [balance, allowance] = await Promise.all([
-            tokenContract.balanceOf(address),
-            tokenContract.allowance(address, getContractAddress()),
+            effectiveTokenContract.balanceOf(address),
+            effectiveTokenContract.allowance(address, getContractAddress()),
           ]);
           tokenBalance = formatEther(balance);
           tokenAllowance = formatEther(allowance);
+          
+          console.log('[CyberHiLo] Token data fetched successfully:', {
+            rawBalance: balance.toString(),
+            formattedBalance: tokenBalance,
+            allowance: tokenAllowance,
+          });
         } catch (tokenErr) {
           console.error('[CyberHiLo] Failed to read token data:', tokenErr);
         }
+      } else {
+        console.log('[CyberHiLo] No token contract available - tokenAddress:', tokenAddress);
       }
 
       const session: HiLoGameSession = {
@@ -369,7 +403,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     } catch (err) {
       console.error('[CyberHiLo] Failed to refresh user data:', err);
     }
-  }, [address, getContractAddress]);
+  }, [address, getContractAddress, getTokenAddress]);
 
   // 刷新所有数据
   const refreshData = useCallback(async () => {
