@@ -4,11 +4,12 @@ pragma solidity ^0.8.20;
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 
-contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable {
+// 使用 Chainlink 自带的 ConfirmedOwner（VRFConsumerBaseV2Plus 已继承）
+// 避免 OpenZeppelin Ownable 的 OwnershipTransferred 事件冲突
+contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     
     uint256 public betLevel1 = 50000 * 10**18;
     uint256 public betLevel2 = 100000 * 10**18;
@@ -112,7 +113,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
         uint256 _subscriptionId,
         address _token,
         address _operationWallet
-    ) VRFConsumerBaseV2Plus(_vrfCoordinator) Ownable(msg.sender) {
+    ) VRFConsumerBaseV2Plus(_vrfCoordinator) {
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
         token = IERC20(_token);
