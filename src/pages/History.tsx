@@ -81,7 +81,7 @@ const History = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            🃏 战绩殿堂
+            战绩殿堂
           </h1>
           <p 
             className="text-[#C9A347]/60"
