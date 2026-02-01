@@ -382,7 +382,7 @@ export function CreditsExchange({ onExchangeSuccess }: CreditsExchangeProps) {
 
         {/* 提示信息 */}
         <div 
-          className="flex items-center justify-center gap-4 py-2"
+          className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 py-2"
           style={{ borderTop: '1px solid rgba(201, 163, 71, 0.1)' }}
         >
           <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
@@ -390,6 +390,9 @@ export function CreditsExchange({ onExchangeSuccess }: CreditsExchangeProps) {
           </span>
           <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
             🎟️ 1:1 兑换
+          </span>
+          <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
+            🔒 凭证不可转账
           </span>
           <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
             💰 中奖领BNB
