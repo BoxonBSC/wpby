@@ -33,6 +33,7 @@ export interface HiLoGameSession {
 
 export interface HiLoContractState {
   prizePool: string;
+  availablePool: string;  // 可用余额（未被锁定的部分）
   totalGames: bigint;
   totalPaidOut: string;
   totalBurned: string;
@@ -84,6 +85,7 @@ export interface UseCyberHiLoReturn extends HiLoContractState {
   cancelStuckRequest: () => Promise<boolean>;
   refreshData: () => Promise<void>;
   calculatePotentialReward: (streak: number) => string;
+  calculateSafeStreak: (tierIndex: number, poolBNB: number) => number;  // 计算安全连胜数
   isPlaying: boolean;
   isWaitingVRF: boolean;
   vrfState: VRFWaitingState;
@@ -179,6 +181,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
   
   const [state, setState] = useState<HiLoContractState>({
     prizePool: '0',
+    availablePool: '0',
     totalGames: 0n,
     totalPaidOut: '0',
     totalBurned: '0',
@@ -276,8 +279,9 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     if (!contract) return;
     
     try {
-      const [prizePool, totalGames, totalPaidOut, totalBurned] = await Promise.all([
+      const [prizePool, availablePool, totalGames, totalPaidOut, totalBurned] = await Promise.all([
         contract.getPrizePool(),
+        contract.getAvailablePool(),
         contract.totalGames(),
         contract.totalPaidOut(),
         contract.totalCreditsDeposited(),
@@ -286,6 +290,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
       setState(prev => ({
         ...prev,
         prizePool: formatEther(prizePool),
+        availablePool: formatEther(availablePool),
         totalGames,
         totalPaidOut: formatEther(totalPaidOut),
         totalBurned: formatEther(totalBurned),
@@ -455,6 +460,30 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     
     return reward.toFixed(4);
   }, [state.gameSession]);
+
+  // 计算安全连胜数：当前可用余额能支撑到的最大连胜
+  // tierIndex: 0-4 对应不同门槛等级的 maxStreak
+  // poolBNB: 当前可用奖池余额
+  const calculateSafeStreak = useCallback((tierIndex: number, poolBNB: number): number => {
+    if (poolBNB <= 0) return 0;
+    
+    // 门槛等级对应的最大连胜数: [5, 8, 12, 16, 20]
+    const maxStreaks = [5, 8, 12, 16, 20];
+    const maxStreak = maxStreaks[tierIndex] || 5;
+    
+    // 从最大连胜往下找，哪个级别的奖励在可用余额范围内
+    for (let streak = maxStreak; streak >= 1; streak--) {
+      const percentBps = HILO_REWARD_PERCENTAGES[streak - 1];
+      const neededBNB = (poolBNB * percentBps) / 10000;
+      
+      // 如果需要的 BNB 小于等于可用余额，说明这个连胜是安全的
+      if (neededBNB <= poolBNB) {
+        return streak;
+      }
+    }
+    
+    return 0;
+  }, []);
 
   // ============ 游戏操作 ============
 
@@ -828,6 +857,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     cancelStuckRequest,
     refreshData,
     calculatePotentialReward,
+    calculateSafeStreak,
     isPlaying,
     isWaitingVRF,
     vrfState,

@@ -25,7 +25,8 @@ import {
   calculateWinProbability,
 } from '@/config/hilo';
 import { Button } from '@/components/ui/button';
-import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2, Wallet, X, CheckCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2, Wallet, X, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useAudio } from '@/hooks/useAudio';
 import { toast } from '@/hooks/use-toast';
 import { formatEther } from 'ethers';
@@ -79,6 +80,7 @@ export function HiLoGame() {
   // 合约Hook
   const {
     prizePool,
+    availablePool,
     totalBurned,
     gameCredits,
     gameSession,
@@ -93,6 +95,7 @@ export function HiLoGame() {
     claimPrize,
     cancelStuckRequest,
     calculatePotentialReward,
+    calculateSafeStreak,
     refreshData,
     error: contractError,
     forceSettledReason,
@@ -124,6 +127,8 @@ export function HiLoGame() {
   const [isRefreshingPrize, setIsRefreshingPrize] = useState(false);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const [isCashingOut, setIsCashingOut] = useState(false);
+  const [showPoolWarning, setShowPoolWarning] = useState(false);
+  const [pendingStartTier, setPendingStartTier] = useState<number | null>(null);
 
   // 防止重复结算同一轮猜测
   const settledGuessRef = useRef<string | null>(null);
@@ -135,6 +140,15 @@ export function HiLoGame() {
   // 获取实际使用的凭证余额
   const credits = Number(gameCredits);
   const effectivePrizePool = prizePoolSnapshot ?? Number(prizePool);
+  const available = Number(availablePool);
+  const locked = Number(prizePool) - available;
+  
+  // 计算当前选择门槛的安全连胜数
+  const safeStreak = calculateSafeStreak(selectedTierIndex, available);
+  const selectedTierMaxStreak = BET_TIERS[selectedTierIndex]?.maxStreak || 5;
+  
+  // 奖池状态判断
+  const poolStatus = safeStreak >= selectedTierMaxStreak ? 'good' : safeStreak >= 3 ? 'warning' : 'danger';
   
   // 当钱包连接成功后自动关闭弹窗
   useEffect(() => {
@@ -303,7 +317,34 @@ export function HiLoGame() {
     }
   }, [gameState, refreshData]);
 
-  // 开始游戏
+  // 开始游戏（带预警检查）
+  const handleStartGame = useCallback(() => {
+    const tier = BET_TIERS[selectedTierIndex];
+    if (credits < tier.betAmount || isStartingGame) return;
+    
+    // 检查是否需要显示预警
+    const currentSafeStreak = calculateSafeStreak(selectedTierIndex, available);
+    const maxStreak = tier.maxStreak;
+    
+    // 如果安全连胜数 < 门槛上限的一半，显示预警
+    if (currentSafeStreak < maxStreak && currentSafeStreak < Math.ceil(maxStreak / 2)) {
+      setPendingStartTier(selectedTierIndex);
+      setShowPoolWarning(true);
+      return;
+    }
+    
+    // 直接开始游戏
+    startGame();
+  }, [credits, selectedTierIndex, isStartingGame, available, calculateSafeStreak]);
+
+  // 确认开始游戏（预警确认后）
+  const confirmStartGame = useCallback(() => {
+    setShowPoolWarning(false);
+    setPendingStartTier(null);
+    startGame();
+  }, []);
+
+  // 实际开始游戏
   const startGame = useCallback(async () => {
     const tier = BET_TIERS[selectedTierIndex];
     if (credits < tier.betAmount || isStartingGame) return;
@@ -567,18 +608,71 @@ export function HiLoGame() {
           </div>
         )}
 
+        {/* 奖池预警弹窗 */}
+        <AnimatePresence>
+          {showPoolWarning && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowPoolWarning(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="mx-4 max-w-md rounded-2xl p-6"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(40, 30, 20, 0.98) 0%, rgba(20, 15, 10, 0.98) 100%)',
+                  border: '1px solid rgba(255, 180, 0, 0.4)',
+                  boxShadow: '0 0 40px rgba(255, 180, 0, 0.2)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <AlertTriangle className="w-8 h-8 text-orange-400" />
+                  <h3 className="text-xl font-bold text-orange-400">{t('hilo.poolWarningTitle')}</h3>
+                </div>
+                
+                <p className="text-[#C9A347]/80 mb-6 leading-relaxed">
+                  {t('hilo.poolWarningDesc')
+                    .replace('{available}', available.toFixed(4))
+                    .replace('{safe}', safeStreak.toString())}
+                </p>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-[#C9A347]/30 text-[#C9A347] hover:bg-[#C9A347]/10"
+                    onClick={() => setShowPoolWarning(false)}
+                  >
+                    {t('hilo.poolWarningCancel')}
+                  </Button>
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600"
+                    onClick={confirmStartGame}
+                  >
+                    {t('hilo.poolWarningConfirm')}
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* 主游戏区域 - 两栏布局 */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* 左侧 - 游戏区 + 奖励阶梯 */}
           <div className="lg:col-span-9 space-y-3 sm:space-y-4">
-            {/* 统计栏：奖池 + 全网燃烧 + 我的凭证 */}
+            {/* 统计栏：奖池(含锁定详情) + 全网燃烧 + 我的凭证 */}
             <div className="mb-3 sm:mb-4 grid grid-cols-3 gap-2 sm:gap-3">
-              {/* 奖池 */}
+              {/* 奖池 - 带锁定详情 */}
               <div 
                 className="rounded-xl p-2.5 sm:p-4"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(201, 163, 71, 0.08) 100%)',
-                  border: '1px solid rgba(255, 215, 0, 0.3)',
+                  border: `1px solid ${poolStatus === 'good' ? 'rgba(0, 255, 200, 0.3)' : poolStatus === 'warning' ? 'rgba(255, 200, 0, 0.4)' : 'rgba(255, 100, 100, 0.4)'}`,
                   boxShadow: '0 0 20px rgba(255, 215, 0, 0.08)',
                 }}
               >
@@ -589,13 +683,22 @@ export function HiLoGame() {
                   >
                     💰
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="text-[9px] sm:text-xs truncate" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.currentPool')}</div>
                     <div 
                       className="text-sm sm:text-xl font-bold truncate"
                       style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
                     >
                       {Number(prizePool).toFixed(4)} <span className="text-[10px] sm:text-sm">BNB</span>
+                    </div>
+                    {/* 可用/锁定详情 */}
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="text-[8px] sm:text-[10px]" style={{ color: 'rgba(0, 255, 200, 0.8)' }}>
+                        {t('hilo.availablePool')}: {available.toFixed(3)}
+                      </span>
+                      <span className="text-[8px] sm:text-[10px]" style={{ color: 'rgba(255, 100, 100, 0.6)' }}>
+                        | {t('hilo.lockedPool')}: {locked.toFixed(3)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -634,7 +737,7 @@ export function HiLoGame() {
                 </div>
               </div>
 
-              {/* 我的凭证 */}
+              {/* 我的凭证 + 安全连胜 */}
               <div 
                 className="rounded-xl p-2.5 sm:p-4"
                 style={{
@@ -650,7 +753,7 @@ export function HiLoGame() {
                   >
                     🎫
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="text-[9px] sm:text-xs truncate" style={{ color: 'rgba(0, 255, 200, 0.7)' }}>{t('hilo.myCredits')}</div>
                     <div 
                       className="text-sm sm:text-xl font-bold truncate"
@@ -663,6 +766,21 @@ export function HiLoGame() {
                         : Math.floor(credits).toLocaleString()
                       }
                     </div>
+                    {/* 安全连胜提示 */}
+                    {gameState === 'idle' && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span 
+                          className="text-[8px] sm:text-[10px]" 
+                          style={{ 
+                            color: poolStatus === 'good' ? 'rgba(0, 255, 200, 0.8)' 
+                                 : poolStatus === 'warning' ? 'rgba(255, 200, 0, 0.8)' 
+                                 : 'rgba(255, 100, 100, 0.8)'
+                          }}
+                        >
+                          {t('hilo.safeStreak')}: {safeStreak}/{selectedTierMaxStreak}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -868,7 +986,7 @@ export function HiLoGame() {
                     </div>
                     
                     <Button
-                      onClick={isConnected ? startGame : () => setShowWalletModal(true)}
+                      onClick={isConnected ? handleStartGame : () => setShowWalletModal(true)}
                       disabled={(isConnected && credits < BET_TIERS[selectedTierIndex].betAmount) || isStartingGame}
                       className="w-full h-14 text-lg font-bold"
                       style={{

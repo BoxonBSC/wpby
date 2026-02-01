@@ -429,6 +429,17 @@ const translations: Record<Language, Record<string, string>> = {
     'hilo.claimSuccess': '🎉 领取成功!',
     'hilo.claimSuccessDesc': '{amount} BNB 已发送到您的钱包',
     'hilo.rewardClaimed': '奖励已领取!',
+    // 奖池透明度
+    'hilo.availablePool': '可用余额',
+    'hilo.lockedPool': '已锁定',
+    'hilo.safeStreak': '安全连胜',
+    'hilo.poolWarningTitle': '⚠️ 奖池余额较低',
+    'hilo.poolWarningDesc': '当前可用余额 {available} BNB，安全连胜仅 {safe} 级。建议选择更低门槛或稍后再试。',
+    'hilo.poolWarningConfirm': '我已了解，继续游戏',
+    'hilo.poolWarningCancel': '暂不开始',
+    'hilo.poolStatusGood': '✅ 奖池充足',
+    'hilo.poolStatusWarning': '⚠️ 注意锁定',
+    'hilo.poolStatusDanger': '🚨 余额紧张',
     
     // HiLoResults组件
     'hiloResults.consumed': '消耗',
@@ -956,6 +967,17 @@ const translations: Record<Language, Record<string, string>> = {
     'hilo.claimSuccess': '🎉 Claim Success!',
     'hilo.claimSuccessDesc': '{amount} BNB sent to your wallet',
     'hilo.rewardClaimed': 'Reward Claimed!',
+    // Pool Transparency
+    'hilo.availablePool': 'Available',
+    'hilo.lockedPool': 'Locked',
+    'hilo.safeStreak': 'Safe Streak',
+    'hilo.poolWarningTitle': '⚠️ Low Pool Balance',
+    'hilo.poolWarningDesc': 'Available balance is {available} BNB, safe streak only {safe} levels. Consider lower tier or wait.',
+    'hilo.poolWarningConfirm': 'I understand, continue',
+    'hilo.poolWarningCancel': 'Not now',
+    'hilo.poolStatusGood': '✅ Pool Sufficient',
+    'hilo.poolStatusWarning': '⚠️ Watch Locks',
+    'hilo.poolStatusDanger': '🚨 Low Balance',
     
     // HiLoResults component
     'hiloResults.consumed': 'Spent',
