@@ -29,22 +29,17 @@ contract CyberHiLoDescriptor {
     /**
      * @notice 返回 CyberHiLo 合约的动态描述
      * @dev 实现 Flap VaultBase 的 description() 接口
-     * @return 描述合约当前状态的字符串
+     * @return result 描述合约当前状态的字符串
      */
-    function description() public view returns (string memory) {
+    function description() public view returns (string memory result) {
         ICyberHiLo hilo = ICyberHiLo(hiloContract);
         
-        uint256 prizePool = hiloContract.balance;
-        uint256 availablePool = hilo.getAvailablePool();
-        uint256 totalGames = hilo.totalGames();
-        uint256 totalPaidOut = hilo.totalPaidOut();
-        
-        return string(abi.encodePacked(
+        result = string(abi.encodePacked(
             "CyberHiLo - Hi-Lo Card Game on BSC. ",
-            "Prize Pool: ", _formatBNB(prizePool), " BNB. ",
-            "Available: ", _formatBNB(availablePool), " BNB. ",
-            "Total Games: ", _toString(totalGames), ". ",
-            "Total Paid: ", _formatBNB(totalPaidOut), " BNB. ",
+            "Prize Pool: ", _formatBNB(hiloContract.balance), " BNB. ",
+            "Available: ", _formatBNB(hilo.getAvailablePool()), " BNB. ",
+            "Total Games: ", _toString(hilo.totalGames()), ". ",
+            "Total Paid: ", _formatBNB(hilo.totalPaidOut()), " BNB. ",
             "Powered by Chainlink VRF 2.5. ",
             "Main Contract: ", _toHexString(hiloContract)
         ));
