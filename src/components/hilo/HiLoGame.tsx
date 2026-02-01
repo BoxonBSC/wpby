@@ -30,11 +30,30 @@ import { CYBER_HILO_ADDRESS, CYBER_TOKEN_ADDRESS } from '@/config/contracts';
 import { Copy, ExternalLink } from 'lucide-react';
 
 
-// 将合约牌值转换为Card对象
-function cardFromValue(value: number): Card {
-  const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+// 将合约牌值转换为Card对象（用唯一ID确保花色一致）
+// 缓存：同一局游戏中同一牌值保持相同花色
+const cardCache = new Map<string, Card>();
+
+function cardFromValue(value: number, sessionKey?: string): Card {
+  const cacheKey = sessionKey ? `${sessionKey}-${value}` : `default-${value}`;
+  
+  if (cardCache.has(cacheKey)) {
+    return cardCache.get(cacheKey)!;
+  }
+  
+  // 用牌值作为种子确定花色，保证同一牌值始终相同花色
+  const suitIndex = value % SUITS.length;
+  const suit = SUITS[suitIndex];
   const rank = RANKS[value - 1];
-  return { suit, rank, value };
+  const card = { suit, rank, value };
+  
+  cardCache.set(cacheKey, card);
+  return card;
+}
+
+// 清除缓存（新游戏时调用）
+function clearCardCache() {
+  cardCache.clear();
 }
 
 type PendingGuess = {
@@ -111,15 +130,18 @@ export function HiLoGame() {
   useEffect(() => {
     if (!gameSession) return;
 
+    // 使用 session timestamp 作为缓存 key，确保同一局游戏花色一致
+    const sessionKey = gameSession.timestamp.toString();
+
     if (gameSession.active) {
       setGameState('playing');
       setStreak(gameSession.currentStreak);
       setCurrentBetTier(BET_TIERS[gameSession.betTierIndex] || BET_TIERS[0]);
       setPrizePoolSnapshot(Number(formatEther(gameSession.prizePoolSnapshot)));
 
-      // 避免在“揭示动画中”覆盖 UI 的 current/next card
+      // 避免在"揭示动画中"覆盖 UI 的 current/next card
       if (!isRevealing && !pendingGuess) {
-        setCurrentCard(cardFromValue(gameSession.currentCard));
+        setCurrentCard(cardFromValue(gameSession.currentCard, sessionKey));
         setNextCard(null);
       }
     } else {
@@ -145,6 +167,7 @@ export function HiLoGame() {
 
     const newValue = Number(gameSession.currentCard);
     const { prevValue, guess } = pendingGuess;
+    const sessionKey = gameSession.timestamp.toString();
 
     const won =
       guess === 'higher'
@@ -154,7 +177,7 @@ export function HiLoGame() {
           : newValue === prevValue;
 
     setGuessCorrect(won);
-    const revealed = cardFromValue(newValue);
+    const revealed = cardFromValue(newValue, sessionKey);
     setNextCard(revealed);
 
     playCardFlipSound();
@@ -202,11 +225,14 @@ export function HiLoGame() {
     if (credits < tier.betAmount) return;
     
     playClickSound();
+    clearCardCache(); // 新游戏清除旧缓存
     
     const firstCard = await contractStartGame(tier.betAmount);
     if (firstCard !== null) {
       playCardFlipSound();
-      setCurrentCard(cardFromValue(firstCard));
+      // 用当前时间戳作为 sessionKey（此时还没有 gameSession.timestamp）
+      const newSessionKey = Date.now().toString();
+      setCurrentCard(cardFromValue(firstCard, newSessionKey));
       setCurrentBetTier(tier);
       setStreak(0);
       setGameState('playing');
@@ -263,6 +289,7 @@ export function HiLoGame() {
   // 重新开始
   const resetGame = useCallback(() => {
     playClickSound();
+    clearCardCache(); // 清除牌缓存，新游戏重新生成花色
     setGameState('idle');
     setCurrentCard(null);
     setNextCard(null);
