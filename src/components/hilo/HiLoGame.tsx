@@ -5,6 +5,7 @@ import { HorizontalRewardTiers } from './HorizontalRewardTiers';
 import { HiLoResults } from './HiLoResults';
 import { VRFWaitingOverlay } from './VRFWaitingOverlay';
 import { CreditsExchange } from '@/components/CreditsExchange';
+import { WalletConnect } from '@/components/WalletConnect';
 import { useWallet } from '@/contexts/WalletContext';
 import { useCyberHiLo } from '@/hooks/useCyberHiLo';
 import {
@@ -21,7 +22,7 @@ import {
   calculateWinProbability,
 } from '@/config/hilo';
 import { Button } from '@/components/ui/button';
-import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2, Wallet, X } from 'lucide-react';
 import { useAudio } from '@/hooks/useAudio';
 import { toast } from '@/hooks/use-toast';
 import { formatEther } from 'ethers';
@@ -38,7 +39,10 @@ function cardFromValue(value: number): Card {
 
 export function HiLoGame() {
   // 钱包状态
-  const { isConnected, connectWalletConnect } = useWallet();
+  const { isConnected } = useWallet();
+  
+  // 钱包连接弹窗状态
+  const [showWalletModal, setShowWalletModal] = useState(false);
   
   // 合约Hook
   const {
@@ -86,6 +90,13 @@ export function HiLoGame() {
   // 获取实际使用的凭证余额
   const credits = Number(gameCredits);
   const effectivePrizePool = prizePoolSnapshot ?? Number(prizePool);
+  
+  // 当钱包连接成功后自动关闭弹窗
+  useEffect(() => {
+    if (isConnected && showWalletModal) {
+      setShowWalletModal(false);
+    }
+  }, [isConnected, showWalletModal]);
   
   // 同步合约游戏状态到UI
   useEffect(() => {
@@ -557,7 +568,7 @@ export function HiLoGame() {
                     </div>
                     
                     <Button
-                      onClick={isConnected ? startGame : connectWalletConnect}
+                      onClick={isConnected ? startGame : () => setShowWalletModal(true)}
                       disabled={isConnected && credits < BET_TIERS[selectedTierIndex].betAmount}
                       className="w-full h-14 text-lg font-bold"
                       style={{
@@ -571,7 +582,7 @@ export function HiLoGame() {
                           : credits >= BET_TIERS[selectedTierIndex].betAmount ? '#000' : 'rgba(201, 163, 71, 0.5)',
                       }}
                     >
-                      <Play className="w-5 h-5 mr-2" />
+                      {!isConnected ? <Wallet className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
                       {!isConnected ? '点击连接钱包' : (
                         <>开始游戏 ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
                           ? `${BET_TIERS[selectedTierIndex].betAmount / 1000000}M` 
@@ -688,6 +699,57 @@ export function HiLoGame() {
         </div>
 
       </div>
+
+      {/* 钱包连接弹窗 */}
+      <AnimatePresence>
+        {showWalletModal && (
+          <>
+            {/* 遮罩 */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+              onClick={() => setShowWalletModal(false)}
+            />
+            
+            {/* 弹窗 */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            >
+              <div 
+                className="w-full max-w-sm relative p-5 rounded-2xl pointer-events-auto"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(26, 22, 18, 0.98) 0%, rgba(15, 12, 8, 0.98) 100%)',
+                  border: '1px solid rgba(201, 163, 71, 0.3)',
+                  boxShadow: '0 0 40px rgba(201, 163, 71, 0.15), inset 0 1px 0 rgba(201, 163, 71, 0.2)',
+                }}
+              >
+                <button
+                  onClick={() => setShowWalletModal(false)}
+                  className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-white/5 transition-colors"
+                  style={{ color: '#C9A347' }}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                
+                <h3 
+                  className="text-lg font-bold mb-4 flex items-center gap-2"
+                  style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
+                >
+                  <Wallet className="w-5 h-5" />
+                  连接钱包
+                </h3>
+                
+                <WalletConnect />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
