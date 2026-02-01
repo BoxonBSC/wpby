@@ -7,18 +7,14 @@ interface VRFWaitingOverlayProps {
   isVisible: boolean;
   requestId: bigint;
   startTime: number;
-  pollCount: number;
   onCancel: () => Promise<boolean>;
-  onRefresh: () => void;
 }
 
 export function VRFWaitingOverlay({
   isVisible,
   requestId,
   startTime,
-  pollCount,
   onCancel,
-  onRefresh,
 }: VRFWaitingOverlayProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -135,42 +131,19 @@ export function VRFWaitingOverlay({
               }
             </p>
             
-            {/* 状态信息 */}
+            {/* 等待时间 */}
             <div 
-              className="rounded-xl p-4 mb-4 space-y-2"
+              className="rounded-xl p-4 mb-4"
               style={{ background: 'rgba(0,0,0,0.3)' }}
             >
-              {/* 等待时间 */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[#C9A347]/60 text-sm">
-                  <Clock className="w-4 h-4" />
-                  <span>等待时间</span>
-                </div>
+              <div className="flex items-center justify-center gap-3">
+                <Clock className="w-5 h-5" style={{ color: colors.text }} />
                 <span 
-                  className="font-mono font-bold"
+                  className="font-mono font-bold text-2xl"
                   style={{ color: colors.text }}
                 >
                   {formatTime(elapsedTime)}
                 </span>
-              </div>
-              
-              {/* 请求ID */}
-              {requestId > 0n && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[#C9A347]/60 text-sm">请求ID</span>
-                  <span className="text-[#C9A347] font-mono text-xs">
-                    #{requestId.toString().slice(-8)}
-                  </span>
-                </div>
-              )}
-              
-              {/* 轮询次数 */}
-              <div className="flex items-center justify-between">
-                <span className="text-[#C9A347]/60 text-sm">轮询次数</span>
-                <div className="flex items-center gap-1">
-                  <RefreshCw className="w-3 h-3 text-[#C9A347]/40" />
-                  <span className="text-[#C9A347] font-mono text-sm">{pollCount}</span>
-                </div>
               </div>
             </div>
             
@@ -195,37 +168,25 @@ export function VRFWaitingOverlay({
               </p>
             </div>
             
-            {/* 操作按钮 */}
-            <div className="flex gap-3">
+            {/* 仅在超时时显示取消按钮 */}
+            {statusLevel === 'timeout' && requestId > 0n && (
               <Button
-                onClick={onRefresh}
+                onClick={handleCancel}
+                disabled={isCancelling}
                 variant="outline"
                 size="sm"
-                className="flex-1 border-[#C9A347]/30 text-[#C9A347] hover:bg-[#C9A347]/10"
+                className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10"
               >
-                <RefreshCw className="w-4 h-4 mr-1" />
-                刷新
+                {isCancelling ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <X className="w-4 h-4 mr-1" />
+                    取消请求
+                  </>
+                )}
               </Button>
-              
-              {(statusLevel === 'warning' || statusLevel === 'timeout') && requestId > 0n && (
-                <Button
-                  onClick={handleCancel}
-                  disabled={isCancelling}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
-                >
-                  {isCancelling ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <X className="w-4 h-4 mr-1" />
-                      取消请求
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
+            )}
             
             {/* 提示 */}
             {statusLevel !== 'timeout' && (
