@@ -152,6 +152,11 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
       case 'metamask':
         return window.ethereum;
       case 'okx':
+        // OKX：优先使用 window.ethereum（当它是 OKX 注入时），兜底才用 window.okxwallet
+        if ((window.ethereum as unknown as { isOkxWallet?: boolean; isOKExWallet?: boolean })?.isOkxWallet ||
+            (window.ethereum as unknown as { isOkxWallet?: boolean; isOKExWallet?: boolean })?.isOKExWallet) {
+          return window.ethereum;
+        }
         return (window as unknown as { okxwallet?: unknown }).okxwallet || window.ethereum;
       case 'binance':
         return (window as unknown as { BinanceChain?: unknown }).BinanceChain || window.ethereum;
