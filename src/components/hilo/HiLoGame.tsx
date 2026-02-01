@@ -116,6 +116,7 @@ export function HiLoGame() {
   const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null);
   const [isRefreshingPrize, setIsRefreshingPrize] = useState(false);
   const [isStartingGame, setIsStartingGame] = useState(false);
+  const [isCashingOut, setIsCashingOut] = useState(false);
 
   // 防止重复结算同一轮猜测
   const settledGuessRef = useRef<string | null>(null);
@@ -334,26 +335,36 @@ export function HiLoGame() {
 
   // 收手兑现
   const cashOut = useCallback(async () => {
-    if (gameState !== 'playing' || streak <= 0) return;
+    if (gameState !== 'playing' || streak <= 0 || isCashingOut) return;
     
+    setIsCashingOut(true);
     playCashOutSound();
     
-    const success = await contractCashOut();
-    if (success) {
-      setGameState('won');
-      const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
-      const result: HiLoResult = {
-        id: `${Date.now()}-${Math.random()}`,
-        betAmount: currentBetTier.betAmount,
-        betTier: currentBetTier.name,
-        streak,
-        bnbWon: reward,
-        cashedOut: true,
-        timestamp: Date.now(),
-      };
-      addResult(result);
+    try {
+      const success = await contractCashOut();
+      if (success) {
+        setGameState('won');
+        const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
+        const result: HiLoResult = {
+          id: `${Date.now()}-${Math.random()}`,
+          betAmount: currentBetTier.betAmount,
+          betTier: currentBetTier.name,
+          streak,
+          bnbWon: reward,
+          cashedOut: true,
+          timestamp: Date.now(),
+        };
+        addResult(result);
+        
+        toast({
+          title: "🎉 收手成功！",
+          description: `${reward.toFixed(4)} BNB 已自动转入钱包`,
+        });
+      }
+    } finally {
+      setIsCashingOut(false);
     }
-  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound, contractCashOut, addResult]);
+  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound, contractCashOut, addResult, isCashingOut]);
 
   // 重新开始
   const resetGame = useCallback(() => {
@@ -857,10 +868,20 @@ export function HiLoGame() {
                       return (
                         <Button
                           onClick={cashOut}
-                          className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black hover:from-[#FFA500] hover:to-[#FFD700]"
+                          disabled={isCashingOut}
+                          className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black hover:from-[#FFA500] hover:to-[#FFD700] disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                          <HandCoins className="w-5 h-5 mr-2" />
-                          收手兑现 {currentTier?.percentage ?? 0}% 奖池 (≈{currentReward.toFixed(4)} BNB)
+                          {isCashingOut ? (
+                            <>
+                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                              正在结算，请稍候...
+                            </>
+                          ) : (
+                            <>
+                              <HandCoins className="w-5 h-5 mr-2" />
+                              收手兑现 {currentTier?.percentage ?? 0}% 奖池 (≈{currentReward.toFixed(4)} BNB)
+                            </>
+                          )}
                         </Button>
                       );
                     })()}
