@@ -132,16 +132,15 @@ const History = () => {
           </div>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-6 items-stretch">
           {/* 全球排行榜 */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="rounded-2xl p-6 flex flex-col"
+            className="rounded-2xl p-6 flex flex-col h-full"
             style={{
               background: 'linear-gradient(180deg, rgba(26, 22, 18, 0.95) 0%, rgba(15, 12, 8, 0.98) 100%)',
               border: '1px solid rgba(201, 163, 71, 0.25)',
-              minHeight: '500px',
             }}
           >
             <div className="flex items-center justify-between mb-4">
@@ -242,11 +241,10 @@ const History = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="rounded-2xl p-6 flex flex-col"
+            className="rounded-2xl p-6 flex flex-col h-full"
             style={{
               background: 'linear-gradient(180deg, rgba(26, 22, 18, 0.95) 0%, rgba(15, 12, 8, 0.98) 100%)',
               border: '1px solid rgba(201, 163, 71, 0.25)',
-              minHeight: '500px',
             }}
           >
             <h2 
