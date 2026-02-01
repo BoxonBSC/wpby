@@ -291,12 +291,13 @@ export function useCyberSlots(): UseCyberSlotsReturn {
   const refreshUserData = useCallback(async () => {
     const contract = readOnlyContractRef.current;
     const tokenContract = readOnlyTokenContractRef.current;
+    const tokenAddress = getTokenAddress();
     
     console.log('[CyberSlots] refreshUserData called', {
       hasContract: !!contract,
       hasTokenContract: !!tokenContract,
       address,
-      tokenAddress: getTokenAddress(),
+      tokenAddress,
     });
     
     if (!contract || !address) {
@@ -321,16 +322,25 @@ export function useCyberSlots(): UseCyberSlotsReturn {
       let tokenBalance = '0';
       let tokenAllowance = '0';
       
-      if (tokenContract) {
+      // 如果tokenContract未初始化但地址有效，重新创建
+      let effectiveTokenContract = tokenContract;
+      if (!effectiveTokenContract && tokenAddress !== '0x0000000000000000000000000000000000000000') {
+        console.log('[CyberSlots] Token contract not initialized, creating on-demand...');
+        const readOnlyProvider = new JsonRpcProvider(BSC_RPC_URL);
+        effectiveTokenContract = new Contract(tokenAddress, CYBER_TOKEN_ABI, readOnlyProvider);
+      }
+      
+      if (effectiveTokenContract) {
         try {
+          console.log('[CyberSlots] Fetching token balance for address:', address);
           const [balance, allowance] = await Promise.all([
-            tokenContract.balanceOf(address),
-            tokenContract.allowance(address, getContractAddress()),
+            effectiveTokenContract.balanceOf(address),
+            effectiveTokenContract.allowance(address, getContractAddress()),
           ]);
           tokenBalance = formatEther(balance);
           tokenAllowance = formatEther(allowance);
           
-          console.log('[CyberSlots] Token data:', {
+          console.log('[CyberSlots] Token data fetched successfully:', {
             rawBalance: balance.toString(),
             formattedBalance: tokenBalance,
             allowance: tokenAllowance,
@@ -339,7 +349,7 @@ export function useCyberSlots(): UseCyberSlotsReturn {
           console.error('[CyberSlots] Failed to read token data:', tokenErr);
         }
       } else {
-        console.log('[CyberSlots] No token contract available');
+        console.log('[CyberSlots] No token contract available - tokenAddress:', tokenAddress);
       }
 
       setState(prev => ({
