@@ -28,9 +28,13 @@ export function PlayingCard({ card, isFlipped = false, isNew = false, size = 'lg
     >
       <motion.div
         className="relative w-full h-full"
-        initial={isNew ? { rotateY: 180 } : { rotateY: isFlipped ? 180 : 0 }}
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+        initial={isNew ? { rotateY: 180, scale: 0.9 } : { rotateY: isFlipped ? 180 : 0 }}
+        animate={{ rotateY: isFlipped ? 180 : 0, scale: 1 }}
+        transition={{ 
+          duration: isNew ? 1.2 : 0.6, 
+          ease: [0.34, 1.56, 0.64, 1], // 带弹性的缓动曲线
+          scale: { duration: 0.8, ease: "easeOut" }
+        }}
         style={{ transformStyle: 'preserve-3d' }}
       >
         {/* 正面 */}
