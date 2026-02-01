@@ -10,6 +10,7 @@ import {
 import { Trophy, Zap, Star, Crown, Sparkles } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RewardLadderProps {
   currentStreak: number;
@@ -42,6 +43,7 @@ function ZoneDivider({ zone }: { zone: RewardZone }) {
 }
 
 export function RewardLadder({ currentStreak, prizePool, currentBetTier }: RewardLadderProps) {
+  const { t } = useLanguage();
   const currentItemRef = useRef<HTMLDivElement>(null);
 
   // 自动滚动到当前连胜位置
@@ -89,10 +91,10 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
           </div>
           <div>
             <div className="text-sm font-bold" style={{ color: currentBetTier.color }}>
-              {currentBetTier.name}等级
+              {currentBetTier.name} {t('ladder.level')}
             </div>
             <div className="text-xs text-[#C9A347]/60">
-              最高 {currentBetTier.maxStreak} 连胜
+              {t('ladder.maxStreak').replace('{n}', currentBetTier.maxStreak.toString())}
             </div>
           </div>
         </div>
@@ -106,9 +108,9 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
           border: '1px solid rgba(255, 215, 0, 0.2)',
         }}
       >
-        <div className="text-[10px] text-[#C9A347]/60 mb-1">最高可赢</div>
+        <div className="text-[10px] text-[#C9A347]/60 mb-1">{t('ladder.maxWin')}</div>
         <div className="text-xl font-bold text-[#FFD700]">
-          {maxTier?.percentage}% <span className="text-sm text-[#C9A347]/60">奖池</span>
+          {maxTier?.percentage}% <span className="text-sm text-[#C9A347]/60">{t('ladder.pool')}</span>
         </div>
         <div className="text-sm text-[#FFD700]/80">
           ≈ {maxPossibleReward.toFixed(4)} BNB
@@ -118,8 +120,8 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
       {/* 奖励阶梯标题 */}
       <div className="flex items-center gap-2 mb-2">
         <Star className="w-4 h-4 text-[#C9A347]" />
-        <h3 className="text-[#C9A347] font-bold text-sm">奖励阶梯</h3>
-        <span className="text-[10px] text-[#C9A347]/50">（非累进，替换式）</span>
+        <h3 className="text-[#C9A347] font-bold text-sm">{t('ladder.title')}</h3>
+        <span className="text-[10px] text-[#C9A347]/50">{t('ladder.nonCumulative')}</span>
       </div>
 
       {/* 可滚动奖励列表 */}
@@ -129,11 +131,10 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
             <div key={zone}>
               <ZoneDivider zone={zone} />
               {groupedTiers[zone]?.map((tier) => {
-                // 所有等级都显示，不再锁定
                 const isUnlocked = tier.streak <= currentBetTier.maxStreak;
                 const isActive = currentStreak >= tier.streak;
                 const isCurrent = currentStreak === tier.streak;
-                const reward = calculateHiLoReward(tier.streak, 20, prizePool); // 始终显示完整奖励
+                const reward = calculateHiLoReward(tier.streak, 20, prizePool);
                 const colors = ZONE_COLORS[tier.zone];
 
                 return (
@@ -178,19 +179,19 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
                               <span>{tier.milestone.label}</span>
                             </>
                           ) : (
-                            <span>{tier.streak}连胜</span>
+                            <span>{t('ladder.nStreak').replace('{n}', tier.streak.toString())}</span>
                           )}
                         </div>
                         <div 
                           className="text-[10px]"
                           style={{ color: isActive ? colors.text + '99' : 'rgba(201, 163, 71, 0.4)' }}
                         >
-                          奖池 {tier.percentage}%
+                          {t('ladder.pool')} {tier.percentage}%
                         </div>
                       </div>
                     </div>
 
-                    {/* 奖励金额 - 始终显示 */}
+                    {/* 奖励金额 */}
                     <div className="text-right">
                       <div 
                         className="font-bold text-sm"
@@ -206,7 +207,7 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
                       </div>
                       {!isUnlocked && (
                         <div className="text-[8px] text-[#C9A347]/40">
-                          需更高等级
+                          {t('ladder.needHigher')}
                         </div>
                       )}
                     </div>
@@ -242,7 +243,7 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
         >
           <div className="flex items-center justify-center gap-2 text-[#FFD700]">
             <Star className="w-4 h-4" />
-            <span className="text-sm">当前可兑现</span>
+            <span className="text-sm">{t('ladder.currentCashout')}</span>
           </div>
           {(() => {
             const currentTier = REWARD_TIERS.find(t => t.streak === currentStreak);
@@ -250,7 +251,7 @@ export function RewardLadder({ currentStreak, prizePool, currentBetTier }: Rewar
             return (
               <>
                 <div className="text-xl font-bold text-[#FFD700]">
-                  {currentTier?.percentage ?? 0}% <span className="text-sm text-[#C9A347]/60">奖池</span>
+                  {currentTier?.percentage ?? 0}% <span className="text-sm text-[#C9A347]/60">{t('ladder.pool')}</span>
                 </div>
                 <div className="text-sm text-[#FFD700]/80">
                   ≈ {reward.toFixed(4)} BNB
