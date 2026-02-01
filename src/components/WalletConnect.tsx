@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet, WalletType, WalletInfo } from '@/contexts/WalletContext';
 import { useCyberHiLo } from '@/hooks/useCyberHiLo';
-import { Wallet, LogOut, Copy, ExternalLink, Ticket, ChevronDown, X, Smartphone, QrCode } from 'lucide-react';
+import { Wallet, LogOut, Copy, ExternalLink, Ticket, ChevronDown, X, Smartphone, QrCode, Gift, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { getWalletBrand, WalletConnectIcon } from './WalletIcons';
@@ -22,11 +22,28 @@ export function WalletConnect() {
     disconnect, isConnecting, error, availableWallets, connectedWallet,
   } = useWallet();
   
-  const { tokenBalance: chainTokenBalance, gameCredits: chainGameCredits } = useCyberHiLo();
+  const { tokenBalance: chainTokenBalance, gameCredits: chainGameCredits, unclaimedPrize, claimPrize } = useCyberHiLo();
   const [showWalletSelector, setShowWalletSelector] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
   
   const tokenBalance = parseFloat(chainTokenBalance);
   const gameCredits = parseFloat(chainGameCredits);
+  const unclaimedAmount = parseFloat(unclaimedPrize || '0');
+
+  const handleClaimPrize = async () => {
+    if (isClaiming || unclaimedAmount <= 0) return;
+    setIsClaiming(true);
+    try {
+      const success = await claimPrize();
+      if (success) {
+        toast({ title: '🎉 领取成功！', description: `已将 ${unclaimedAmount.toFixed(4)} BNB 发送至您的钱包` });
+      }
+    } catch (err) {
+      toast({ title: '领取失败', description: '请稍后重试', variant: 'destructive' });
+    } finally {
+      setIsClaiming(false);
+    }
+  };
 
   const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
@@ -285,6 +302,81 @@ export function WalletConnect() {
               </div>
             </div>
             
+            {/* 🎁 待领取奖励 - 醒目显示 */}
+            {unclaimedAmount > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-xl p-4 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 180, 0, 0.1) 100%)',
+                  border: '2px solid rgba(255, 215, 0, 0.5)',
+                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.3), inset 0 0 30px rgba(255, 215, 0, 0.1)',
+                }}
+              >
+                {/* 金光动画背景 */}
+                <motion.div
+                  className="absolute inset-0 opacity-30"
+                  animate={{
+                    background: [
+                      'radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.4) 0%, transparent 50%)',
+                      'radial-gradient(circle at 80% 50%, rgba(255, 215, 0, 0.4) 0%, transparent 50%)',
+                      'radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.4) 0%, transparent 50%)',
+                    ],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Gift className="w-5 h-5" style={{ color: '#FFD700' }} />
+                      <span className="text-sm font-bold" style={{ color: '#FFD700', fontFamily: '"Cinzel", serif' }}>
+                        🎉 待领取奖励
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className="text-3xl font-bold mb-3"
+                    style={{ 
+                      fontFamily: '"Cinzel", serif', 
+                      color: '#FFD700',
+                      textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
+                    }}
+                  >
+                    {unclaimedAmount.toFixed(4)} BNB
+                  </div>
+                  
+                  <motion.button
+                    onClick={handleClaimPrize}
+                    disabled={isClaiming}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                    style={{
+                      background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                      color: '#1a1510',
+                      boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
+                      opacity: isClaiming ? 0.7 : 1,
+                    }}
+                  >
+                    {isClaiming ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        领取中...
+                      </>
+                    ) : (
+                      <>
+                        <Gift className="w-4 h-4" />
+                        立即领取
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
             {/* 游戏凭证 */}
             <div 
               className="rounded-xl p-3"
