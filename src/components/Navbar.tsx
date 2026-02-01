@@ -26,10 +26,10 @@ export function Navbar() {
     try {
       const success = await claimPrize();
       if (success) {
-        toast.success(`成功领取 ${Number(unclaimedPrize).toFixed(4)} BNB!`);
+        toast.success(t('navbar.claimSuccess').replace('{amount}', Number(unclaimedPrize).toFixed(4)));
       }
     } catch (error) {
-      toast.error('领取失败，请重试');
+      toast.error(t('navbar.claimFailed'));
     } finally {
       setIsClaiming(false);
     }
@@ -197,7 +197,7 @@ export function Navbar() {
                   {/* Logo图片 */}
                   <motion.img
                     src={aceCardIcon}
-                    alt="王牌博弈"
+                    alt={t('navbar.brandName')}
                     className="w-full h-full object-contain p-1"
                     animate={{ 
                       filter: [
@@ -270,7 +270,7 @@ export function Navbar() {
               />
             </motion.div>
             <div className="hidden sm:flex flex-col items-start">
-              {/* 艺术字标题 - 王牌博弈 */}
+              {/* 艺术字标题 */}
               <motion.div
                 className="relative"
                 animate={{
@@ -293,7 +293,7 @@ export function Navbar() {
                     color: 'transparent',
                   }}
                 >
-                  王牌博弈
+                  {t('navbar.brandName')}
                 </span>
                 {/* 主文字层 - 金色渐变 */}
                 <motion.span 
@@ -311,7 +311,7 @@ export function Navbar() {
                   }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  王牌博弈
+                  {t('navbar.brandName')}
                 </motion.span>
                 {/* 高光层 */}
                 <motion.span
@@ -330,7 +330,7 @@ export function Navbar() {
                   }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  王牌博弈
+                  {t('navbar.brandName')}
                 </motion.span>
               </motion.div>
               <span 
@@ -342,7 +342,7 @@ export function Navbar() {
                   marginTop: '2px',
                 }}
               >
-                GAMEFI · 燃烧通缩协议
+                {t('navbar.tagline')}
               </span>
             </div>
           </Link>
@@ -437,7 +437,7 @@ export function Navbar() {
                 <Gift className="w-4 h-4" style={{ color: '#FFD700' }} />
                 <div className="flex flex-col items-start">
                   <span className="text-[10px] leading-tight" style={{ color: 'rgba(255, 215, 0, 0.8)' }}>
-                    待领取
+                    {t('navbar.unclaimed')}
                   </span>
                   <span className="text-xs font-bold leading-tight" style={{ color: '#FFD700' }}>
                     {Number(unclaimedPrize).toFixed(4)} BNB
@@ -455,7 +455,7 @@ export function Navbar() {
                     animate={{ opacity: [1, 0.6, 1] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   >
-                    领取
+                    {t('navbar.claim')}
                   </motion.span>
                 )}
               </motion.button>
@@ -555,7 +555,7 @@ export function Navbar() {
               <div className="flex items-center gap-3">
                 <Gift className="w-5 h-5" style={{ color: '#FFD700' }} />
                 <div className="flex flex-col items-start">
-                  <span className="text-xs" style={{ color: 'rgba(255, 215, 0, 0.8)' }}>待领取奖励</span>
+                  <span className="text-xs" style={{ color: 'rgba(255, 215, 0, 0.8)' }}>{t('navbar.unclaimedReward')}</span>
                   <span className="text-sm font-bold" style={{ color: '#FFD700' }}>
                     {Number(unclaimedPrize).toFixed(4)} BNB
                   </span>
@@ -573,7 +573,7 @@ export function Navbar() {
                   animate={{ opacity: [1, 0.6, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  立即领取
+                  {t('navbar.claimNow')}
                 </motion.span>
               )}
             </motion.button>
