@@ -456,7 +456,7 @@ const Rules = () => {
               <ul className="text-sm text-[#C9A347]/80 space-y-2">
                 <li>• 奖励全部以 <strong className="text-green-400">BNB</strong> 发放</li>
                 <li>• 奖池越大，你能赢的 BNB 越多</li>
-                <li>• 领取奖励时会扣除 5% 运营费</li>
+                <li>• 领取奖励时会扣除 5% 用于 <strong className="text-[#00D4FF]">Chainlink VRF 预言机服务费</strong>（非项目方收取）</li>
               </ul>
             </div>
           </div>
@@ -644,7 +644,7 @@ const Rules = () => {
             <div className="p-4 rounded-xl bg-black/30 border border-[#C9A347]/20">
               <h4 className="font-bold text-[#FFD700] mb-2">Q: 奖励怎么领取？</h4>
               <p className="text-[#C9A347]/80 text-sm">
-                收手成功后，奖励会存入你的「待领取」账户。点击顶部导航栏的金色「待领取」按钮即可提取 BNB 到钱包。领取时会扣除 5% 运营费。
+                收手成功后，奖励会存入你的「待领取」账户。点击顶部导航栏的金色「待领取」按钮即可提取 BNB 到钱包。领取时会扣除 5% 用于 Chainlink VRF 预言机服务费（保障随机数服务持续运行，非项目方收取）。
               </p>
             </div>
             
