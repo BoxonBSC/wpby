@@ -269,45 +269,80 @@ export function Navbar() {
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               />
             </motion.div>
-            <div className="hidden sm:flex flex-col">
-              <motion.span 
-                className="text-xl font-black uppercase"
-                style={{
-                  fontFamily: '"Orbitron", "Noto Sans SC", sans-serif',
-                  letterSpacing: '0.15em',
-                  background: 'linear-gradient(180deg, #FFD700 0%, #FFA500 40%, #C9A347 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 165, 0, 0.4)',
-                  filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.7))',
-                }}
+            <div className="hidden sm:flex flex-col items-start">
+              {/* 艺术字标题 - 王牌博弈 */}
+              <motion.div
+                className="relative"
                 animate={{
-                  textShadow: [
-                    '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 165, 0, 0.4)',
-                    '0 0 50px rgba(255, 215, 0, 1), 0 0 80px rgba(255, 165, 0, 0.6), 0 0 120px rgba(201, 163, 71, 0.3)',
-                    '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 165, 0, 0.4)',
-                  ],
                   filter: [
-                    'drop-shadow(0 0 8px rgba(255, 215, 0, 0.7))',
-                    'drop-shadow(0 0 15px rgba(255, 215, 0, 1))',
-                    'drop-shadow(0 0 8px rgba(255, 215, 0, 0.7))',
+                    'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))',
+                    'drop-shadow(0 0 20px rgba(255, 215, 0, 0.9))',
+                    'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))',
                   ]
                 }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
               >
-                王牌博弈
-              </motion.span>
+                {/* 描边层 - 模拟立体效果 */}
+                <span
+                  className="absolute inset-0 text-2xl font-black select-none pointer-events-none"
+                  aria-hidden="true"
+                  style={{
+                    fontFamily: '"Ma Shan Zheng", "ZCOOL XiaoWei", "Noto Serif SC", serif',
+                    letterSpacing: '0.08em',
+                    WebkitTextStroke: '3px rgba(139, 90, 43, 0.8)',
+                    color: 'transparent',
+                  }}
+                >
+                  王牌博弈
+                </span>
+                {/* 主文字层 - 金色渐变 */}
+                <motion.span 
+                  className="relative text-2xl font-black"
+                  style={{
+                    fontFamily: '"Ma Shan Zheng", "ZCOOL XiaoWei", "Noto Serif SC", serif',
+                    letterSpacing: '0.08em',
+                    background: 'linear-gradient(180deg, #FFF8DC 0%, #FFD700 25%, #DAA520 50%, #B8860B 75%, #8B6914 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                  animate={{
+                    backgroundPosition: ['0% 0%', '0% 100%', '0% 0%'],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  王牌博弈
+                </motion.span>
+                {/* 高光层 */}
+                <motion.span
+                  className="absolute inset-0 text-2xl font-black select-none pointer-events-none"
+                  aria-hidden="true"
+                  style={{
+                    fontFamily: '"Ma Shan Zheng", "ZCOOL XiaoWei", "Noto Serif SC", serif',
+                    letterSpacing: '0.08em',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 50%, rgba(255,255,255,0.2) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    mixBlendMode: 'overlay',
+                  }}
+                  animate={{
+                    opacity: [0.3, 0.6, 0.3],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  王牌博弈
+                </motion.span>
+              </motion.div>
               <span 
                 className="text-[10px] tracking-wider"
                 style={{
-                  fontFamily: '"Orbitron", sans-serif',
+                  fontFamily: '"Cinzel", "Noto Serif SC", serif',
                   color: 'rgba(201, 163, 71, 0.7)',
-                  letterSpacing: '0.1em',
-                  marginTop: '-2px',
+                  letterSpacing: '0.15em',
+                  marginTop: '2px',
                 }}
               >
-                GAMEFi燃烧通缩协议
+                GAMEFI · 燃烧通缩协议
               </span>
             </div>
           </Link>
