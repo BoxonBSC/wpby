@@ -608,19 +608,17 @@ export function HiLoGame() {
                   <div className="text-[#C9A347]/40 text-4xl">→</div>
                 )}
 
-                {/* VRF等待中：显示背面的牌 */}
-                {(isWaitingVRF || (isRevealing && !nextCard)) && (
+                {/* 揭示阶段：显示待揭示的牌（VRF等待中或正在揭示动画） */}
+                {(isWaitingVRF || isRevealing) && (
                   <div className="text-center">
                     <div className="text-[#C9A347]/60 text-sm mb-2">下一张</div>
-                    <PlayingCard card={null} isFlipped={true} />
-                  </div>
-                )}
-
-                {/* VRF完成后：显示揭示的牌 */}
-                {nextCard && !isWaitingVRF && (
-                  <div className="text-center">
-                    <div className="text-[#C9A347]/60 text-sm mb-2">下一张</div>
-                    <PlayingCard card={nextCard} isFlipped={false} isNew />
+                    {/* VRF等待中或nextCard未设置时显示牌背 */}
+                    {(isWaitingVRF || !nextCard) ? (
+                      <PlayingCard card={null} isFlipped={true} />
+                    ) : (
+                      /* VRF完成且nextCard已设置：从牌背翻转揭示 */
+                      <PlayingCard card={nextCard} isFlipped={false} isNew />
+                    )}
                   </div>
                 )}
               </div>
