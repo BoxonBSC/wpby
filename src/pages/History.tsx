@@ -14,17 +14,8 @@ const History = () => {
   const { leaderboard, recentWins, globalStats, isLoading, error, refresh } = useLeaderboard();
 
   const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'diamond':
-      case '钻石': return '#00D4FF';
-      case 'platinum':
-      case '铂金': return '#E5E4E2';
-      case 'gold':
-      case '黄金': return '#FFD700';
-      case 'silver':
-      case '白银': return '#C0C0C0';
-      default: return '#CD7F32';
-    }
+    // 单一门槛，统一使用金色
+    return '#FFD700';
   };
 
   const shortenAddress = (addr: string) => {
