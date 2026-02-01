@@ -1,16 +1,39 @@
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Gamepad2, History, FileText, Menu, X, Globe } from 'lucide-react';
+import { Gamepad2, History, FileText, Menu, X, Globe, Gift, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { AudioControls } from './AudioControls';
 import { NavbarWalletButton } from './NavbarWalletButton';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCyberHiLo } from '@/hooks/useCyberHiLo';
+import { useWallet } from '@/contexts/WalletContext';
+import { toast } from 'sonner';
 import aceCardIcon from '@/assets/ace-card-icon.png';
 
 export function Navbar() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
+  const { isConnected } = useWallet();
+  const { unclaimedPrize, claimPrize, isLoading } = useCyberHiLo();
+  const [isClaiming, setIsClaiming] = useState(false);
+
+  const hasUnclaimedPrize = Number(unclaimedPrize) > 0;
+
+  const handleClaim = async () => {
+    if (isClaiming || !hasUnclaimedPrize) return;
+    setIsClaiming(true);
+    try {
+      const success = await claimPrize();
+      if (success) {
+        toast.success(`成功领取 ${Number(unclaimedPrize).toFixed(4)} BNB!`);
+      }
+    } catch (error) {
+      toast.error('领取失败，请重试');
+    } finally {
+      setIsClaiming(false);
+    }
+  };
 
   const navItems = [
     { path: '/', label: t('nav.game'), icon: Gamepad2 },
@@ -350,6 +373,59 @@ export function Navbar() {
 
           {/* Audio Controls & Language & Wallet & Mobile Menu */}
           <div className="flex items-center gap-2">
+            {/* Unclaimed Prize Display */}
+            {isConnected && hasUnclaimedPrize && (
+              <motion.button
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleClaim}
+                disabled={isClaiming}
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(201, 163, 71, 0.15) 100%)',
+                  border: '1px solid rgba(255, 215, 0, 0.5)',
+                  boxShadow: '0 0 15px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                }}
+              >
+                {/* 闪光动画 */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent)',
+                  }}
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                />
+                
+                <Gift className="w-4 h-4" style={{ color: '#FFD700' }} />
+                <div className="flex flex-col items-start">
+                  <span className="text-[10px] leading-tight" style={{ color: 'rgba(255, 215, 0, 0.8)' }}>
+                    待领取
+                  </span>
+                  <span className="text-xs font-bold leading-tight" style={{ color: '#FFD700' }}>
+                    {Number(unclaimedPrize).toFixed(4)} BNB
+                  </span>
+                </div>
+                {isClaiming ? (
+                  <Loader2 className="w-3 h-3 animate-spin" style={{ color: '#FFD700' }} />
+                ) : (
+                  <motion.span
+                    className="text-[10px] px-1.5 py-0.5 rounded"
+                    style={{
+                      background: 'rgba(255, 215, 0, 0.3)',
+                      color: '#FFD700',
+                    }}
+                    animate={{ opacity: [1, 0.6, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    领取
+                  </motion.span>
+                )}
+              </motion.button>
+            )}
+
             {/* Wallet Button */}
             <div className="hidden sm:block">
               <NavbarWalletButton />
@@ -427,6 +503,47 @@ export function Navbar() {
         />
         
         <div className="container mx-auto px-4 py-3 relative">
+          {/* 移动端待领取余额 */}
+          {isConnected && hasUnclaimedPrize && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              onClick={handleClaim}
+              disabled={isClaiming}
+              className="w-full flex items-center justify-between gap-3 px-4 py-3 mb-3 rounded-lg"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(201, 163, 71, 0.15) 100%)',
+                border: '1px solid rgba(255, 215, 0, 0.5)',
+                boxShadow: '0 0 15px rgba(255, 215, 0, 0.3)',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <Gift className="w-5 h-5" style={{ color: '#FFD700' }} />
+                <div className="flex flex-col items-start">
+                  <span className="text-xs" style={{ color: 'rgba(255, 215, 0, 0.8)' }}>待领取奖励</span>
+                  <span className="text-sm font-bold" style={{ color: '#FFD700' }}>
+                    {Number(unclaimedPrize).toFixed(4)} BNB
+                  </span>
+                </div>
+              </div>
+              {isClaiming ? (
+                <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#FFD700' }} />
+              ) : (
+                <motion.span
+                  className="text-sm px-3 py-1 rounded-lg font-bold"
+                  style={{
+                    background: 'rgba(255, 215, 0, 0.3)',
+                    color: '#FFD700',
+                  }}
+                  animate={{ opacity: [1, 0.6, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  立即领取
+                </motion.span>
+              )}
+            </motion.button>
+          )}
+
           {/* 移动端钱包按钮 */}
           <div className="mb-3 pb-3" style={{ borderBottom: '1px solid rgba(201, 163, 71, 0.2)' }}>
             <NavbarWalletButton />
