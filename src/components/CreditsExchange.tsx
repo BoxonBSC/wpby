@@ -1,70 +1,57 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@/contexts/WalletContext';
 import { useCyberHiLo } from '@/hooks/useCyberHiLo';
-import { Flame, ArrowRight, Ticket, CheckCircle, Coins, Keyboard } from 'lucide-react';
+import { Flame, ArrowDown, Ticket, CheckCircle, Coins, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-const EXCHANGE_AMOUNTS = [100000, 500000, 1000000, 5000000];
 
 export function CreditsExchange() {
   const { isConnected } = useWallet();
   const { tokenBalance, gameCredits, depositCredits, error: contractError, refreshData } = useCyberHiLo();
   
   const { t } = useLanguage();
-  const [selectedAmount, setSelectedAmount] = useState(EXCHANGE_AMOUNTS[1]);
-  const [customAmount, setCustomAmount] = useState('');
-  const [useCustom, setUseCustom] = useState(false);
+  const [amount, setAmount] = useState(100000);
   const [isExchanging, setIsExchanging] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const tokenBalanceNum = Number(tokenBalance);
   const gameCreditsNum = Number(gameCredits);
   
-  // 获取最终要兑换的金额
-  const finalAmount = useCustom 
-    ? Math.floor(Number(customAmount) || 0) 
-    : selectedAmount;
+  // 计算滑块的最大值（用户余额或默认最大值）
+  const maxAmount = useMemo(() => {
+    return Math.max(tokenBalanceNum, 100000);
+  }, [tokenBalanceNum]);
 
-  // 验证自定义金额
-  const isValidCustomAmount = useCustom 
-    ? finalAmount > 0 && finalAmount <= tokenBalanceNum && finalAmount <= 100000000 // 最大1亿
-    : tokenBalanceNum >= selectedAmount;
+  // 滑块百分比
+  const sliderPercent = useMemo(() => {
+    return Math.min((amount / maxAmount) * 100, 100);
+  }, [amount, maxAmount]);
+
+  const canExchange = isConnected && amount > 0 && amount <= tokenBalanceNum;
 
   const handleExchange = async () => {
-    if (!isConnected) {
-      toast({ title: t('wallet.pleaseConnect'), variant: "destructive" });
-      return;
-    }
-
-    if (finalAmount <= 0) {
-      toast({ title: '请输入有效金额', variant: "destructive" });
-      return;
-    }
-
-    if (tokenBalanceNum < finalAmount) {
-      toast({
-        title: t('exchange.insufficientTokens'),
-        description: t('exchange.needTokens').replace('{amount}', finalAmount.toLocaleString()),
-        variant: "destructive",
-      });
+    if (!canExchange) {
+      if (!isConnected) {
+        toast({ title: t('wallet.pleaseConnect'), variant: "destructive" });
+      } else if (amount > tokenBalanceNum) {
+        toast({ title: t('exchange.insufficientTokens'), variant: "destructive" });
+      }
       return;
     }
 
     setIsExchanging(true);
     
     try {
-      const result = await depositCredits(finalAmount);
+      const result = await depositCredits(amount);
       
       if (result.ok) {
         setShowSuccess(true);
         toast({
           title: `${t('exchange.success')} 🎉`,
-          description: t('exchange.successDesc').replace('{amount}', finalAmount.toLocaleString()),
+          description: t('exchange.successDesc').replace('{amount}', amount.toLocaleString()),
         });
         setTimeout(() => setShowSuccess(false), 2000);
-        if (useCustom) setCustomAmount('');
         await refreshData();
       } else {
         toast({
@@ -91,306 +78,246 @@ export function CreditsExchange() {
     return num.toString();
   };
 
-  // 处理自定义输入
-  const handleCustomInput = (value: string) => {
-    // 只允许数字
-    const sanitized = value.replace(/[^0-9]/g, '');
-    // 限制最大长度（防止过大数字）
-    if (sanitized.length <= 9) {
-      setCustomAmount(sanitized);
-      setUseCustom(true);
-    }
+  const formatFullNumber = (num: number) => {
+    return num.toLocaleString();
   };
 
-  // 选择预设金额
-  const handlePresetClick = (amount: number) => {
-    if (tokenBalanceNum >= amount) {
-      setSelectedAmount(amount);
-      setUseCustom(false);
-      setCustomAmount('');
-    }
-  };
-
-  // 快捷按钮：全部、一半
-  const handleQuickAmount = (type: 'all' | 'half') => {
-    const amount = type === 'all' 
-      ? Math.floor(tokenBalanceNum) 
-      : Math.floor(tokenBalanceNum / 2);
-    if (amount > 0) {
-      setCustomAmount(amount.toString());
-      setUseCustom(true);
-    }
-  };
+  // 快捷选择
+  const quickSelects = [
+    { label: '25%', value: Math.floor(tokenBalanceNum * 0.25) },
+    { label: '50%', value: Math.floor(tokenBalanceNum * 0.5) },
+    { label: '75%', value: Math.floor(tokenBalanceNum * 0.75) },
+    { label: 'MAX', value: Math.floor(tokenBalanceNum) },
+  ];
 
   return (
     <div 
       className="rounded-2xl overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, rgba(30, 24, 18, 0.98) 0%, rgba(15, 12, 8, 0.98) 100%)',
-        border: '1px solid rgba(201, 163, 71, 0.25)',
-        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.1)',
+        background: 'linear-gradient(180deg, rgba(20, 18, 15, 0.98) 0%, rgba(12, 10, 8, 0.99) 100%)',
+        border: '1px solid rgba(201, 163, 71, 0.2)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
       }}
     >
-      {/* 标题栏 - 紧凑型 */}
+      {/* 顶部装饰条 */}
       <div 
-        className="px-3 py-2 flex items-center justify-between"
+        className="h-1"
         style={{
-          background: 'linear-gradient(90deg, rgba(255, 107, 53, 0.15) 0%, rgba(201, 163, 71, 0.1) 100%)',
-          borderBottom: '1px solid rgba(201, 163, 71, 0.15)',
+          background: 'linear-gradient(90deg, #C9A347 0%, #FFD700 50%, #C9A347 100%)',
         }}
-      >
-        <div className="flex items-center gap-2">
-          <div 
-            className="w-6 h-6 rounded-lg flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 107, 53, 0.3) 0%, rgba(255, 69, 0, 0.2) 100%)',
-              border: '1px solid rgba(255, 107, 53, 0.4)',
-            }}
-          >
-            <Flame className="w-3 h-3" style={{ color: '#FF6B35' }} />
-          </div>
-          <h3 
-            className="text-xs font-bold"
-            style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
-          >
-            {t('exchange.title')}
-          </h3>
-        </div>
-        <span className="text-[9px] px-2 py-0.5 rounded-full" style={{ 
-          background: 'rgba(201, 163, 71, 0.1)', 
-          color: 'rgba(201, 163, 71, 0.6)',
-          border: '1px solid rgba(201, 163, 71, 0.15)'
-        }}>
-          1:1 兑换
-        </span>
-      </div>
+      />
 
-      {/* 说明区域 - 单行紧凑 */}
-      <div 
-        className="px-3 py-1.5 flex flex-wrap gap-x-3 gap-y-1"
-        style={{
-          background: 'rgba(201, 163, 71, 0.03)',
-          borderBottom: '1px solid rgba(201, 163, 71, 0.1)',
-        }}
-      >
-        <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
-          <strong style={{ color: '#FFD700' }}>销毁代币</strong>=永久凭证
-        </span>
-        <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
-          <strong style={{ color: '#FF6B35' }}>不可转让</strong>
-        </span>
-        <span className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
-          中奖<strong style={{ color: '#00FFC8' }}>手动领取</strong>BNB
-        </span>
-      </div>
-
-      <div className="p-3 space-y-3">
-        {/* 余额卡片 - 更紧凑 */}
-        <div className="grid grid-cols-2 gap-2">
-          <div 
-            className="p-2 rounded-lg relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.08) 0%, rgba(201, 163, 71, 0.02) 100%)',
-              border: '1px solid rgba(201, 163, 71, 0.2)',
-            }}
-          >
-            <div className="flex items-center gap-1 mb-0.5">
-              <Coins className="w-2.5 h-2.5" style={{ color: '#C9A347' }} />
-              <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
-                {t('exchange.tokenBalance')}
-              </span>
-            </div>
+      <div className="p-4 space-y-4">
+        {/* 标题 */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <div 
-              className="text-base font-bold"
-              style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
-            >
-              {formatNumber(tokenBalanceNum)}
-            </div>
-          </div>
-          
-          <div 
-            className="p-2 rounded-lg relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(0, 255, 200, 0.08) 0%, rgba(0, 200, 150, 0.02) 100%)',
-              border: '1px solid rgba(0, 255, 200, 0.2)',
-            }}
-          >
-            <div className="flex items-center gap-1 mb-0.5">
-              <Ticket className="w-2.5 h-2.5" style={{ color: '#00FFC8' }} />
-              <span className="text-[9px]" style={{ color: 'rgba(0, 255, 200, 0.7)' }}>
-                {t('exchange.gameCredits')}
-              </span>
-            </div>
-            <div 
-              className="text-base font-bold"
-              style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
-            >
-              {formatNumber(gameCreditsNum)}
-            </div>
-          </div>
-        </div>
-
-        {/* 金额选择 - 预设按钮 */}
-        <div className="grid grid-cols-4 gap-1">
-          {EXCHANGE_AMOUNTS.map((amount) => {
-            const canAfford = tokenBalanceNum >= amount;
-            const isSelected = !useCustom && selectedAmount === amount;
-            
-            return (
-              <motion.button
-                key={amount}
-                whileHover={{ scale: canAfford ? 1.05 : 1 }}
-                whileTap={{ scale: canAfford ? 0.95 : 1 }}
-                onClick={() => handlePresetClick(amount)}
-                disabled={!canAfford}
-                className="py-1.5 px-1 rounded-md text-[11px] transition-all"
-                style={{
-                  fontFamily: '"Cinzel", serif',
-                  background: isSelected
-                    ? 'linear-gradient(135deg, rgba(255, 107, 53, 0.25) 0%, rgba(255, 69, 0, 0.15) 100%)'
-                    : canAfford
-                    ? 'rgba(201, 163, 71, 0.08)'
-                    : 'rgba(255, 255, 255, 0.02)',
-                  color: isSelected
-                    ? '#FF6B35'
-                    : canAfford
-                    ? '#C9A347'
-                    : 'rgba(201, 163, 71, 0.3)',
-                  border: isSelected
-                    ? '1px solid rgba(255, 107, 53, 0.6)'
-                    : '1px solid rgba(201, 163, 71, 0.15)',
-                  cursor: canAfford ? 'pointer' : 'not-allowed',
-                  boxShadow: isSelected ? '0 0 8px rgba(255, 107, 53, 0.2)' : 'none',
-                }}
-              >
-                {formatNumber(amount)}
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* 自定义输入框 */}
-        <div 
-          className="rounded-lg p-2"
-          style={{
-            background: useCustom 
-              ? 'linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 69, 0, 0.05) 100%)'
-              : 'rgba(0, 0, 0, 0.2)',
-            border: useCustom 
-              ? '1px solid rgba(255, 107, 53, 0.4)' 
-              : '1px solid rgba(201, 163, 71, 0.15)',
-          }}
-        >
-          <div className="flex items-center gap-2 mb-1.5">
-            <Keyboard className="w-3 h-3" style={{ color: useCustom ? '#FF6B35' : 'rgba(201, 163, 71, 0.5)' }} />
-            <span className="text-[10px]" style={{ color: useCustom ? '#FF6B35' : 'rgba(201, 163, 71, 0.6)' }}>
-              自定义金额
-            </span>
-            {/* 快捷按钮 */}
-            <div className="flex gap-1 ml-auto">
-              <button
-                onClick={() => handleQuickAmount('half')}
-                className="px-2 py-0.5 rounded text-[9px] transition-all hover:opacity-80"
-                style={{
-                  background: 'rgba(201, 163, 71, 0.15)',
-                  color: '#C9A347',
-                  border: '1px solid rgba(201, 163, 71, 0.25)',
-                }}
-              >
-                50%
-              </button>
-              <button
-                onClick={() => handleQuickAmount('all')}
-                className="px-2 py-0.5 rounded text-[9px] transition-all hover:opacity-80"
-                style={{
-                  background: 'rgba(255, 107, 53, 0.15)',
-                  color: '#FF6B35',
-                  border: '1px solid rgba(255, 107, 53, 0.25)',
-                }}
-              >
-                全部
-              </button>
-            </div>
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="输入任意数量..."
-              value={customAmount}
-              onChange={(e) => handleCustomInput(e.target.value)}
-              onFocus={() => customAmount && setUseCustom(true)}
-              className="w-full py-2 px-3 rounded-md text-sm outline-none transition-all"
+              className="w-8 h-8 rounded-full flex items-center justify-center"
               style={{
-                fontFamily: '"Cinzel", serif',
-                background: 'rgba(0, 0, 0, 0.4)',
-                color: useCustom && customAmount ? '#FFD700' : 'rgba(201, 163, 71, 0.8)',
-                border: '1px solid rgba(201, 163, 71, 0.2)',
+                background: 'linear-gradient(135deg, rgba(255, 107, 53, 0.3) 0%, rgba(201, 163, 71, 0.2) 100%)',
+                border: '1px solid rgba(255, 107, 53, 0.4)',
               }}
-            />
-            {customAmount && (
-              <span 
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px]"
-                style={{ color: 'rgba(201, 163, 71, 0.5)' }}
+            >
+              <Flame className="w-4 h-4" style={{ color: '#FF6B35' }} />
+            </div>
+            <div>
+              <h3 
+                className="text-sm font-bold"
+                style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
               >
-                代币
-              </span>
-            )}
+                {t('exchange.title')}
+              </h3>
+              <p className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
+                销毁代币 → 永久凭证
+              </p>
+            </div>
           </div>
-          {/* 输入验证提示 */}
-          {useCustom && customAmount && !isValidCustomAmount && (
-            <p className="text-[9px] mt-1" style={{ color: '#EF4444' }}>
-              {Number(customAmount) > tokenBalanceNum ? '超出代币余额' : '请输入有效金额'}
-            </p>
-          )}
+          <motion.div
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Sparkles className="w-4 h-4" style={{ color: '#FFD700' }} />
+          </motion.div>
         </div>
 
-        {/* 兑换预览 - 极简版 */}
+        {/* 代币卡片 → 凭证卡片 垂直布局 */}
+        <div className="relative">
+          {/* 代币余额卡片 */}
+          <motion.div 
+            className="relative z-10 p-3 rounded-xl"
+            style={{
+              background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.12) 0%, rgba(201, 163, 71, 0.04) 100%)',
+              border: '1px solid rgba(201, 163, 71, 0.25)',
+            }}
+            whileHover={{ scale: 1.01 }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Coins className="w-4 h-4" style={{ color: '#C9A347' }} />
+                <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>
+                  {t('exchange.tokenBalance')}
+                </span>
+              </div>
+              <div 
+                className="text-lg font-bold"
+                style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
+              >
+                {formatFullNumber(tokenBalanceNum)}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* 转换箭头 */}
+          <div className="flex justify-center -my-2 relative z-20">
+            <motion.div
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(180deg, #1a1612 0%, #0f0c08 100%)',
+                border: '2px solid rgba(255, 107, 53, 0.5)',
+                boxShadow: '0 0 20px rgba(255, 107, 53, 0.3)',
+              }}
+              animate={{ y: [0, 3, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <ArrowDown className="w-5 h-5" style={{ color: '#FF6B35' }} />
+            </motion.div>
+          </div>
+
+          {/* 凭证余额卡片 */}
+          <motion.div 
+            className="relative z-10 p-3 rounded-xl"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 255, 200, 0.12) 0%, rgba(0, 200, 150, 0.04) 100%)',
+              border: '1px solid rgba(0, 255, 200, 0.25)',
+            }}
+            whileHover={{ scale: 1.01 }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Ticket className="w-4 h-4" style={{ color: '#00FFC8' }} />
+                <span className="text-[11px]" style={{ color: 'rgba(0, 255, 200, 0.7)' }}>
+                  {t('exchange.gameCredits')}
+                </span>
+              </div>
+              <div 
+                className="text-lg font-bold"
+                style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
+              >
+                {formatFullNumber(gameCreditsNum)}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* 兑换金额选择 - 滑块式 */}
         <div 
-          className="flex items-center justify-center gap-3 py-2 px-3 rounded-lg"
+          className="p-3 rounded-xl space-y-3"
           style={{
             background: 'rgba(0, 0, 0, 0.3)',
-            border: '1px solid rgba(201, 163, 71, 0.1)',
+            border: '1px solid rgba(201, 163, 71, 0.15)',
           }}
         >
-          <span className="text-xs" style={{ color: '#EF4444' }}>
-            -{formatNumber(finalAmount)} 代币
-          </span>
-          <motion.div
-            animate={{ x: [0, 3, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
-            <ArrowRight className="w-3.5 h-3.5" style={{ color: 'rgba(201, 163, 71, 0.4)' }} />
-          </motion.div>
-          <span className="text-xs" style={{ color: '#00FFC8' }}>
-            +{formatNumber(finalAmount)} 凭证
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>
+              兑换数量
+            </span>
+            <div 
+              className="text-base font-bold px-3 py-1 rounded-lg"
+              style={{ 
+                fontFamily: '"Cinzel", serif', 
+                color: '#FFD700',
+                background: 'rgba(201, 163, 71, 0.1)',
+                border: '1px solid rgba(201, 163, 71, 0.2)',
+              }}
+            >
+              {formatFullNumber(amount)}
+            </div>
+          </div>
+
+          {/* 自定义滑块 */}
+          <div className="relative h-8 flex items-center">
+            <div 
+              className="absolute inset-x-0 h-2 rounded-full"
+              style={{
+                background: 'rgba(201, 163, 71, 0.1)',
+                border: '1px solid rgba(201, 163, 71, 0.15)',
+              }}
+            />
+            <motion.div 
+              className="absolute left-0 h-2 rounded-full"
+              style={{
+                width: `${sliderPercent}%`,
+                background: 'linear-gradient(90deg, #C9A347 0%, #FFD700 100%)',
+                boxShadow: '0 0 10px rgba(201, 163, 71, 0.4)',
+              }}
+            />
+            <input
+              type="range"
+              min={0}
+              max={maxAmount}
+              step={1000}
+              value={amount}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              className="absolute inset-x-0 w-full h-8 opacity-0 cursor-pointer"
+            />
+            {/* 滑块手柄 */}
+            <motion.div
+              className="absolute w-5 h-5 rounded-full pointer-events-none"
+              style={{
+                left: `calc(${sliderPercent}% - 10px)`,
+                background: 'linear-gradient(135deg, #FFD700 0%, #C9A347 100%)',
+                border: '2px solid #1a1612',
+                boxShadow: '0 0 15px rgba(201, 163, 71, 0.5), 0 2px 8px rgba(0,0,0,0.4)',
+              }}
+              whileHover={{ scale: 1.2 }}
+            />
+          </div>
+
+          {/* 快捷按钮 */}
+          <div className="flex gap-2">
+            {quickSelects.map((q) => (
+              <motion.button
+                key={q.label}
+                onClick={() => q.value > 0 && setAmount(q.value)}
+                disabled={q.value <= 0}
+                whileHover={{ scale: q.value > 0 ? 1.05 : 1 }}
+                whileTap={{ scale: q.value > 0 ? 0.95 : 1 }}
+                className="flex-1 py-1.5 rounded-md text-[10px] font-medium transition-all"
+                style={{
+                  background: amount === q.value 
+                    ? 'linear-gradient(135deg, rgba(255, 107, 53, 0.3) 0%, rgba(201, 163, 71, 0.2) 100%)'
+                    : 'rgba(201, 163, 71, 0.08)',
+                  color: amount === q.value ? '#FF6B35' : q.value > 0 ? '#C9A347' : 'rgba(201, 163, 71, 0.3)',
+                  border: amount === q.value 
+                    ? '1px solid rgba(255, 107, 53, 0.5)'
+                    : '1px solid rgba(201, 163, 71, 0.15)',
+                  cursor: q.value > 0 ? 'pointer' : 'not-allowed',
+                }}
+              >
+                {q.label}
+              </motion.button>
+            ))}
+          </div>
         </div>
 
-        {/* 兑换按钮 - 更紧凑 */}
+        {/* 兑换按钮 */}
         <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: canExchange ? 1.02 : 1 }}
+          whileTap={{ scale: canExchange ? 0.98 : 1 }}
           onClick={handleExchange}
-          disabled={isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0}
-          className="w-full py-2.5 rounded-lg text-xs transition-all relative overflow-hidden"
+          disabled={isExchanging || !canExchange}
+          className="w-full py-3 rounded-xl text-sm font-bold relative overflow-hidden"
           style={{
             fontFamily: '"Cinzel", serif',
-            background: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
-              ? 'rgba(201, 163, 71, 0.1)'
-              : 'linear-gradient(135deg, rgba(255, 107, 53, 0.9) 0%, rgba(255, 69, 0, 0.8) 100%)',
-            color: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
-              ? 'rgba(201, 163, 71, 0.4)'
-              : '#FFF',
-            border: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
-              ? '1px solid rgba(201, 163, 71, 0.2)'
+            background: !canExchange
+              ? 'rgba(201, 163, 71, 0.08)'
+              : 'linear-gradient(135deg, #FF6B35 0%, #FF4500 100%)',
+            color: !canExchange ? 'rgba(201, 163, 71, 0.4)' : '#FFF',
+            border: !canExchange
+              ? '1px solid rgba(201, 163, 71, 0.15)'
               : '1px solid rgba(255, 107, 53, 0.8)',
-            cursor: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
-              ? 'not-allowed'
-              : 'pointer',
-            boxShadow: isExchanging || !isValidCustomAmount || !isConnected || finalAmount <= 0
-              ? 'none'
-              : '0 4px 16px rgba(255, 107, 53, 0.3)',
+            cursor: !canExchange ? 'not-allowed' : 'pointer',
+            boxShadow: canExchange ? '0 4px 20px rgba(255, 107, 53, 0.4)' : 'none',
           }}
         >
           <AnimatePresence mode="wait">
@@ -400,13 +327,13 @@ export function CreditsExchange() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-1.5"
+                className="flex items-center justify-center gap-2"
               >
                 <motion.span
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 >
-                  <Flame className="w-3.5 h-3.5" />
+                  <Flame className="w-4 h-4" />
                 </motion.span>
                 {t('exchange.burning')}
               </motion.span>
@@ -416,10 +343,10 @@ export function CreditsExchange() {
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-1.5"
+                className="flex items-center justify-center gap-2"
                 style={{ color: '#00FFC8' }}
               >
-                <CheckCircle className="w-3.5 h-3.5" />
+                <CheckCircle className="w-4 h-4" />
                 {t('exchange.success')}
               </motion.span>
             ) : (
@@ -428,21 +355,30 @@ export function CreditsExchange() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-1.5"
+                className="flex items-center justify-center gap-2"
               >
-                <Flame className="w-3.5 h-3.5" />
-                {t('exchange.button')}
+                <Flame className="w-4 h-4" />
+                {!isConnected ? '请先连接钱包' : amount > tokenBalanceNum ? '余额不足' : t('exchange.button')}
               </motion.span>
             )}
           </AnimatePresence>
         </motion.button>
-        
-        {/* 提示 */}
-        {!isConnected && (
-          <p className="text-center text-[9px]" style={{ color: 'rgba(255, 200, 100, 0.6)' }}>
-            请先连接钱包
-          </p>
-        )}
+
+        {/* 提示信息 */}
+        <div 
+          className="flex items-center justify-center gap-4 py-2"
+          style={{ borderTop: '1px solid rgba(201, 163, 71, 0.1)' }}
+        >
+          <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
+            🔥 销毁不可逆
+          </span>
+          <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
+            🎟️ 1:1 兑换
+          </span>
+          <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
+            💰 中奖领BNB
+          </span>
+        </div>
       </div>
     </div>
   );
