@@ -449,7 +449,7 @@ export function HiLoGame() {
                   toast({ title: t('contract.gameContractCopied') });
                 }}
                 className="p-1.5 rounded-lg transition-colors hover:bg-[#C9A347]/20"
-                title="复制地址"
+                title={t('contract.copy')}
               >
                 <Copy className="w-3.5 h-3.5" style={{ color: '#C9A347' }} />
               </button>
@@ -458,7 +458,7 @@ export function HiLoGame() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-1.5 rounded-lg transition-colors hover:bg-[#C9A347]/20"
-                title="在 BscScan 查看"
+                title={t('contract.view')}
               >
                 <ExternalLink className="w-3.5 h-3.5" style={{ color: '#C9A347' }} />
               </a>
@@ -491,7 +491,7 @@ export function HiLoGame() {
                   toast({ title: t('contract.tokenContractCopied') });
                 }}
                 className="p-1.5 rounded-lg transition-colors hover:bg-[#FFD700]/20"
-                title="复制地址"
+                title={t('contract.copy')}
               >
                 <Copy className="w-3.5 h-3.5" style={{ color: '#FFD700' }} />
               </button>
@@ -500,7 +500,7 @@ export function HiLoGame() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-1.5 rounded-lg transition-colors hover:bg-[#FFD700]/20"
-                title="在 BscScan 查看"
+                title={t('contract.view')}
               >
                 <ExternalLink className="w-3.5 h-3.5" style={{ color: '#FFD700' }} />
               </a>
