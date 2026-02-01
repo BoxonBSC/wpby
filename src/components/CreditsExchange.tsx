@@ -6,29 +6,33 @@ import { Flame, ArrowDown, Ticket, CheckCircle, Coins, Sparkles } from 'lucide-r
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// 最小兑换金额
+const MIN_AMOUNT = 100000; // 10万起
+
 export function CreditsExchange() {
   const { isConnected } = useWallet();
   const { tokenBalance, gameCredits, depositCredits, error: contractError, refreshData } = useCyberHiLo();
   
   const { t } = useLanguage();
-  const [amount, setAmount] = useState(100000);
+  const [amount, setAmount] = useState(MIN_AMOUNT);
   const [isExchanging, setIsExchanging] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const tokenBalanceNum = Number(tokenBalance);
   const gameCreditsNum = Number(gameCredits);
   
-  // 计算滑块的最大值（用户余额或默认最大值）
+  // 滑块的最大值 = 用户余额（上不封顶）
   const maxAmount = useMemo(() => {
-    return Math.max(tokenBalanceNum, 100000);
+    return Math.max(tokenBalanceNum, MIN_AMOUNT);
   }, [tokenBalanceNum]);
 
-  // 滑块百分比
+  // 滑块百分比（基于最小-最大区间）
   const sliderPercent = useMemo(() => {
-    return Math.min((amount / maxAmount) * 100, 100);
+    if (maxAmount <= MIN_AMOUNT) return 0;
+    return Math.min(((amount - MIN_AMOUNT) / (maxAmount - MIN_AMOUNT)) * 100, 100);
   }, [amount, maxAmount]);
 
-  const canExchange = isConnected && amount > 0 && amount <= tokenBalanceNum;
+  const canExchange = isConnected && amount >= MIN_AMOUNT && amount <= tokenBalanceNum;
 
   const handleExchange = async () => {
     if (!canExchange) {
@@ -82,13 +86,19 @@ export function CreditsExchange() {
     return num.toLocaleString();
   };
 
-  // 快捷选择
-  const quickSelects = [
-    { label: '25%', value: Math.floor(tokenBalanceNum * 0.25) },
-    { label: '50%', value: Math.floor(tokenBalanceNum * 0.5) },
-    { label: '75%', value: Math.floor(tokenBalanceNum * 0.75) },
-    { label: 'MAX', value: Math.floor(tokenBalanceNum) },
-  ];
+  // 快捷选择 - 预设金额 + 百分比
+  const quickSelects = useMemo(() => {
+    const presets = [
+      { label: '100K', value: 100000 },
+      { label: '500K', value: 500000 },
+      { label: '1M', value: 1000000 },
+      { label: '5M', value: 5000000 },
+      { label: '10M', value: 10000000 },
+      { label: 'MAX', value: Math.floor(tokenBalanceNum) },
+    ];
+    // 过滤掉超过余额的预设（除了MAX）
+    return presets.filter(p => p.label === 'MAX' || p.value <= tokenBalanceNum);
+  }, [tokenBalanceNum]);
 
   return (
     <div 
@@ -219,7 +229,7 @@ export function CreditsExchange() {
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>
-              兑换数量
+              兑换数量 <span style={{ color: 'rgba(201, 163, 71, 0.4)' }}>(最低10万)</span>
             </span>
             <div 
               className="text-base font-bold px-3 py-1 rounded-lg"
@@ -253,11 +263,11 @@ export function CreditsExchange() {
             />
             <input
               type="range"
-              min={0}
+              min={MIN_AMOUNT}
               max={maxAmount}
-              step={1000}
+              step={10000}
               value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              onChange={(e) => setAmount(Math.max(MIN_AMOUNT, Number(e.target.value)))}
               className="absolute inset-x-0 w-full h-8 opacity-0 cursor-pointer"
             />
             {/* 滑块手柄 */}
@@ -274,24 +284,24 @@ export function CreditsExchange() {
           </div>
 
           {/* 快捷按钮 */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {quickSelects.map((q) => (
               <motion.button
                 key={q.label}
-                onClick={() => q.value > 0 && setAmount(q.value)}
-                disabled={q.value <= 0}
-                whileHover={{ scale: q.value > 0 ? 1.05 : 1 }}
-                whileTap={{ scale: q.value > 0 ? 0.95 : 1 }}
-                className="flex-1 py-1.5 rounded-md text-[10px] font-medium transition-all"
+                onClick={() => q.value >= MIN_AMOUNT && setAmount(q.value)}
+                disabled={q.value < MIN_AMOUNT}
+                whileHover={{ scale: q.value >= MIN_AMOUNT ? 1.05 : 1 }}
+                whileTap={{ scale: q.value >= MIN_AMOUNT ? 0.95 : 1 }}
+                className="flex-1 min-w-[50px] py-1.5 rounded-md text-[10px] font-medium transition-all"
                 style={{
                   background: amount === q.value 
                     ? 'linear-gradient(135deg, rgba(255, 107, 53, 0.3) 0%, rgba(201, 163, 71, 0.2) 100%)'
                     : 'rgba(201, 163, 71, 0.08)',
-                  color: amount === q.value ? '#FF6B35' : q.value > 0 ? '#C9A347' : 'rgba(201, 163, 71, 0.3)',
+                  color: amount === q.value ? '#FF6B35' : q.value >= MIN_AMOUNT ? '#C9A347' : 'rgba(201, 163, 71, 0.3)',
                   border: amount === q.value 
                     ? '1px solid rgba(255, 107, 53, 0.5)'
                     : '1px solid rgba(201, 163, 71, 0.15)',
-                  cursor: q.value > 0 ? 'pointer' : 'not-allowed',
+                  cursor: q.value >= MIN_AMOUNT ? 'pointer' : 'not-allowed',
                 }}
               >
                 {q.label}
