@@ -201,7 +201,7 @@ const Rules = () => {
                     {t('rules.step3Desc')}
                   </p>
                   
-                  <div className="grid md:grid-cols-3 gap-3">
+                  <div className="grid md:grid-cols-2 gap-3">
                     <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                       <div className="flex items-center gap-2 mb-2">
                         <ChevronUp className="w-5 h-5 text-green-400" />
@@ -217,25 +217,12 @@ const Rules = () => {
                       </div>
                       <p className="text-sm text-[#C9A347]/70" dangerouslySetInnerHTML={{ __html: t('rules.guessLowerDesc') }} />
                     </div>
-                    
-                    <div className="p-3 rounded-lg bg-[#00D4FF]/10 border border-[#00D4FF]/30">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Equal className="w-5 h-5 text-[#00D4FF]" />
-                        <span className="font-bold text-[#00D4FF]">{t('rules.guessSame')}</span>
-                        <span className="px-2 py-0.5 rounded bg-[#FFD700]/20 text-[#FFD700] text-xs font-bold">+2{t('rules.sameStreakBonus')}</span>
-                      </div>
-                      <p className="text-sm text-[#C9A347]/70" dangerouslySetInnerHTML={{ __html: t('rules.guessSameDesc') }} />
-                      {/* Same机制详解 */}
-                      <div className="mt-3 p-2 rounded-lg bg-[#00D4FF]/10 border border-[#00D4FF]/20">
-                        <p className="text-xs text-[#00D4FF]/90 mb-1">
-                          <strong>⚡ {t('rules.sameSpecialTitle')}</strong>
-                        </p>
-                        <ul className="text-xs text-[#C9A347]/70 space-y-1 list-disc list-inside">
-                          <li dangerouslySetInnerHTML={{ __html: t('rules.samePoint1') }} />
-                          <li dangerouslySetInnerHTML={{ __html: t('rules.samePoint2') }} />
-                        </ul>
-                      </div>
-                    </div>
+                  </div>
+                  
+                  {/* 平局说明 */}
+                  <div className="flex items-start gap-2 text-orange-400/90 text-sm bg-orange-500/10 p-3 rounded-lg border border-orange-500/20">
+                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>{t('rules.tieWarning')}</span>
                   </div>
 
                   <div className="bg-[#C9A347]/10 p-3 rounded-lg">
