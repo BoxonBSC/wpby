@@ -28,6 +28,12 @@ const History = () => {
   const myTotalWins = results.filter(r => r.cashedOut && r.bnbWon > 0).length;
   const myTotalBnbWon = results.reduce((sum, r) => sum + (r.bnbWon || 0), 0);
 
+  // 让左右两列“视觉行数”更接近，避免一边内容少导致大片空白
+  const targetLeaderboardRows = Math.min(
+    20,
+    Math.max(10, leaderboard.length, recentWins.length)
+  );
+
   return (
     <div 
       className="min-h-screen relative"
@@ -188,51 +194,94 @@ const History = () => {
               </div>
             ) : (
               <div className="space-y-2 flex-1 overflow-y-auto pr-2">
-                {leaderboard.map((player, index) => (
-                  <motion.div
-                    key={player.player}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="flex items-center gap-4 p-3 rounded-lg"
-                    style={{
-                      background: index === 0 
-                        ? 'linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%)'
-                        : index === 1 
-                          ? 'linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, transparent 100%)'
-                          : index === 2
-                            ? 'linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, transparent 100%)'
-                            : 'rgba(0, 0, 0, 0.2)',
-                      border: index === 0 
-                        ? '1px solid rgba(255, 215, 0, 0.3)' 
-                        : '1px solid rgba(201, 163, 71, 0.1)',
-                    }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
-                      style={{
-                        background: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : 'rgba(201, 163, 71, 0.2)',
-                        color: index < 3 ? '#000' : '#C9A347',
-                      }}
-                    >
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-[#C9A347] truncate">
-                        {shortenAddress(player.player)}
-                        {player.player.toLowerCase() === address?.toLowerCase() && (
-                          <span className="ml-2 text-xs text-[#00FFC8]">{t('history.me')}</span>
-                        )}
-                      </div>
-                      <div className="text-sm text-[#C9A347]/60">
-                        {player.totalWins} {t('history.wins')} · {t('history.maxStreak').replace('{n}', String(player.maxStreak))}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-[#FFD700]">{player.totalBnbWon.toFixed(4)} BNB</div>
-                    </div>
-                  </motion.div>
-                ))}
+                {(() => {
+                  const padded: (typeof leaderboard[number] | null)[] = [...leaderboard];
+                  while (padded.length < targetLeaderboardRows) padded.push(null);
+                  return padded.map((player, index) => {
+                    if (!player) {
+                      return (
+                        <div
+                          key={`leaderboard-placeholder-${index}`}
+                          className="flex items-center gap-4 p-3 rounded-lg"
+                          style={{
+                            background: 'rgba(0, 0, 0, 0.2)',
+                            border: '1px solid rgba(201, 163, 71, 0.1)',
+                            opacity: 0.35,
+                          }}
+                        >
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+                            style={{ background: 'rgba(201, 163, 71, 0.2)', color: '#C9A347' }}
+                          >
+                            —
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-[#C9A347] truncate">—</div>
+                            <div className="text-sm text-[#C9A347]/60">—</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-[#FFD700]">—</div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <motion.div
+                        key={player.player}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex items-center gap-4 p-3 rounded-lg"
+                        style={{
+                          background:
+                            index === 0
+                              ? 'linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%)'
+                              : index === 1
+                                ? 'linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, transparent 100%)'
+                                : index === 2
+                                  ? 'linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, transparent 100%)'
+                                  : 'rgba(0, 0, 0, 0.2)',
+                          border:
+                            index === 0
+                              ? '1px solid rgba(255, 215, 0, 0.3)'
+                              : '1px solid rgba(201, 163, 71, 0.1)',
+                        }}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+                          style={{
+                            background:
+                              index === 0
+                                ? '#FFD700'
+                                : index === 1
+                                  ? '#C0C0C0'
+                                  : index === 2
+                                    ? '#CD7F32'
+                                    : 'rgba(201, 163, 71, 0.2)',
+                            color: index < 3 ? '#000' : '#C9A347',
+                          }}
+                        >
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-[#C9A347] truncate">
+                            {shortenAddress(player.player)}
+                            {player.player.toLowerCase() === address?.toLowerCase() && (
+                              <span className="ml-2 text-xs text-[#00FFC8]">{t('history.me')}</span>
+                            )}
+                          </div>
+                          <div className="text-sm text-[#C9A347]/60">
+                            {player.totalWins} {t('history.wins')} · {t('history.maxStreak').replace('{n}', String(player.maxStreak))}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-[#FFD700]">{player.totalBnbWon.toFixed(4)} BNB</div>
+                        </div>
+                      </motion.div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </motion.div>

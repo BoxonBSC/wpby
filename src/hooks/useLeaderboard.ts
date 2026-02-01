@@ -58,11 +58,6 @@ function parseGameCashedOutEvent(log: any): { player: string; playerPrize: numbe
 
 // 通过 Edge Function 调用 Etherscan V2 API
 async function fetchLogsViaEdgeFunction(fromBlock: number, toBlock: number): Promise<any[]> {
-  const { data, error } = await supabase.functions.invoke('get-bsc-logs', {
-    body: null,
-    headers: {},
-  });
-
   // 使用 URL 参数方式调用
   const response = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-bsc-logs?address=${CONTRACT_ADDRESS}&topic0=${GAME_CASHED_OUT_TOPIC}&fromBlock=${fromBlock}&toBlock=${toBlock}`,
@@ -151,7 +146,7 @@ export function useLeaderboard() {
       // 排序
       const sortedLeaderboard = Array.from(playerData.values())
         .sort((a, b) => b.totalBnbWon - a.totalBnbWon)
-        .slice(0, 10);
+        .slice(0, 20);
 
       const sortedRecent = recent
         .sort((a, b) => b.timestamp - a.timestamp)
