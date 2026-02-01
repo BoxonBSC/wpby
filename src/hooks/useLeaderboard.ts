@@ -105,7 +105,7 @@ export function useLeaderboard() {
 
       // 2. 通过 Edge Function 调用 Etherscan V2 API 获取事件日志
       const currentBlock = await provider.getBlockNumber();
-      const totalBlocks = 50000; // 约 1.5 天的数据
+      const totalBlocks = 864000; // 约 30 天的数据 (BSC 每 3 秒一个区块)
       const fromBlock = Math.max(0, currentBlock - totalBlocks);
 
       const playerData = new Map<string, LeaderboardEntry>();
