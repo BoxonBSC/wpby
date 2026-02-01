@@ -24,7 +24,7 @@ import {
   Percent,
   Info
 } from 'lucide-react';
-import { BET_TIERS, REWARD_TIERS } from '@/config/hilo';
+import { REWARD_TIERS } from '@/config/hilo';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const Rules = () => {
@@ -158,22 +158,21 @@ const Rules = () => {
                   <p className="text-[#C9A347]/90">
                     <strong className="text-[#FFD700]">{t('rules.step2What')}</strong> {t('rules.step2Desc')}
                   </p>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-3">
-                    {BET_TIERS.map((tier) => (
-                      <div 
-                        key={tier.id}
-                        className="p-2 rounded-lg text-center text-sm"
-                        style={{ background: `${tier.color}20`, border: `1px solid ${tier.color}40` }}
-                      >
-                        <div className="font-bold" style={{ color: tier.color }}>{tier.name}</div>
-                        <div className="text-[#C9A347]/60 text-xs">
-                          {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`} {t('rules.step2Credits')}
-                        </div>
-                        <div className="text-[#FFD700] text-xs">
-                          {t('rules.step2MaxStreak').replace('{n}', tier.maxStreak.toString())}
-                        </div>
+                  <div className="flex justify-center mt-3">
+                    <div 
+                      className="p-4 rounded-xl text-center"
+                      style={{ 
+                        background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(201, 163, 71, 0.1) 100%)', 
+                        border: '2px solid rgba(255, 215, 0, 0.4)',
+                        minWidth: '200px'
+                      }}
+                    >
+                      <div className="font-bold text-xl mb-1" style={{ color: '#FFD700' }}>500K</div>
+                      <div className="text-[#C9A347]/80 text-sm">{t('rules.step2Credits')}</div>
+                      <div className="text-[#FFD700] text-sm mt-2 font-semibold">
+                        {t('rules.step2MaxStreak').replace('{n}', '12')}
                       </div>
-                    ))}
+                    </div>
                   </div>
                   <div className="flex items-start gap-2 text-[#C9A347]/70 text-sm mt-2 bg-[#FFD700]/5 p-3 rounded-lg">
                     <Info className="w-4 h-4 text-[#FFD700] mt-0.5 flex-shrink-0" />
