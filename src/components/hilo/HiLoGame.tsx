@@ -683,6 +683,8 @@ export function HiLoGame() {
                             const canAfford = credits >= tier.betAmount;
                             const isSelected = selectedTierIndex === index;
                             const maxRewardTier = REWARD_TIERS.find(r => r.streak === tier.maxStreak);
+                            const shortfall = tier.betAmount - credits;
+                            const formatShortfall = (n: number) => n >= 1000000 ? `${(n / 1000000).toFixed(1)}M` : `${Math.ceil(n / 1000)}K`;
                             
                             return (
                               <button
@@ -690,26 +692,32 @@ export function HiLoGame() {
                                 onClick={() => handleSelectTier(index, canAfford)}
                                 disabled={!canAfford}
                                 className={`
-                                  p-3 rounded-xl transition-all text-center
-                                  ${canAfford ? 'hover:scale-105' : 'opacity-40 cursor-not-allowed'}
+                                  p-3 rounded-xl transition-all text-center relative
+                                  ${canAfford ? 'hover:scale-105' : 'opacity-60 cursor-not-allowed'}
                                 `}
                                 style={{
                                   background: isSelected 
                                     ? `linear-gradient(135deg, ${tier.color}30 0%, ${tier.color}10 100%)`
                                     : 'rgba(0,0,0,0.3)',
-                                  border: `2px solid ${isSelected ? tier.color : 'rgba(201, 163, 71, 0.2)'}`,
+                                  border: `2px solid ${isSelected ? tier.color : canAfford ? 'rgba(201, 163, 71, 0.2)' : 'rgba(255, 100, 100, 0.3)'}`,
                                   boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
                                 }}
                               >
-                                <div className="font-bold text-base" style={{ color: tier.color }}>
+                                <div className="font-bold text-base" style={{ color: canAfford ? tier.color : 'rgba(201, 163, 71, 0.5)' }}>
                                   {tier.name}
                                 </div>
                                 <div className="text-[#C9A347]/60 text-xs">
                                   {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
                                 </div>
-                                <div className="text-[10px] mt-1 text-[#FFD700]">
-                                  最高 {maxRewardTier?.percentage ?? 0}% 奖池
-                                </div>
+                                {canAfford ? (
+                                  <div className="text-[10px] mt-1 text-[#FFD700]">
+                                    最高 {maxRewardTier?.percentage ?? 0}% 奖池
+                                  </div>
+                                ) : (
+                                  <div className="text-[10px] mt-1 text-[#FF6B6B]">
+                                    还差 {formatShortfall(shortfall)}
+                                  </div>
+                                )}
                               </button>
                             );
                           })}
@@ -720,6 +728,8 @@ export function HiLoGame() {
                             const canAfford = credits >= tier.betAmount;
                             const isSelected = selectedTierIndex === index;
                             const maxRewardTier = REWARD_TIERS.find(r => r.streak === tier.maxStreak);
+                            const shortfall = tier.betAmount - credits;
+                            const formatShortfall = (n: number) => n >= 1000000 ? `${(n / 1000000).toFixed(1)}M` : `${Math.ceil(n / 1000)}K`;
                             
                             return (
                               <button
@@ -727,26 +737,32 @@ export function HiLoGame() {
                                 onClick={() => handleSelectTier(index, canAfford)}
                                 disabled={!canAfford}
                                 className={`
-                                  p-3 rounded-xl transition-all text-center
-                                  ${canAfford ? 'hover:scale-105' : 'opacity-40 cursor-not-allowed'}
+                                  p-3 rounded-xl transition-all text-center relative
+                                  ${canAfford ? 'hover:scale-105' : 'opacity-60 cursor-not-allowed'}
                                 `}
                                 style={{
                                   background: isSelected 
                                     ? `linear-gradient(135deg, ${tier.color}30 0%, ${tier.color}10 100%)`
                                     : 'rgba(0,0,0,0.3)',
-                                  border: `2px solid ${isSelected ? tier.color : 'rgba(201, 163, 71, 0.2)'}`,
+                                  border: `2px solid ${isSelected ? tier.color : canAfford ? 'rgba(201, 163, 71, 0.2)' : 'rgba(255, 100, 100, 0.3)'}`,
                                   boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
                                 }}
                               >
-                                <div className="font-bold text-base" style={{ color: tier.color }}>
+                                <div className="font-bold text-base" style={{ color: canAfford ? tier.color : 'rgba(201, 163, 71, 0.5)' }}>
                                   {tier.name}
                                 </div>
                                 <div className="text-[#C9A347]/60 text-xs">
                                   {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
                                 </div>
-                                <div className="text-[10px] mt-1 text-[#FFD700]">
-                                  最高 {maxRewardTier?.percentage ?? 0}% 奖池
-                                </div>
+                                {canAfford ? (
+                                  <div className="text-[10px] mt-1 text-[#FFD700]">
+                                    最高 {maxRewardTier?.percentage ?? 0}% 奖池
+                                  </div>
+                                ) : (
+                                  <div className="text-[10px] mt-1 text-[#FF6B6B]">
+                                    还差 {formatShortfall(shortfall)}
+                                  </div>
+                                )}
                               </button>
                             );
                           })}
