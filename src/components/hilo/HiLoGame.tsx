@@ -152,7 +152,7 @@ export function HiLoGame() {
     }
   }, [gameSession, gameState, isRevealing, pendingGuess]);
 
-  // VRF 完成后：结算本轮猜测，展示结果并解除“揭示中”卡死
+  // VRF 完成后：结算本轮猜测，展示结果并解除"揭示中"卡死
   useEffect(() => {
     if (!pendingGuess || !gameSession) return;
     if (!isRevealing) return;
@@ -190,10 +190,33 @@ export function HiLoGame() {
       setIsRevealing(false);
       setPendingGuess(null);
 
-      // 合约 session 可能会在此时结束；为了让 UI 及时给出“失败”反馈，这里兜底一次
-      if (!won || !gameSession.active) {
+      // 判断游戏结果：
+      // 1. 猜错 -> lost
+      // 2. 猜对但游戏结束(active=false) -> 达到门槛上限，应该是won
+      // 3. 猜对且游戏继续 -> 继续playing
+      if (!won) {
         setGameState('lost');
+      } else if (!gameSession.active) {
+        // 猜对但游戏已结束 = 达到门槛上限，自动结算成功！
+        const newStreak = gameSession.currentStreak;
+        setStreak(newStreak);
+        playCashOutSound();
+        setGameState('won');
+        
+        // 记录结果
+        const reward = calculateHiLoReward(newStreak, currentBetTier.maxStreak, effectivePrizePool);
+        const result: HiLoResult = {
+          id: `${Date.now()}-${Math.random()}`,
+          betAmount: currentBetTier.betAmount,
+          betTier: currentBetTier.id,
+          streak: newStreak,
+          bnbWon: reward,
+          cashedOut: true,
+          timestamp: Date.now(),
+        };
+        setResults(prev => [result, ...prev]);
       }
+      // else: won && gameSession.active -> 继续游戏，不改变状态
 
       // 结果提示展示片刻后自动消失
       window.setTimeout(() => setGuessCorrect(null), 900);
@@ -209,6 +232,9 @@ export function HiLoGame() {
     playCardFlipSound,
     playCorrectGuessSound,
     playWrongGuessSound,
+    playCashOutSound,
+    currentBetTier,
+    effectivePrizePool,
   ]);
 
   // 监听VRF结果
@@ -824,49 +850,23 @@ export function HiLoGame() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+            onClick={() => setShowWalletModal(false)}
           >
-            {/* 遮罩 */}
-            <div
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-              onClick={() => setShowWalletModal(false)}
-            />
-
-            {/* 弹窗 */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none"
+              className="relative max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div
-                className="w-full max-w-sm relative p-5 rounded-2xl pointer-events-auto"
-                style={{
-                  background:
-                    'linear-gradient(180deg, rgba(26, 22, 18, 0.98) 0%, rgba(15, 12, 8, 0.98) 100%)',
-                  border: '1px solid rgba(201, 163, 71, 0.3)',
-                  boxShadow:
-                    '0 0 40px rgba(201, 163, 71, 0.15), inset 0 1px 0 rgba(201, 163, 71, 0.2)',
-                }}
+              <button
+                onClick={() => setShowWalletModal(false)}
+                className="absolute -top-10 right-0 text-[#C9A347]/60 hover:text-[#C9A347] transition-colors"
               >
-                <button
-                  onClick={() => setShowWalletModal(false)}
-                  className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-white/5 transition-colors"
-                  style={{ color: '#C9A347' }}
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <h3
-                  className="text-lg font-bold mb-4 flex items-center gap-2"
-                  style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
-                >
-                  <Wallet className="w-5 h-5" />
-                  连接钱包
-                </h3>
-
-                <WalletConnect />
-              </div>
+                <X className="w-6 h-6" />
+              </button>
+              <WalletConnect />
             </motion.div>
           </motion.div>
         )}
