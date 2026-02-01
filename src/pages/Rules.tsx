@@ -332,90 +332,90 @@ const Rules = () => {
             </h3>
             
             <div className="space-y-4">
-              {/* 常见区 */}
+              {/* 入门区 1-3连胜 */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-gray-400 font-bold">{t('rules.entryZone')}</span>
-                  <span className="text-xs text-gray-500">{t('rules.entryNote')}</span>
+                  <span className="text-xs text-gray-500">1-3连胜 · ~36%玩家</span>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
-                  {REWARD_TIERS.slice(0, 5).map((tier) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {REWARD_TIERS.slice(0, 3).map((tier) => (
                     <div 
                       key={tier.streak}
-                      className={`p-2 rounded-lg text-center ${tier.milestone ? 'ring-2 ring-[#CD7F32]' : ''}`}
+                      className={`p-3 rounded-lg text-center ${tier.milestone ? 'ring-2 ring-[#6B7280]' : ''}`}
                       style={{ background: 'rgba(107, 114, 128, 0.2)', border: '1px solid rgba(107, 114, 128, 0.3)' }}
                     >
                       <div className="text-white font-bold">{t('rules.streakN').replace('{n}', tier.streak.toString())}</div>
-                      <div className="text-[#FFD700] text-lg font-bold">{tier.percentage}%</div>
-                      {tier.milestone && <div className="text-xs text-[#CD7F32]">🥉 {tier.milestone.label}</div>}
+                      <div className="text-[#FFD700] text-xl font-bold">{tier.percentage}%</div>
+                      {tier.milestone && <div className="text-xs text-gray-400">{tier.milestone.emoji} {tier.milestone.label}</div>}
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* 进阶区 */}
+              {/* 进阶区 4-6连胜 */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-gray-300 font-bold">{t('rules.advancedZone')}</span>
-                  <span className="text-xs text-gray-500">{t('rules.advancedNote')}</span>
+                  <span className="text-xs text-gray-500">4-6连胜 · ~13%玩家</span>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
-                  {REWARD_TIERS.slice(5, 10).map((tier) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {REWARD_TIERS.slice(3, 6).map((tier) => (
                     <div 
                       key={tier.streak}
-                      className={`p-2 rounded-lg text-center ${tier.milestone ? 'ring-2 ring-[#C0C0C0]' : ''}`}
+                      className={`p-3 rounded-lg text-center ${tier.milestone ? 'ring-2 ring-[#C0C0C0]' : ''}`}
                       style={{ background: 'rgba(192, 192, 192, 0.15)', border: '1px solid rgba(192, 192, 192, 0.3)' }}
                     >
                       <div className="text-white font-bold">{t('rules.streakN').replace('{n}', tier.streak.toString())}</div>
-                      <div className="text-[#FFD700] text-lg font-bold">{tier.percentage}%</div>
-                      {tier.milestone && <div className="text-xs text-[#C0C0C0]">🥈 {tier.milestone.label}</div>}
+                      <div className="text-[#FFD700] text-xl font-bold">{tier.percentage}%</div>
+                      {tier.milestone && <div className="text-xs text-[#C0C0C0]">{tier.milestone.emoji} {tier.milestone.label}</div>}
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* 精英区 */}
+              {/* 精英区 7-9连胜 */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[#FFD700] font-bold">{t('rules.eliteZone')}</span>
-                  <span className="text-xs text-[#FFD700]/60">{t('rules.eliteNote')}</span>
+                  <span className="text-xs text-[#FFD700]/60">7-9连胜 · ~4%玩家</span>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
-                  {REWARD_TIERS.slice(10, 15).map((tier) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {REWARD_TIERS.slice(6, 9).map((tier) => (
                     <div 
                       key={tier.streak}
-                      className={`p-2 rounded-lg text-center ${tier.milestone ? 'ring-2 ring-[#FFD700]' : ''}`}
+                      className={`p-3 rounded-lg text-center ${tier.milestone ? 'ring-2 ring-[#FFD700]' : ''}`}
                       style={{ background: 'rgba(255, 215, 0, 0.1)', border: '1px solid rgba(255, 215, 0, 0.3)' }}
                     >
                       <div className="text-white font-bold">{t('rules.streakN').replace('{n}', tier.streak.toString())}</div>
-                      <div className="text-[#FFD700] text-lg font-bold">{tier.percentage}%</div>
-                      {tier.milestone && <div className="text-xs text-[#FFD700]">🥇 {tier.milestone.label}</div>}
+                      <div className="text-[#FFD700] text-xl font-bold">{tier.percentage}%</div>
+                      {tier.milestone && <div className="text-xs text-[#FFD700]">{tier.milestone.emoji} {tier.milestone.label}</div>}
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* 传奇区 */}
+              {/* 传奇区 10-12连胜 */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-bold" style={{ background: 'linear-gradient(90deg, #FF0080, #00D4FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('rules.legendZone')}</span>
-                  <span className="text-xs text-[#00D4FF]/60">{t('rules.legendNote')}</span>
+                  <span className="text-xs text-[#00D4FF]/60">10-12连胜 · ~1.4%玩家</span>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
-                  {REWARD_TIERS.slice(15, 20).map((tier) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {REWARD_TIERS.slice(9, 12).map((tier) => (
                     <div 
                       key={tier.streak}
-                      className={`p-2 rounded-lg text-center ${tier.milestone ? 'ring-2' : ''}`}
+                      className={`p-3 rounded-lg text-center ${tier.milestone ? 'ring-2' : ''}`}
                       style={{ 
                         background: 'linear-gradient(135deg, rgba(255, 0, 128, 0.15) 0%, rgba(0, 212, 255, 0.15) 100%)', 
                         border: '1px solid rgba(0, 212, 255, 0.4)',
-                        ...(tier.milestone && { ringColor: tier.streak === 20 ? '#00D4FF' : '#E5E4E2' })
+                        ...(tier.milestone && { ringColor: tier.streak === 12 ? '#00D4FF' : '#E5E4E2' })
                       }}
                     >
                       <div className="text-white font-bold">{t('rules.streakN').replace('{n}', tier.streak.toString())}</div>
-                      <div className="text-[#FFD700] text-lg font-bold">{tier.percentage}%</div>
+                      <div className="text-[#FFD700] text-xl font-bold">{tier.percentage}%</div>
                       {tier.milestone && (
-                        <div className="text-xs" style={{ color: tier.streak === 20 ? '#00D4FF' : '#E5E4E2' }}>
+                        <div className="text-xs" style={{ color: tier.streak === 12 ? '#00D4FF' : '#E5E4E2' }}>
                           {tier.milestone.emoji} {tier.milestone.label}
                         </div>
                       )}

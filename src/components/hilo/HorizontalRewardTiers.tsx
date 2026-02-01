@@ -23,18 +23,18 @@ export function HorizontalRewardTiers({ currentStreak, prizePool, currentBetTier
   const maxTier = REWARD_TIERS.find(t => t.streak === currentBetTier.maxStreak);
   const maxReward = calculateHiLoReward(currentBetTier.maxStreak, currentBetTier.maxStreak, prizePool);
 
-  // 按区域分组
+  // 按区域分组 (12连胜版本)
   const zones: { key: RewardZone; label: string; streaks: string; icon: React.ReactNode }[] = [
-    { key: 'common', label: t('hreward.entryZone'), streaks: t('hreward.streakRange1'), icon: null },
-    { key: 'advanced', label: t('hreward.advancedZone'), streaks: t('hreward.streakRange2'), icon: <TrendingUp className="w-5 h-5" /> },
-    { key: 'elite', label: t('hreward.eliteZone'), streaks: t('hreward.streakRange3'), icon: <Sparkles className="w-5 h-5" /> },
-    { key: 'legendary', label: t('hreward.legendZone'), streaks: t('hreward.streakRange4'), icon: <Crown className="w-5 h-5" /> },
+    { key: 'common', label: t('hreward.entryZone'), streaks: '1-3连胜', icon: null },
+    { key: 'advanced', label: t('hreward.advancedZone'), streaks: '4-6连胜', icon: <TrendingUp className="w-5 h-5" /> },
+    { key: 'elite', label: t('hreward.eliteZone'), streaks: '7-9连胜', icon: <Sparkles className="w-5 h-5" /> },
+    { key: 'legendary', label: t('hreward.legendZone'), streaks: '10-12连胜', icon: <Crown className="w-5 h-5" /> },
   ];
 
   const getZoneForStreak = (streak: number): RewardZone => {
-    if (streak <= 5) return 'common';
-    if (streak <= 10) return 'advanced';
-    if (streak <= 15) return 'elite';
+    if (streak <= 3) return 'common';
+    if (streak <= 6) return 'advanced';
+    if (streak <= 9) return 'elite';
     return 'legendary';
   };
 
@@ -130,14 +130,14 @@ export function HorizontalRewardTiers({ currentStreak, prizePool, currentBetTier
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-5">
         {zones.map((zone) => {
           const colors = ZONE_COLORS[zone.key];
-          const zoneStart = zone.key === 'common' ? 1 : zone.key === 'advanced' ? 6 : zone.key === 'elite' ? 11 : 16;
-          const zoneEnd = zone.key === 'common' ? 5 : zone.key === 'advanced' ? 10 : zone.key === 'elite' ? 15 : 20;
+          const zoneStart = zone.key === 'common' ? 1 : zone.key === 'advanced' ? 4 : zone.key === 'elite' ? 7 : 10;
+          const zoneEnd = zone.key === 'common' ? 3 : zone.key === 'advanced' ? 6 : zone.key === 'elite' ? 9 : 12;
           const zoneTiers = REWARD_TIERS.filter(t => t.streak >= zoneStart && t.streak <= zoneEnd);
           const isCurrentZone = currentZone === zone.key;
           const isZoneUnlocked = zoneStart <= currentBetTier.maxStreak;
           const isZoneCompleted = currentStreak >= zoneEnd;
-          const minReward = calculateHiLoReward(zoneStart, 20, prizePool);
-          const maxZoneReward = calculateHiLoReward(zoneEnd, 20, prizePool);
+          const minReward = calculateHiLoReward(zoneStart, 12, prizePool);
+          const maxZoneReward = calculateHiLoReward(zoneEnd, 12, prizePool);
 
           return (
             <motion.div
@@ -252,7 +252,7 @@ export function HorizontalRewardTiers({ currentStreak, prizePool, currentBetTier
         </div>
       </div>
 
-      {/* 详细奖励说明 */}
+      {/* 详细奖励说明 - 12连胜版本 */}
       <div 
         className="mt-4 sm:mt-5 lg:mt-6 p-3 sm:p-4 lg:p-5 rounded-xl"
         style={{
@@ -265,40 +265,32 @@ export function HorizontalRewardTiers({ currentStreak, prizePool, currentBetTier
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 text-[10px] sm:text-xs lg:text-sm">
           <div className="space-y-0.5 sm:space-y-1">
-            <div className="text-[#C9A347]/70">{t('hreward.entryZone')} ({t('hreward.streakRange1')})</div>
-            <div className="text-[#FFD700]">1{t('ladder.nStreak').replace('{n}', '')} → 0.02%</div>
-            <div className="text-[#FFD700]">2{t('ladder.nStreak').replace('{n}', '')} → 0.05%</div>
-            <div className="text-[#FFD700]">3{t('ladder.nStreak').replace('{n}', '')} → 0.1%</div>
-            <div className="text-[#FFD700]">4{t('ladder.nStreak').replace('{n}', '')} → 0.15%</div>
-            <div className="text-[#FFD700]">5{t('ladder.nStreak').replace('{n}', '')} → 0.25%</div>
+            <div className="text-[#C9A347]/70">{t('hreward.entryZone')} (1-3连胜)</div>
+            <div className="text-[#FFD700]">1连胜 → 0.2%</div>
+            <div className="text-[#FFD700]">2连胜 → 0.4%</div>
+            <div className="text-[#FFD700]">3连胜 → 0.8%</div>
           </div>
           <div className="space-y-0.5 sm:space-y-1">
-            <div className="text-[#C9A347]/70">{t('hreward.advancedZone')} ({t('hreward.streakRange2')})</div>
-            <div className="text-[#FFD700]">6{t('ladder.nStreak').replace('{n}', '')} → 0.4%</div>
-            <div className="text-[#FFD700]">7{t('ladder.nStreak').replace('{n}', '')} → 0.6%</div>
-            <div className="text-[#FFD700]">8{t('ladder.nStreak').replace('{n}', '')} → 1%</div>
-            <div className="text-[#FFD700]">9{t('ladder.nStreak').replace('{n}', '')} → 1.5%</div>
-            <div className="text-[#FFD700]">10{t('ladder.nStreak').replace('{n}', '')} → 2.5%</div>
+            <div className="text-[#C9A347]/70">{t('hreward.advancedZone')} (4-6连胜)</div>
+            <div className="text-[#FFD700]">4连胜 → 1.5%</div>
+            <div className="text-[#FFD700]">5连胜 → 3%</div>
+            <div className="text-[#FFD700]">6连胜 → 5%</div>
           </div>
           <div className="space-y-0.5 sm:space-y-1">
-            <div className="text-[#C9A347]/70">{t('hreward.eliteZone')} ({t('hreward.streakRange3')})</div>
-            <div className="text-[#FFD700]">11{t('ladder.nStreak').replace('{n}', '')} → 4%</div>
-            <div className="text-[#FFD700]">12{t('ladder.nStreak').replace('{n}', '')} → 6%</div>
-            <div className="text-[#FFD700]">13{t('ladder.nStreak').replace('{n}', '')} → 9%</div>
-            <div className="text-[#FFD700]">14{t('ladder.nStreak').replace('{n}', '')} → 13%</div>
-            <div className="text-[#FFD700]">15{t('ladder.nStreak').replace('{n}', '')} → 18%</div>
+            <div className="text-[#C9A347]/70">{t('hreward.eliteZone')} (7-9连胜)</div>
+            <div className="text-[#FFD700]">7连胜 → 10%</div>
+            <div className="text-[#FFD700]">8连胜 → 18%</div>
+            <div className="text-[#FFD700]">9连胜 → 30%</div>
           </div>
           <div className="space-y-0.5 sm:space-y-1">
-            <div className="text-[#C9A347]/70">{t('hreward.legendZone')} ({t('hreward.streakRange4')})</div>
-            <div className="text-[#FFD700]">16{t('ladder.nStreak').replace('{n}', '')} → 25%</div>
-            <div className="text-[#FFD700]">17{t('ladder.nStreak').replace('{n}', '')} → 35%</div>
-            <div className="text-[#FFD700]">18{t('ladder.nStreak').replace('{n}', '')} → 50%</div>
-            <div className="text-[#FFD700]">19{t('ladder.nStreak').replace('{n}', '')} → 70%</div>
-            <div className="text-[#FFD700]">20{t('ladder.nStreak').replace('{n}', '')} → 100% 🏆</div>
+            <div className="text-[#C9A347]/70">{t('hreward.legendZone')} (10-12连胜)</div>
+            <div className="text-[#FFD700]">10连胜 → 50%</div>
+            <div className="text-[#FFD700]">11连胜 → 70%</div>
+            <div className="text-[#FFD700]">12连胜 → 100% 👑</div>
           </div>
         </div>
         <div className="mt-2 sm:mt-3 lg:mt-4 pt-2 sm:pt-3 lg:pt-4 border-t border-[#C9A347]/15 text-[10px] sm:text-xs lg:text-sm text-[#C9A347]/60">
-          <strong className="text-[#FFD700]">{t('hreward.exampleNote')}</strong>
+          <strong className="text-[#FFD700]">示例：奖池10 BNB，12连胜清空奖池 = 10 BNB（扣除5%服务费后实际到手9.5 BNB）</strong>
         </div>
       </div>
 
