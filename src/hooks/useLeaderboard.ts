@@ -6,8 +6,10 @@ import { CYBER_HILO_ADDRESS, CYBER_HILO_ABI } from '@/config/contracts';
 const BSC_RPC = 'https://bsc-dataseed1.binance.org';
 const CONTRACT_ADDRESS = CYBER_HILO_ADDRESS.mainnet;
 
-// BSCScan API（免费版有速率限制但比 RPC 宽松）
-const BSCSCAN_API = 'https://api.bscscan.com/api';
+// Etherscan API V2（统一的多链 API）
+// BSC chainid = 56
+const ETHERSCAN_V2_API = 'https://api.etherscan.io/v2/api';
+const BSC_CHAIN_ID = 56;
 // GameCashedOut 事件的 topic0
 const GAME_CASHED_OUT_TOPIC = '0x340c7e0efa4aebe5bb15c89f558c061e1571b89465d352d428911984552cbcbf';
 
@@ -87,7 +89,7 @@ export function useLeaderboard() {
       const currentBlock = await provider.getBlockNumber();
       const fromBlock = Math.max(0, currentBlock - 5000); // 约 4 小时
 
-      const url = `${BSCSCAN_API}?module=logs&action=getLogs&address=${CONTRACT_ADDRESS}&topic0=${GAME_CASHED_OUT_TOPIC}&fromBlock=${fromBlock}&toBlock=${currentBlock}&page=1&offset=100`;
+      const url = `${ETHERSCAN_V2_API}?chainid=${BSC_CHAIN_ID}&module=logs&action=getLogs&address=${CONTRACT_ADDRESS}&topic0=${GAME_CASHED_OUT_TOPIC}&fromBlock=${fromBlock}&toBlock=${currentBlock}&page=1&offset=100`;
       
       const response = await fetch(url);
       const data = await response.json();
