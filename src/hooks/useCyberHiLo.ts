@@ -125,6 +125,9 @@ function toFriendlyTxError(err: unknown, fallback = '交易失败，请稍后重
   if (lower.includes('insufficient funds')) {
     return 'BNB Gas 不足：请确保钱包里有足够 BNB 支付手续费';
   }
+  if (lower.includes('pool insufficient for next level')) {
+    return '奖池可用余额不足以支撑下一级奖励，请收手兑现或选择其他猜测';
+  }
   if (lower.includes('prize pool too low') || lower.includes('pool too low')) {
     return '奖池可用余额不足，暂时无法开始游戏';
   }
