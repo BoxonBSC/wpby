@@ -250,9 +250,59 @@ export function HorizontalRewardTiers({ currentStreak, prizePool, currentBetTier
         </div>
       </div>
 
-      {/* 说明 */}
+      {/* 详细奖励说明 */}
+      <div 
+        className="mt-6 p-5 rounded-xl"
+        style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          border: '1px solid rgba(201, 163, 71, 0.15)',
+        }}
+      >
+        <div className="text-base text-[#C9A347] font-semibold mb-3">
+          📊 奖励百分比详解（占当前奖池比例）
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+          <div className="space-y-1">
+            <div className="text-[#C9A347]/70">入门区 (1-5连胜)</div>
+            <div className="text-[#FFD700]">1连胜 → 0.02%</div>
+            <div className="text-[#FFD700]">2连胜 → 0.05%</div>
+            <div className="text-[#FFD700]">3连胜 → 0.1%</div>
+            <div className="text-[#FFD700]">4连胜 → 0.15%</div>
+            <div className="text-[#FFD700]">5连胜 → 0.25%</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-[#C9A347]/70">进阶区 (6-10连胜)</div>
+            <div className="text-[#FFD700]">6连胜 → 0.4%</div>
+            <div className="text-[#FFD700]">7连胜 → 0.6%</div>
+            <div className="text-[#FFD700]">8连胜 → 1%</div>
+            <div className="text-[#FFD700]">9连胜 → 1.5%</div>
+            <div className="text-[#FFD700]">10连胜 → 2.5%</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-[#C9A347]/70">精英区 (11-15连胜)</div>
+            <div className="text-[#FFD700]">11连胜 → 4%</div>
+            <div className="text-[#FFD700]">12连胜 → 6%</div>
+            <div className="text-[#FFD700]">13连胜 → 9%</div>
+            <div className="text-[#FFD700]">14连胜 → 13%</div>
+            <div className="text-[#FFD700]">15连胜 → 18%</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-[#C9A347]/70">传奇区 (16-20连胜)</div>
+            <div className="text-[#FFD700]">16连胜 → 25%</div>
+            <div className="text-[#FFD700]">17连胜 → 35%</div>
+            <div className="text-[#FFD700]">18连胜 → 50%</div>
+            <div className="text-[#FFD700]">19连胜 → 70%</div>
+            <div className="text-[#FFD700]">20连胜 → 100% 🏆</div>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-[#C9A347]/15 text-sm text-[#C9A347]/60">
+          <strong className="text-[#FFD700]">💡 举例说明：</strong> 若当前奖池为 1 BNB，你连胜5次后收手，可获得 0.25% × 1 BNB = 0.0025 BNB（扣除5%手续费后实际到账 0.002375 BNB）
+        </div>
+      </div>
+
+      {/* 规则提示 */}
       <div className="mt-5 text-center text-base text-[#C9A347]/50 space-y-2">
-        <div>💡 <strong>规则说明</strong>: 每次猜对+1连胜，奖励随连胜数增加</div>
+        <div>💡 <strong>规则说明</strong>: 每次猜对+1连胜，奖励随连胜数增加（非累加，达到几连胜就按对应比例领取）</div>
         <div>🎯 随时可点「收手」领取当前奖励 · 猜错则失去所有累积</div>
       </div>
     </div>
