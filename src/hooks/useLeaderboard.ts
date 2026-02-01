@@ -1,14 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Contract, JsonRpcProvider, formatEther } from 'ethers';
 import { CYBER_HILO_ADDRESS, CYBER_HILO_ABI } from '@/config/contracts';
+import { supabase } from '@/integrations/supabase/client';
 
-// 使用多个 BSC RPC 节点做负载均衡
-const BSC_RPC_LIST = [
-  'https://bsc-dataseed1.binance.org',
-  'https://bsc-dataseed2.binance.org',
-  'https://bsc-dataseed3.binance.org',
-  'https://bsc-dataseed4.binance.org',
-];
+// BSC RPC 用于读取合约状态
+const BSC_RPC = 'https://bsc-dataseed1.binance.org';
 const CONTRACT_ADDRESS = CYBER_HILO_ADDRESS.mainnet;
 
 // GameCashedOut 事件的 topic0
@@ -36,8 +32,8 @@ export interface GlobalStats {
   totalPlayers: number;
 }
 
-// 解析事件数据（来自 eth_getLogs RPC）
-function parseGameCashedOutEvent(log: any): { player: string; playerPrize: number; streak: number } | null {
+// 解析事件数据（来自 Etherscan API）
+function parseGameCashedOutEvent(log: any): { player: string; playerPrize: number; streak: number; timestamp: number } | null {
   try {
     // topics: [event_sig, indexed_player]
     // data: [grossPrize, playerPrize, finalStreak] (non-indexed)
@@ -45,55 +41,46 @@ function parseGameCashedOutEvent(log: any): { player: string; playerPrize: numbe
     const data = log.data.slice(2); // 移除 0x
     
     // 每个参数 64 个字符（32 字节）
-    // grossPrize (uint256) - 我们不需要
-    // playerPrize (uint256)
-    // finalStreak (uint8)
     const playerPrizeHex = data.slice(64, 128);
     const streakHex = data.slice(128, 192);
     
     const playerPrize = Number(BigInt('0x' + playerPrizeHex)) / 1e18;
     const streak = Number(BigInt('0x' + streakHex));
+    // Etherscan 返回的时间戳是十六进制
+    const timestamp = parseInt(log.timeStamp, 16) * 1000;
     
-    return { player, playerPrize, streak };
+    return { player, playerPrize, streak, timestamp };
   } catch (e) {
     console.error('Failed to parse event:', e);
     return null;
   }
 }
 
-// 使用 JSON-RPC 直接调用 eth_getLogs
-async function fetchLogsViaRPC(fromBlock: number, toBlock: number): Promise<any[]> {
-  const rpcUrl = BSC_RPC_LIST[Math.floor(Math.random() * BSC_RPC_LIST.length)];
-  
-  const response = await fetch(rpcUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'eth_getLogs',
-      params: [{
-        address: CONTRACT_ADDRESS,
-        topics: [GAME_CASHED_OUT_TOPIC],
-        fromBlock: '0x' + fromBlock.toString(16),
-        toBlock: '0x' + toBlock.toString(16),
-      }],
-    }),
+// 通过 Edge Function 调用 Etherscan V2 API
+async function fetchLogsViaEdgeFunction(fromBlock: number, toBlock: number): Promise<any[]> {
+  const { data, error } = await supabase.functions.invoke('get-bsc-logs', {
+    body: null,
+    headers: {},
   });
-  
-  const data = await response.json();
-  if (data.error) {
-    console.error('RPC error:', data.error);
-    return [];
-  }
-  return data.result || [];
-}
 
-// 根据区块号估算时间戳（BSC 约 3 秒/块）
-function estimateTimestamp(blockNumber: number, currentBlock: number): number {
-  const blockDiff = currentBlock - blockNumber;
-  const secondsAgo = blockDiff * 3; // BSC 约 3 秒一个区块
-  return Date.now() - (secondsAgo * 1000);
+  // 使用 URL 参数方式调用
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-bsc-logs?address=${CONTRACT_ADDRESS}&topic0=${GAME_CASHED_OUT_TOPIC}&fromBlock=${fromBlock}&toBlock=${toBlock}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+    }
+  );
+
+  const result = await response.json();
+  
+  if (result.status === '1' && Array.isArray(result.result)) {
+    return result.result;
+  }
+  
+  console.error('Etherscan API error:', result);
+  return [];
 }
 
 export function useLeaderboard() {
@@ -113,8 +100,7 @@ export function useLeaderboard() {
 
     try {
       // 1. 从合约读取全局统计
-      const rpcUrl = BSC_RPC_LIST[0];
-      const provider = new JsonRpcProvider(rpcUrl);
+      const provider = new JsonRpcProvider(BSC_RPC);
       const contract = new Contract(CONTRACT_ADDRESS, CYBER_HILO_ABI, provider);
 
       const [totalGames, totalPaidOut] = await Promise.all([
@@ -122,55 +108,44 @@ export function useLeaderboard() {
         contract.totalPaidOut(),
       ]);
 
-      // 2. 使用原生 eth_getLogs RPC 获取事件日志（免费）
+      // 2. 通过 Edge Function 调用 Etherscan V2 API 获取事件日志
       const currentBlock = await provider.getBlockNumber();
-      // BSC 公共 RPC 限制很严格，每批只查 100 个区块
-      const batchSize = 100;
-      const totalBlocks = 2000; // 约 1.5 小时（减少请求数）
+      const totalBlocks = 50000; // 约 1.5 天的数据
       const fromBlock = Math.max(0, currentBlock - totalBlocks);
 
       const playerData = new Map<string, LeaderboardEntry>();
       const recent: RecentWin[] = [];
 
-      // 串行获取日志（避免并行请求被限流）
-      for (let start = fromBlock; start < currentBlock; start += batchSize) {
-        const end = Math.min(start + batchSize - 1, currentBlock);
-        try {
-          const logs = await fetchLogsViaRPC(start, end);
-          
-          for (const log of logs) {
-            const parsed = parseGameCashedOutEvent(log);
-            if (!parsed) continue;
+      // 使用 Edge Function 获取日志（单次请求，无需分批）
+      const logs = await fetchLogsViaEdgeFunction(fromBlock, currentBlock);
+      
+      for (const log of logs) {
+        const parsed = parseGameCashedOutEvent(log);
+        if (!parsed) continue;
 
-            const { player, playerPrize, streak } = parsed;
-            const blockNum = parseInt(log.blockNumber, 16);
-            const timestamp = estimateTimestamp(blockNum, currentBlock);
+        const { player, playerPrize, streak, timestamp } = parsed;
 
-            const existing = playerData.get(player.toLowerCase()) || {
-              player,
-              totalWins: 0,
-              totalBnbWon: 0,
-              maxStreak: 0,
-              lastWinTime: 0,
-            };
+        const existing = playerData.get(player.toLowerCase()) || {
+          player,
+          totalWins: 0,
+          totalBnbWon: 0,
+          maxStreak: 0,
+          lastWinTime: 0,
+        };
 
-            existing.totalWins += 1;
-            existing.totalBnbWon += playerPrize;
-            existing.maxStreak = Math.max(existing.maxStreak, streak);
-            existing.lastWinTime = Math.max(existing.lastWinTime, timestamp);
-            playerData.set(player.toLowerCase(), existing);
+        existing.totalWins += 1;
+        existing.totalBnbWon += playerPrize;
+        existing.maxStreak = Math.max(existing.maxStreak, streak);
+        existing.lastWinTime = Math.max(existing.lastWinTime, timestamp);
+        playerData.set(player.toLowerCase(), existing);
 
-            recent.push({
-              player,
-              bnbWon: playerPrize,
-              streak,
-              timestamp,
-              txHash: log.transactionHash,
-            });
-          }
-        } catch (e) {
-          console.warn('Batch failed, continuing:', e);
-        }
+        recent.push({
+          player,
+          bnbWon: playerPrize,
+          streak,
+          timestamp,
+          txHash: log.transactionHash,
+        });
       }
 
       // 排序
