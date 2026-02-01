@@ -43,7 +43,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     uint256 public minPrizePool = 0.01 ether;
     address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     uint256 public constant REQUEST_TIMEOUT = 30 minutes;
-    uint256 public constant GAME_TIMEOUT = 10 minutes;
+    uint256 public constant GAME_IDLE_TIMEOUT = 10 minutes;
     
     uint256 public totalLockedRewards;
     mapping(address => uint256) public playerLockedReward;
@@ -70,7 +70,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         uint8 currentCard;
         uint8 currentStreak;
         uint256 prizePoolSnapshot;
-        uint256 timestamp;
+        uint256 lastActionTime;
         bool active;
     }
     
@@ -102,8 +102,9 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     event CreditsDeposited(address indexed player, uint256 amount);
     event CreditsUsed(address indexed player, uint256 amount);
     event EmergencyPrizeRescued(address indexed player, address indexed recipient, uint256 amount);
-    event GameTimedOut(address indexed player, address indexed caller, uint8 streak, uint256 releasedLock);
+    event GameIdleTimeout(address indexed player, address indexed caller, uint8 streak, uint256 releasedLock);
     event PoolInsufficientForceSettled(address indexed player, uint8 streak, uint256 available, uint256 needed);
+    event RequestCancelled(address indexed player, uint256 indexed requestId, uint8 streak);
     
     constructor(
         address _vrfCoordinator,
@@ -183,7 +184,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
             currentCard: firstCard,
             currentStreak: 0,
             prizePoolSnapshot: currentPool,
-            timestamp: block.timestamp,
+            lastActionTime: block.timestamp,
             active: true
         });
         
@@ -218,6 +219,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         require(session.currentStreak < maxStreak, "Max streak reached, cash out");
         
         _checkPoolForNextLevel(session, guessType, maxStreak);
+        
+        session.lastActionTime = block.timestamp;
         
         requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
@@ -269,6 +272,8 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         
         GameSession storage session = gameSessions[request.player];
         require(session.active, "No active game");
+        
+        session.lastActionTime = block.timestamp;
         
         uint8 newCard = uint8((randomWords[0] % 13) + 1);
         uint8 oldCard = session.currentCard;
@@ -475,22 +480,20 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         _releaseLock(msg.sender);
         
         GameSession storage session = gameSessions[msg.sender];
+        uint8 streak = session.currentStreak;
         if (session.active) {
             session.active = false;
-            emit GameLost(msg.sender, session.currentStreak);
         }
+        
+        emit RequestCancelled(msg.sender, reqId, streak);
+        emit GameLost(msg.sender, streak);
     }
     
-    function forceEndTimedOutGame(address player) external nonReentrant {
+    function forceEndIdleGame(address player) external nonReentrant {
         GameSession storage session = gameSessions[player];
         require(session.active, "No active game");
-        require(block.timestamp > session.timestamp + GAME_TIMEOUT, "Game not timed out");
-        
-        uint256 reqId = pendingRequest[player];
-        if (reqId != 0) {
-            vrfRequests[reqId].fulfilled = true;
-            pendingRequest[player] = 0;
-        }
+        require(pendingRequest[player] == 0, "Has pending VRF request, use cancelStuckRequest instead");
+        require(block.timestamp > session.lastActionTime + GAME_IDLE_TIMEOUT, "Game not idle long enough");
         
         uint256 lockedAmount = playerLockedReward[player];
         _releaseLock(player);
@@ -498,7 +501,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         uint8 streak = session.currentStreak;
         session.active = false;
         
-        emit GameTimedOut(player, msg.sender, streak, lockedAmount);
+        emit GameIdleTimeout(player, msg.sender, streak, lockedAmount);
     }
     
     function isValidBetAmount(uint256 amount) public view returns (bool) {
@@ -667,9 +670,12 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         _releaseLock(player);
         
         GameSession storage session = gameSessions[player];
+        uint8 streak = session.currentStreak;
         if (session.active) {
             session.active = false;
-            emit GameLost(player, session.currentStreak);
         }
+        
+        emit RequestCancelled(player, reqId, streak);
+        emit GameLost(player, streak);
     }
 }
