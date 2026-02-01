@@ -146,65 +146,94 @@ export function HorizontalRewardTiers({ currentStreak, prizePool, currentBetTier
                     <motion.div
                       key={tier.streak}
                       initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      whileHover={{ scale: 1.05 }}
+                      animate={{ 
+                        opacity: 1, 
+                        scale: 1,
+                        boxShadow: isCurrent 
+                          ? ['0 0 8px rgba(255, 215, 0, 0.4)', '0 0 20px rgba(255, 215, 0, 0.8)', '0 0 8px rgba(255, 215, 0, 0.4)']
+                          : 'none'
+                      }}
+                      transition={{
+                        boxShadow: {
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: 'easeInOut'
+                        }
+                      }}
+                      whileHover={{ scale: 1.08, boxShadow: '0 0 15px rgba(255, 215, 0, 0.5)' }}
                       className={`
-                        relative flex flex-col items-center py-1.5 px-1 rounded-lg transition-all cursor-default
-                        ${isCurrent ? 'ring-2 ring-[#FFD700] ring-offset-1 ring-offset-black z-10' : ''}
-                        ${!isUnlocked ? 'opacity-40' : ''}
+                        relative flex flex-col items-center py-2 px-1.5 rounded-xl transition-all cursor-default
+                        ${isCurrent ? 'ring-2 ring-[#FFD700] ring-offset-2 ring-offset-black z-10' : ''}
+                        ${!isUnlocked ? 'opacity-30 grayscale' : ''}
                       `}
                       style={{
                         background: isActive 
-                          ? tierColors.bg
-                          : 'rgba(0, 0, 0, 0.25)',
-                        border: `1px solid ${isActive ? tierColors.border + '60' : 'rgba(201, 163, 71, 0.1)'}`,
+                          ? `linear-gradient(135deg, ${tierColors.bg}, rgba(0,0,0,0.4))`
+                          : 'rgba(0, 0, 0, 0.3)',
+                        border: `1px solid ${isActive ? tierColors.border + '80' : 'rgba(201, 163, 71, 0.15)'}`,
+                        backdropFilter: 'blur(4px)',
                       }}
                     >
-                      {/* 连胜数 + 百分比 */}
-                      <div className="flex items-center gap-1">
+                      {/* 里程碑标签 */}
+                      {tier.milestone && (
                         <div 
-                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px]"
+                          className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full text-[8px] font-bold whitespace-nowrap"
                           style={{
-                            background: isActive ? tierColors.border : 'rgba(201, 163, 71, 0.15)',
-                            color: isActive ? '#000' : tierColors.text,
+                            background: `linear-gradient(135deg, ${tierColors.border}, ${tierColors.border}80)`,
+                            color: '#000',
+                            boxShadow: `0 2px 8px ${tierColors.border}60`,
                           }}
                         >
-                          {tier.streak}
+                          {tier.milestone.emoji} {tier.milestone.label}
                         </div>
-                        {tier.milestone && (
-                          <span className="text-[10px]">{tier.milestone.emoji}</span>
-                        )}
+                      )}
+
+                      {/* 连胜数徽章 */}
+                      <div 
+                        className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-lg"
+                        style={{
+                          background: isActive 
+                            ? `linear-gradient(135deg, ${tierColors.border}, ${tierColors.border}90)`
+                            : 'rgba(201, 163, 71, 0.15)',
+                          color: isActive ? '#000' : tierColors.text,
+                          border: `2px solid ${isActive ? tierColors.border : 'transparent'}`,
+                        }}
+                      >
+                        {tier.streak}
                       </div>
 
                       {/* 百分比 */}
                       <div 
-                        className="font-bold text-xs mt-0.5"
-                        style={{ color: isActive ? '#FFD700' : 'rgba(255, 215, 0, 0.4)' }}
+                        className="font-bold text-sm mt-1"
+                        style={{ 
+                          color: isActive ? '#FFD700' : 'rgba(255, 215, 0, 0.35)',
+                          textShadow: isActive ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none',
+                        }}
                       >
                         {tier.percentage}%
                       </div>
 
                       {/* 奖励金额 */}
                       <div 
-                        className="text-[8px]"
-                        style={{ color: isActive ? '#FFD700' : 'rgba(255, 215, 0, 0.25)' }}
+                        className="text-[9px] font-medium"
+                        style={{ color: isActive ? '#C9A347' : 'rgba(201, 163, 71, 0.3)' }}
                       >
                         ≈{reward.toFixed(3)}
                       </div>
 
-                      {/* 当前指示器 */}
+                      {/* 当前选中发光指示器 */}
                       {isCurrent && (
                         <motion.div
-                          className="absolute -top-1 left-1/2 -translate-x-1/2"
-                          initial={{ y: -3, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
+                          className="absolute -bottom-1 left-1/2 -translate-x-1/2"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 1, repeat: Infinity }}
                         >
                           <div 
-                            className="w-0 h-0"
+                            className="w-2 h-2 rounded-full"
                             style={{
-                              borderLeft: '4px solid transparent',
-                              borderRight: '4px solid transparent',
-                              borderTop: '5px solid #FFD700',
+                              background: '#FFD700',
+                              boxShadow: '0 0 8px #FFD700, 0 0 16px #FFD700',
                             }}
                           />
                         </motion.div>
