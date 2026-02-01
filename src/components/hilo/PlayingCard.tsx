@@ -9,14 +9,18 @@ interface PlayingCardProps {
 }
 
 export function PlayingCard({ card, isFlipped = false, isNew = false, size = 'lg' }: PlayingCardProps) {
+  // 响应式：在移动端使用较小的尺寸
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const effectiveSize = isMobile && size === 'lg' ? 'md' : size;
+  
   const sizeClasses = {
-    sm: { width: 64, height: 96, fontSize: '1.125rem' },
-    md: { width: 96, height: 144, fontSize: '1.5rem' },
-    lg: { width: 128, height: 192, fontSize: '2.25rem' },
+    sm: { width: 56, height: 84, fontSize: '1rem' },
+    md: { width: 80, height: 120, fontSize: '1.25rem' },
+    lg: { width: 120, height: 180, fontSize: '2rem' },
   };
 
   const suitColor = card ? SUIT_COLORS[card.suit] : '#C9A347';
-  const sizeStyle = sizeClasses[size];
+  const sizeStyle = sizeClasses[effectiveSize];
 
   return (
     <div 
