@@ -82,6 +82,7 @@ export function HiLoGame() {
     prizePool,
     availablePool,
     totalBurned,
+    totalPaidOut,
     gameCredits,
     gameSession,
     pendingRequest,
@@ -737,7 +738,7 @@ export function HiLoGame() {
                 </div>
               </div>
 
-              {/* 我的凭证 + 安全连胜 */}
+              {/* 已派发奖励 */}
               <div 
                 className="rounded-xl p-2.5 sm:p-4"
                 style={{
@@ -751,36 +752,16 @@ export function HiLoGame() {
                     className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-lg flex-shrink-0"
                     style={{ background: 'rgba(0, 255, 200, 0.2)' }}
                   >
-                    🎫
+                    💵
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[9px] sm:text-xs truncate" style={{ color: 'rgba(0, 255, 200, 0.7)' }}>{t('hilo.myCredits')}</div>
+                    <div className="text-[9px] sm:text-xs truncate" style={{ color: 'rgba(0, 255, 200, 0.7)' }}>{t('hilo.totalPaidOut')}</div>
                     <div 
                       className="text-sm sm:text-xl font-bold truncate"
                       style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
                     >
-                      {credits >= 1000000 
-                        ? `${(credits / 1000000).toFixed(2)}M`
-                        : credits >= 1000
-                        ? `${(credits / 1000).toFixed(1)}K`
-                        : Math.floor(credits).toLocaleString()
-                      }
+                      {Number(totalPaidOut).toFixed(4)} <span className="text-[10px] sm:text-sm">BNB</span>
                     </div>
-                    {/* 安全连胜提示 */}
-                    {gameState === 'idle' && (
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <span 
-                          className="text-[8px] sm:text-[10px]" 
-                          style={{ 
-                            color: poolStatus === 'good' ? 'rgba(0, 255, 200, 0.8)' 
-                                 : poolStatus === 'warning' ? 'rgba(255, 200, 0, 0.8)' 
-                                 : 'rgba(255, 100, 100, 0.8)'
-                          }}
-                        >
-                          {t('hilo.safeStreak')}: {safeStreak}/{selectedTierMaxStreak}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
