@@ -2,18 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { Contract, JsonRpcProvider, formatEther } from 'ethers';
 import { CYBER_HILO_ADDRESS, CYBER_HILO_ABI } from '@/config/contracts';
 
-// 多个 BSC RPC 节点轮换使用，避免速率限制
-const BSC_RPCS = [
-  'https://bsc-dataseed1.binance.org',
-  'https://bsc-dataseed2.binance.org',
-  'https://bsc-dataseed3.binance.org',
-  'https://bsc-dataseed4.binance.org',
-];
-
+// BSC RPC（只用于读取合约状态，不用于查询日志）
+const BSC_RPC = 'https://bsc-dataseed1.binance.org';
 const CONTRACT_ADDRESS = CYBER_HILO_ADDRESS.mainnet;
 
-// 获取随机 RPC
-const getRandomRpc = () => BSC_RPCS[Math.floor(Math.random() * BSC_RPCS.length)];
+// BSCScan API（免费版有速率限制但比 RPC 宽松）
+const BSCSCAN_API = 'https://api.bscscan.com/api';
+// GameCashedOut 事件的 topic0
+const GAME_CASHED_OUT_TOPIC = '0x340c7e0efa4aebe5bb15c89f558c061e1571b89465d352d428911984552cbcbf';
 
 export interface LeaderboardEntry {
   player: string;
@@ -37,6 +33,31 @@ export interface GlobalStats {
   totalPlayers: number;
 }
 
+// 解析事件数据
+function parseGameCashedOutEvent(log: any): { player: string; playerPrize: number; streak: number } | null {
+  try {
+    // topics: [event_sig, indexed_player]
+    // data: [grossPrize, playerPrize, finalStreak] (non-indexed)
+    const player = '0x' + log.topics[1].slice(26); // 从 topic 中提取地址
+    const data = log.data.slice(2); // 移除 0x
+    
+    // 每个参数 64 个字符（32 字节）
+    // grossPrize (uint256) - 我们不需要
+    // playerPrize (uint256)
+    // finalStreak (uint8)
+    const playerPrizeHex = data.slice(64, 128);
+    const streakHex = data.slice(128, 192);
+    
+    const playerPrize = Number(BigInt('0x' + playerPrizeHex)) / 1e18;
+    const streak = Number(BigInt('0x' + streakHex));
+    
+    return { player, playerPrize, streak };
+  } catch (e) {
+    console.error('Failed to parse event:', e);
+    return null;
+  }
+}
+
 export function useLeaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [recentWins, setRecentWins] = useState<RecentWin[]>([]);
@@ -53,80 +74,66 @@ export function useLeaderboard() {
     setError(null);
 
     try {
-      // 使用随机 RPC 避免速率限制
-      const provider = new JsonRpcProvider(getRandomRpc());
+      // 1. 从合约读取全局统计
+      const provider = new JsonRpcProvider(BSC_RPC);
       const contract = new Contract(CONTRACT_ADDRESS, CYBER_HILO_ABI, provider);
 
-      // 获取合约统计数据
       const [totalGames, totalPaidOut] = await Promise.all([
         contract.totalGames(),
         contract.totalPaidOut(),
       ]);
 
-      // 缩小查询范围到 2000 个区块（约 1.5 小时），避免速率限制
+      // 2. 使用 BSCScan API 获取事件日志（比 RPC 更宽松）
       const currentBlock = await provider.getBlockNumber();
-      const fromBlock = Math.max(0, currentBlock - 2000);
+      const fromBlock = Math.max(0, currentBlock - 5000); // 约 4 小时
 
-      // 查询 GameCashedOut 事件
-      const filter = contract.filters.GameCashedOut();
-      let events: any[] = [];
+      const url = `${BSCSCAN_API}?module=logs&action=getLogs&address=${CONTRACT_ADDRESS}&topic0=${GAME_CASHED_OUT_TOPIC}&fromBlock=${fromBlock}&toBlock=${currentBlock}&page=1&offset=100`;
       
-      try {
-        events = await contract.queryFilter(filter, fromBlock, currentBlock);
-      } catch (e) {
-        // 如果仍然触发限制，尝试更小的范围
-        console.log('First query failed, trying smaller range...');
-        const smallerFromBlock = Math.max(0, currentBlock - 500);
-        events = await contract.queryFilter(filter, smallerFromBlock, currentBlock);
-      }
+      const response = await fetch(url);
+      const data = await response.json();
 
-      // 处理事件数据 - 使用区块号估算时间戳，避免额外 RPC 调用
       const playerData = new Map<string, LeaderboardEntry>();
       const recent: RecentWin[] = [];
-      const baseTimestamp = Date.now();
-      const blockTime = 3000; // BSC 约 3 秒一个区块
 
-      for (const event of events) {
-        const log = event as any;
-        const player = log.args[0] as string;
-        const playerPrize = Number(formatEther(log.args[2]));
-        const finalStreak = Number(log.args[3]);
-        
-        // 估算时间戳（避免为每个事件调用 getBlock）
-        const blocksAgo = currentBlock - event.blockNumber;
-        const estimatedTimestamp = baseTimestamp - (blocksAgo * blockTime);
+      if (data.status === '1' && Array.isArray(data.result)) {
+        for (const log of data.result) {
+          const parsed = parseGameCashedOutEvent(log);
+          if (!parsed) continue;
 
-        // 更新排行榜数据
-        const existing = playerData.get(player) || {
-          player,
-          totalWins: 0,
-          totalBnbWon: 0,
-          maxStreak: 0,
-          lastWinTime: 0,
-        };
+          const { player, playerPrize, streak } = parsed;
+          const timestamp = Number(log.timeStamp) * 1000;
 
-        existing.totalWins += 1;
-        existing.totalBnbWon += playerPrize;
-        existing.maxStreak = Math.max(existing.maxStreak, finalStreak);
-        existing.lastWinTime = Math.max(existing.lastWinTime, estimatedTimestamp);
-        playerData.set(player, existing);
+          // 更新排行榜
+          const existing = playerData.get(player.toLowerCase()) || {
+            player,
+            totalWins: 0,
+            totalBnbWon: 0,
+            maxStreak: 0,
+            lastWinTime: 0,
+          };
 
-        // 添加到最近获胜列表
-        recent.push({
-          player,
-          bnbWon: playerPrize,
-          streak: finalStreak,
-          timestamp: estimatedTimestamp,
-          txHash: event.transactionHash,
-        });
+          existing.totalWins += 1;
+          existing.totalBnbWon += playerPrize;
+          existing.maxStreak = Math.max(existing.maxStreak, streak);
+          existing.lastWinTime = Math.max(existing.lastWinTime, timestamp);
+          playerData.set(player.toLowerCase(), existing);
+
+          // 添加到最近获胜
+          recent.push({
+            player,
+            bnbWon: playerPrize,
+            streak,
+            timestamp,
+            txHash: log.transactionHash,
+          });
+        }
       }
 
-      // 按总赢利排序
+      // 排序
       const sortedLeaderboard = Array.from(playerData.values())
         .sort((a, b) => b.totalBnbWon - a.totalBnbWon)
         .slice(0, 10);
 
-      // 最近获胜按时间排序
       const sortedRecent = recent
         .sort((a, b) => b.timestamp - a.timestamp)
         .slice(0, 20);
@@ -150,8 +157,8 @@ export function useLeaderboard() {
   useEffect(() => {
     fetchLeaderboardData();
     
-    // 每 60 秒刷新一次（降低频率避免限制）
-    const interval = setInterval(fetchLeaderboardData, 60000);
+    // 每 2 分钟刷新一次
+    const interval = setInterval(fetchLeaderboardData, 120000);
     return () => clearInterval(interval);
   }, [fetchLeaderboardData]);
 
