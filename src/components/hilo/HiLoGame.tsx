@@ -118,6 +118,10 @@ export function HiLoGame() {
 
   // 防止重复结算同一轮猜测
   const settledGuessRef = useRef<string | null>(null);
+
+  // 防止“交易尚未发起/尚未产生 VRF 请求”时误触发结算（例如钱包弹窗确认授权阶段）
+  // 只有当本轮曾出现过 pendingRequest > 0 时，才允许进入“VRF 完成 -> 结算”分支。
+  const sawPendingRequestRef = useRef(false);
   
   // 获取实际使用的凭证余额
   const credits = Number(gameCredits);
@@ -156,10 +160,20 @@ export function HiLoGame() {
     }
   }, [gameSession, gameState, isRevealing, pendingGuess]);
 
+  // 记录本轮是否已经真正产生过 VRF 请求
+  useEffect(() => {
+    if (pendingRequest > 0n) {
+      sawPendingRequestRef.current = true;
+    }
+  }, [pendingRequest]);
+
   // VRF 完成后：结算本轮猜测，展示结果并解除"揭示中"卡死
   useEffect(() => {
     if (!pendingGuess || !gameSession) return;
     if (!isRevealing) return;
+
+    // 关键：如果本轮还没出现过 pendingRequest>0（仍处于钱包确认/授权阶段），不要结算。
+    if (!sawPendingRequestRef.current) return;
 
     // 等待 VRF 完成（pendingRequest 清零）
     if (isWaitingVRF || pendingRequest !== 0n) return;
@@ -193,6 +207,9 @@ export function HiLoGame() {
       setNextCard(null);
       setIsRevealing(false);
       setPendingGuess(null);
+
+      // 结束本轮，复位 guard
+      sawPendingRequestRef.current = false;
 
       // 判断游戏结果：
       // 1. 猜错 -> lost
@@ -291,12 +308,17 @@ export function HiLoGame() {
     setGuessCorrect(null);
     setNextCard(null);
     setPendingGuess({ guess, prevValue: currentCard.value });
+
+    // 本轮开始：先把“已见到 pendingRequest”标记清零，避免 pendingRequest 仍为 0 时被误判成“已完成”
+    sawPendingRequestRef.current = false;
+
     setIsRevealing(true);
     const txHash = await contractGuess(guess);
     
     if (!txHash) {
       setIsRevealing(false);
       setPendingGuess(null);
+      sawPendingRequestRef.current = false;
       return;
     }
     
