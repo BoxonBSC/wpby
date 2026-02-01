@@ -263,6 +263,50 @@ export function HiLoGame() {
 
           {/* 中间 - 游戏区 */}
           <div className="lg:col-span-6">
+            {/* 奖池显示 */}
+            <div 
+              className="mb-4 rounded-xl p-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(201, 163, 71, 0.08) 100%)',
+                border: '1px solid rgba(255, 215, 0, 0.3)',
+                boxShadow: '0 0 30px rgba(255, 215, 0, 0.1)',
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                    style={{ background: 'rgba(255, 215, 0, 0.2)' }}
+                  >
+                    💰
+                  </div>
+                  <div>
+                    <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>当前奖池</div>
+                    <div 
+                      className="text-2xl font-bold"
+                      style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
+                    >
+                      {Number(prizePool).toFixed(4)} BNB
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>我的凭证</div>
+                  <div 
+                    className="text-xl font-bold"
+                    style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
+                  >
+                    {credits >= 1000000 
+                      ? `${(credits / 1000000).toFixed(2)}M`
+                      : credits >= 1000
+                      ? `${(credits / 1000).toFixed(1)}K`
+                      : Math.floor(credits).toLocaleString()
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div 
               className="rounded-2xl p-6 relative"
               style={{

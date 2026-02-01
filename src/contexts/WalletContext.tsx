@@ -62,34 +62,52 @@ const BNB_TESTNET_CHAIN_ID = 97;
 
 // 检测可用钱包
 function detectWallets(): WalletInfo[] {
+  const win = typeof window !== 'undefined' ? window : null;
+  
+  // OKX钱包检测 - 支持多种注入方式
+  const hasOkx = win && (
+    !!(win as unknown as { okxwallet?: unknown }).okxwallet ||
+    (win.ethereum as unknown as { isOkxWallet?: boolean })?.isOkxWallet ||
+    (win.ethereum as unknown as { isOKExWallet?: boolean })?.isOKExWallet
+  );
+  
+  const getOkxProvider = () => {
+    if (!win) return undefined;
+    const okxWin = win as unknown as { okxwallet?: unknown };
+    if (okxWin.okxwallet) return okxWin.okxwallet;
+    const eth = win.ethereum as unknown as { isOkxWallet?: boolean; isOKExWallet?: boolean };
+    if (eth?.isOkxWallet || eth?.isOKExWallet) return win.ethereum;
+    return undefined;
+  };
+
   const wallets: WalletInfo[] = [
     {
       id: 'metamask',
       name: 'MetaMask (小狐狸)',
       icon: '🦊',
-      detected: typeof window !== 'undefined' && !!window.ethereum?.isMetaMask,
-      provider: typeof window !== 'undefined' ? window.ethereum : undefined,
+      detected: !!(win?.ethereum as unknown as { isMetaMask?: boolean })?.isMetaMask,
+      provider: win?.ethereum,
     },
     {
       id: 'okx',
       name: 'OKX Wallet',
       icon: '⭕',
-      detected: typeof window !== 'undefined' && !!window.okxwallet,
-      provider: typeof window !== 'undefined' ? window.okxwallet : undefined,
+      detected: !!hasOkx,
+      provider: getOkxProvider(),
     },
     {
       id: 'binance',
       name: 'Binance Wallet (币安)',
       icon: '🟡',
-      detected: typeof window !== 'undefined' && !!window.BinanceChain,
-      provider: typeof window !== 'undefined' ? window.BinanceChain : undefined,
+      detected: !!win?.BinanceChain,
+      provider: win?.BinanceChain,
     },
     {
       id: 'tokenpocket',
       name: 'TokenPocket (TP)',
       icon: '🔵',
-      detected: typeof window !== 'undefined' && !!window.tokenpocket,
-      provider: typeof window !== 'undefined' ? window.tokenpocket : undefined,
+      detected: !!win?.tokenpocket,
+      provider: win?.tokenpocket,
     },
   ];
 
@@ -98,17 +116,29 @@ function detectWallets(): WalletInfo[] {
 
 // 获取钱包Provider
 function getWalletProvider(walletType: WalletType): unknown | null {
+  const win = window as unknown as {
+    ethereum?: unknown;
+    okxwallet?: unknown;
+    BinanceChain?: unknown;
+    tokenpocket?: unknown;
+  };
+  
   switch (walletType) {
     case 'metamask':
-      return window.ethereum;
-    case 'okx':
-      return window.okxwallet || window.ethereum;
+      return win.ethereum;
+    case 'okx': {
+      // OKX钱包优先使用独立注入，否则检查ethereum对象
+      if (win.okxwallet) return win.okxwallet;
+      const eth = win.ethereum as { isOkxWallet?: boolean; isOKExWallet?: boolean } | undefined;
+      if (eth?.isOkxWallet || eth?.isOKExWallet) return win.ethereum;
+      return null;
+    }
     case 'binance':
-      return window.BinanceChain || window.ethereum;
+      return win.BinanceChain || win.ethereum;
     case 'tokenpocket':
-      return window.tokenpocket || window.ethereum;
+      return win.tokenpocket || win.ethereum;
     default:
-      return window.ethereum;
+      return win.ethereum;
   }
 }
 
