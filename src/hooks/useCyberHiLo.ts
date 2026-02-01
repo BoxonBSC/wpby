@@ -66,6 +66,14 @@ export interface VRFWaitingState {
   pollCount: number;
 }
 
+// 强制结算原因
+export interface ForceSettledEvent {
+  streak: number;
+  available: string;
+  needed: string;
+  timestamp: number;
+}
+
 export interface UseCyberHiLoReturn extends HiLoContractState {
   startGame: (betAmount: number) => Promise<number | null>; // 返回首张牌
   guess: (guessType: 'higher' | 'lower' | 'same') => Promise<string | null>;
@@ -80,6 +88,8 @@ export interface UseCyberHiLoReturn extends HiLoContractState {
   isWaitingVRF: boolean;
   vrfState: VRFWaitingState;
   lastGuessResult: GuessResultEvent | null;
+  forceSettledReason: ForceSettledEvent | null;
+  clearForceSettledReason: () => void;
 }
 
 const USE_TESTNET = false;
@@ -192,6 +202,11 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     pollCount: 0,
   });
   const [lastGuessResult, setLastGuessResult] = useState<GuessResultEvent | null>(null);
+  const [forceSettledReason, setForceSettledReason] = useState<ForceSettledEvent | null>(null);
+  
+  const clearForceSettledReason = useCallback(() => {
+    setForceSettledReason(null);
+  }, []);
   
   const signerContractRef = useRef<Contract | null>(null);
   const tokenContractRef = useRef<Contract | null>(null);
@@ -757,6 +772,51 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     return () => clearInterval(interval);
   }, [isConnected, address, isPlaying, isWaitingVRF, refreshUserData]);
 
+  // 监听奖池不足强制结算事件
+  useEffect(() => {
+    const contract = readOnlyContractRef.current;
+    if (!contract || !address) return;
+
+    const handleForceSettled = (
+      player: string,
+      streak: bigint,
+      available: bigint,
+      needed: bigint
+    ) => {
+      // 只处理当前用户的事件
+      if (player.toLowerCase() !== address.toLowerCase()) return;
+      
+      console.log('[CyberHiLo] PoolInsufficientForceSettled event:', {
+        player,
+        streak: Number(streak),
+        available: formatEther(available),
+        needed: formatEther(needed),
+      });
+
+      setForceSettledReason({
+        streak: Number(streak),
+        available: formatEther(available),
+        needed: formatEther(needed),
+        timestamp: Date.now(),
+      });
+      
+      // 清除VRF等待状态
+      setIsWaitingVRF(false);
+      setVrfState({
+        isWaiting: false,
+        requestId: 0n,
+        startTime: 0,
+        pollCount: 0,
+      });
+    };
+
+    contract.on('PoolInsufficientForceSettled', handleForceSettled);
+    
+    return () => {
+      contract.off('PoolInsufficientForceSettled', handleForceSettled);
+    };
+  }, [address]);
+
   return {
     ...state,
     startGame,
@@ -772,5 +832,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
     isWaitingVRF,
     vrfState,
     lastGuessResult,
+    forceSettledReason,
+    clearForceSettledReason,
   };
 }

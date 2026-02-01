@@ -95,6 +95,8 @@ export function HiLoGame() {
     calculatePotentialReward,
     refreshData,
     error: contractError,
+    forceSettledReason,
+    clearForceSettledReason,
   } = useCyberHiLo();
   
   // 音效
@@ -173,6 +175,23 @@ export function HiLoGame() {
       sawPendingRequestRef.current = true;
     }
   }, [pendingRequest]);
+
+  // 监听奖池不足强制结算
+  useEffect(() => {
+    if (!forceSettledReason) return;
+    
+    toast({
+      title: '⚠️ 奖池保护性结算',
+      description: `因奖池可用余额不足以锁定下一级奖励，系统已自动结算您当前的 ${forceSettledReason.streak} 连胜收益。这是为了保护您已赢得的奖励。`,
+      duration: 8000,
+    });
+    
+    // 清除标记，防止重复提示
+    clearForceSettledReason();
+    
+    // 刷新数据
+    refreshData();
+  }, [forceSettledReason, clearForceSettledReason, refreshData]);
 
   // VRF 完成后：结算本轮猜测，展示结果并解除"揭示中"卡死
   useEffect(() => {

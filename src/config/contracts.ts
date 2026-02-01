@@ -102,6 +102,7 @@ export const CYBER_HILO_ABI = [
   "event PrizeTransferFailed(address indexed player, uint256 amount)",
   "event CreditsDeposited(address indexed player, uint256 amount)",
   "event CreditsUsed(address indexed player, uint256 amount)",
+  "event PoolInsufficientForceSettled(address indexed player, uint8 streak, uint256 available, uint256 needed)",
 ] as const;
 
 export const CYBER_TOKEN_ABI = [
