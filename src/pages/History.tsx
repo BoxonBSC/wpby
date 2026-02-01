@@ -28,11 +28,8 @@ const History = () => {
   const myTotalWins = results.filter(r => r.cashedOut && r.bnbWon > 0).length;
   const myTotalBnbWon = results.reduce((sum, r) => sum + (r.bnbWon || 0), 0);
 
-  // 让左右两列“视觉行数”更接近，避免一边内容少导致大片空白
-  const targetLeaderboardRows = Math.min(
-    20,
-    Math.max(10, leaderboard.length, recentWins.length)
-  );
+  // 始终显示 20 行，让左右两列视觉对齐
+  const targetLeaderboardRows = 20;
 
   return (
     <div 
@@ -213,7 +210,7 @@ const History = () => {
                             className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
                             style={{ background: 'rgba(201, 163, 71, 0.2)', color: '#C9A347' }}
                           >
-                            —
+                            {index + 1}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-bold text-[#C9A347] truncate">—</div>
