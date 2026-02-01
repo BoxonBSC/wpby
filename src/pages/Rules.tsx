@@ -64,7 +64,7 @@ const Rules = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            🃏 游戏完整指南
+            游戏完整指南
           </h1>
           <p className="text-[#C9A347]/70 text-lg max-w-2xl mx-auto">
             三分钟看懂王牌博弈，轻松上手赢取 BNB 奖励

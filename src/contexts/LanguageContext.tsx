@@ -15,8 +15,8 @@ const translations: Record<Language, Record<string, string>> = {
   zh: {
     // 导航
     'nav.game': '游戏',
-    'nav.history': '记录',
-    'nav.rules': '规则',
+    'nav.history': '战绩殿堂',
+    'nav.rules': '游戏指南',
     
     // 首页标签
     'home.tag.symbols': '5符号匹配',
@@ -466,8 +466,8 @@ const translations: Record<Language, Record<string, string>> = {
   en: {
     // Navigation
     'nav.game': 'Game',
-    'nav.history': 'History',
-    'nav.rules': 'Rules',
+    'nav.history': 'Hall of Fame',
+    'nav.rules': 'Guide',
     
     // Home tags
     'home.tag.symbols': '5-Symbol Match',
