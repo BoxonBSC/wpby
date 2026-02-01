@@ -595,7 +595,11 @@ export function useCyberSlots(): UseCyberSlotsReturn {
         if (allowance > 0n) {
           console.log('[CyberSlots] Resetting allowance to 0 first...');
           try {
-            const resetTx = await token.approve(spender, 0n);
+            const resetReq = await token.approve.populateTransaction(spender, 0n);
+            if (!resetReq.data || resetReq.data === '0x') {
+              throw new Error('无法生成重置授权交易数据（data 为空）');
+            }
+            const resetTx = await signer.sendTransaction(resetReq);
             console.log('[CyberSlots] approve reset tx:', resetTx.hash);
             await resetTx.wait();
           } catch (resetErr) {
@@ -605,7 +609,12 @@ export function useCyberSlots(): UseCyberSlotsReturn {
 
         console.log('[CyberSlots] Calling token.approve...');
         try {
-          const approveTx = await token.approve(spender, amountWei);
+          // 用 populateTransaction + signer.sendTransaction，避免部分钱包 provider 丢失 data 字段（OKX 常见）
+          const approveReq = await token.approve.populateTransaction(spender, amountWei);
+          if (!approveReq.data || approveReq.data === '0x') {
+            throw new Error('无法生成授权交易数据（approve data 为空）');
+          }
+          const approveTx = await signer.sendTransaction(approveReq);
           console.log('[CyberSlots] approve tx:', approveTx.hash);
           await approveTx.wait();
           console.log('[CyberSlots] approve tx confirmed');
