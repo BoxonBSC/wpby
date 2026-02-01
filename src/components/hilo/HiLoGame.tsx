@@ -791,6 +791,7 @@ export function HiLoGame() {
                 {/* 游戏结束 */}
                 {(gameState === 'won' || gameState === 'lost') && (() => {
                   const currentTier = REWARD_TIERS.find(t => t.streak === streak);
+                  const hasUnclaimedPrize = Number(unclaimedPrize) > 0;
                   return (
                     <div className="text-center space-y-4">
                       <div 
@@ -798,13 +799,77 @@ export function HiLoGame() {
                       >
                         {gameState === 'won' ? (
                           <>
-                            <div>恭喜获得 {currentTier?.percentage ?? 0}% 奖池!</div>
+                            <div>🎉 恭喜获得 {currentTier?.percentage ?? 0}% 奖池!</div>
                             <div className="text-lg mt-1">≈ {currentReward.toFixed(4)} BNB</div>
                           </>
                         ) : (
                           <>游戏结束 - 连胜 {streak} 次</>
                         )}
                       </div>
+                      
+                      {/* 醒目的领取奖励提示 */}
+                      {hasUnclaimedPrize && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative p-4 rounded-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%)',
+                            border: '2px solid rgba(255, 215, 0, 0.5)',
+                            boxShadow: '0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.1)',
+                          }}
+                        >
+                          {/* 闪烁光效 */}
+                          <motion.div
+                            className="absolute inset-0 opacity-30"
+                            animate={{
+                              background: [
+                                'linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.4) 50%, transparent 100%)',
+                                'linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.4) 50%, transparent 100%)',
+                              ],
+                              x: ['-100%', '100%'],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: 'linear',
+                            }}
+                          />
+                          
+                          <div className="relative z-10">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <HandCoins className="w-6 h-6 text-[#FFD700]" />
+                              <span className="text-[#FFD700] font-bold text-lg">待领取奖励</span>
+                            </div>
+                            <div className="text-2xl font-bold text-white mb-3">
+                              {Number(unclaimedPrize).toFixed(4)} BNB
+                            </div>
+                            <Button
+                              onClick={async () => {
+                                const success = await claimPrize();
+                                if (success) {
+                                  toast({
+                                    title: "🎉 领取成功!",
+                                    description: `${Number(unclaimedPrize).toFixed(4)} BNB 已发送到您的钱包`,
+                                  });
+                                }
+                              }}
+                              className="w-full h-12 text-lg font-bold animate-pulse"
+                              style={{
+                                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                                color: '#000',
+                                boxShadow: '0 0 20px rgba(255, 215, 0, 0.5)',
+                              }}
+                            >
+                              <HandCoins className="w-5 h-5 mr-2" />
+                              立即领取奖励
+                            </Button>
+                            <p className="text-[#C9A347]/70 text-xs mt-2">
+                              点击按钮将 BNB 转入您的钱包（需支付少量Gas费）
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
                       
                       <Button
                         onClick={resetGame}
