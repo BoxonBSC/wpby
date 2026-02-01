@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlayingCard } from './PlayingCard';
-import { RewardLadder } from './RewardLadder';
+import { HorizontalRewardTiers } from './HorizontalRewardTiers';
 import { HiLoResults } from './HiLoResults';
 import { VRFWaitingOverlay } from './VRFWaitingOverlay';
 import { CreditsExchange } from '@/components/CreditsExchange';
 import { useWallet } from '@/contexts/WalletContext';
 import { useCyberHiLo } from '@/hooks/useCyberHiLo';
-import { 
+import {
   HILO_CONFIG,
   HiLoGameState,
   HiLoResult,
@@ -250,19 +250,10 @@ export function HiLoGame() {
           </div>
         )}
 
-        {/* 主游戏区域 */}
+        {/* 主游戏区域 - 两栏布局 */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* 左侧 - 奖励阶梯 */}
-          <div className="lg:col-span-3">
-            <RewardLadder 
-              currentStreak={streak} 
-              prizePool={effectivePrizePool} 
-              currentBetTier={currentBetTier}
-            />
-          </div>
-
-          {/* 中间 - 游戏区 */}
-          <div className="lg:col-span-6">
+          {/* 左侧 - 游戏区 + 奖励阶梯 */}
+          <div className="lg:col-span-9 space-y-4">
             {/* 奖池显示 */}
             <div 
               className="mb-4 rounded-xl p-4"
@@ -586,6 +577,13 @@ export function HiLoGame() {
                 })()}
               </div>
             </div>
+
+            {/* 横向奖励阶梯 - 放在游戏区下方 */}
+            <HorizontalRewardTiers
+              currentStreak={streak}
+              prizePool={effectivePrizePool}
+              currentBetTier={currentBetTier}
+            />
           </div>
 
           {/* 右侧 - 代币兑换 + 历史记录 */}
