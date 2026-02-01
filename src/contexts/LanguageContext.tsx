@@ -18,6 +18,16 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.history': '战绩殿堂',
     'nav.rules': '游戏指南',
     
+    // 导航栏
+    'navbar.brandName': '王牌博弈',
+    'navbar.tagline': 'GAMEFI · 燃烧通缩协议',
+    'navbar.unclaimed': '待领取',
+    'navbar.unclaimedReward': '待领取奖励',
+    'navbar.claim': '领取',
+    'navbar.claimNow': '立即领取',
+    'navbar.claimSuccess': '成功领取 {amount} BNB!',
+    'navbar.claimFailed': '领取失败，请重试',
+    
     // 首页标签
     'home.tag.symbols': '5符号匹配',
     'home.tag.payline': '中间行赔付',
@@ -477,6 +487,16 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.game': 'Game',
     'nav.history': 'Hall of Fame',
     'nav.rules': 'Guide',
+    
+    // Navbar
+    'navbar.brandName': 'ACE HILO',
+    'navbar.tagline': 'GAMEFI · Burn Deflation Protocol',
+    'navbar.unclaimed': 'Unclaimed',
+    'navbar.unclaimedReward': 'Unclaimed Reward',
+    'navbar.claim': 'Claim',
+    'navbar.claimNow': 'Claim Now',
+    'navbar.claimSuccess': 'Successfully claimed {amount} BNB!',
+    'navbar.claimFailed': 'Claim failed, please try again',
     
     // Home tags
     'home.tag.symbols': '5-Symbol Match',
