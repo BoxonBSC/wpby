@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Copy, ExternalLink, FileCode } from 'lucide-react';
-import { CYBER_SLOTS_ADDRESS, CYBER_TOKEN_ADDRESS } from '@/config/contracts';
+import { CYBER_HILO_ADDRESS, CYBER_TOKEN_ADDRESS } from '@/config/contracts';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -32,19 +32,19 @@ export function ContractAddresses() {
         <FileCode className="w-3.5 h-3.5 text-neon-cyan" />
         <span className="text-xs text-neon-cyan font-display">{t('contract.game')}:</span>
         <code className="text-xs text-foreground/80 font-mono">
-          {formatAddress(CYBER_SLOTS_ADDRESS.mainnet)}
+          {formatAddress(CYBER_HILO_ADDRESS.mainnet)}
         </code>
         <div className="flex items-center gap-1">
           <button
-            onClick={() => copyAddress(CYBER_SLOTS_ADDRESS.mainnet, t('contract.game'))}
+            onClick={() => copyAddress(CYBER_HILO_ADDRESS.mainnet, t('contract.game'))}
             className="p-1 hover:bg-neon-cyan/20 rounded transition-colors"
             title={t('contract.copy')}
           >
             <Copy className="w-3 h-3 text-muted-foreground hover:text-neon-cyan" />
           </button>
-          {isDeployed(CYBER_SLOTS_ADDRESS.mainnet) && (
+          {isDeployed(CYBER_HILO_ADDRESS.mainnet) && (
             <a
-              href={`https://bscscan.com/address/${CYBER_SLOTS_ADDRESS.mainnet}`}
+              href={`https://bscscan.com/address/${CYBER_HILO_ADDRESS.mainnet}`}
               target="_blank"
               rel="noopener noreferrer"
               className="p-1 hover:bg-neon-cyan/20 rounded transition-colors"
