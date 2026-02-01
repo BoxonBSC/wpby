@@ -1050,51 +1050,9 @@ export function HiLoGame() {
                       </Button>
                     </div>
 
-                    {/* 相同选项 - 高风险高回报 (7.7%胜率，成功跳2级) */}
-                    <div className="space-y-1">
-                      {(() => {
-                        const maxStreak = currentBetTier?.maxStreak ?? 5;
-                        const potentialStreak = Math.min(streak + 2, maxStreak);
-                        const currentLockPercent = streak > 0 ? (REWARD_TIERS.find(r => r.streak === streak)?.percentage ?? 0) : 0;
-                        const potentialLockPercent = REWARD_TIERS.find(r => r.streak === potentialStreak)?.percentage ?? 0;
-                        const additionalLockNeeded = (effectivePrizePool * (potentialLockPercent - currentLockPercent)) / 100;
-                        const poolSufficient = available >= additionalLockNeeded;
-                        const willTriggerAuto = streak + 2 >= maxStreak;
-                        
-                        return (
-                          <>
-                            <Button
-                              onClick={() => makeGuess('same')}
-                              disabled={!poolSufficient}
-                              className={`w-full h-12 border ${
-                                poolSufficient 
-                                  ? 'bg-gradient-to-r from-[#C9A347]/60 to-[#FFD700]/40 hover:from-[#C9A347]/80 hover:to-[#FFD700]/60 border-[#C9A347]/40'
-                                  : 'bg-gray-600/30 border-red-500/50 cursor-not-allowed opacity-60'
-                              }`}
-                            >
-                              <Equal className="w-5 h-5 mr-2" />
-                              <span>{t('hilo.same')} (7.7%)</span>
-                              <span className="ml-2 px-2 py-0.5 rounded bg-[#FFD700]/20 text-[#FFD700] text-xs">{t('hilo.sameBonus')}</span>
-                            </Button>
-                            {/* Same机制提示 */}
-                            {!poolSufficient ? (
-                              <div className="flex items-center justify-center gap-1 text-[10px] text-red-400/90">
-                                <AlertTriangle className="w-3 h-3" />
-                                <span>{t('hilo.samePoolInsufficient')}</span>
-                              </div>
-                            ) : willTriggerAuto && streak > 0 ? (
-                              <div className="flex items-center justify-center gap-1 text-[10px] text-orange-400/80">
-                                <AlertTriangle className="w-3 h-3" />
-                                <span>{t('hilo.sameAutoSettleTip').replace('{n}', maxStreak.toString())}</span>
-                              </div>
-                            ) : (
-                              <div className="text-[10px] text-center text-[#C9A347]/60">
-                                {t('hilo.sameTip')}
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
+                    {/* 平局提示 - 猜大猜小时平局算输 */}
+                    <div className="text-center text-[10px] text-[#C9A347]/50 py-1">
+                      {t('hilo.tieWarning')}
                     </div>
 
                     {/* 收手按钮 */}
