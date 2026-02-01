@@ -522,7 +522,6 @@ export function HiLoGame() {
                 isVisible={isWaitingVRF}
                 requestId={vrfState.requestId}
                 startTime={vrfState.startTime}
-                pollCount={vrfState.pollCount}
                 onCancel={async () => {
                   const ok = await cancelStuckRequest();
                   if (ok) {
@@ -534,7 +533,6 @@ export function HiLoGame() {
                   }
                   return ok;
                 }}
-                onRefresh={refreshData}
               />
               
               {/* 连胜显示 */}
