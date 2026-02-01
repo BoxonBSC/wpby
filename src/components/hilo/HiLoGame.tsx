@@ -1051,6 +1051,7 @@ export function HiLoGame() {
                     </div>
 
                     {/* 相同选项 - 高风险高回报 (7.7%胜率，成功跳2级) */}
+                    <div className="space-y-1">
                       <Button
                         onClick={() => makeGuess('same')}
                         className="w-full h-12 bg-gradient-to-r from-[#C9A347]/60 to-[#FFD700]/40 hover:from-[#C9A347]/80 hover:to-[#FFD700]/60 border border-[#C9A347]/40"
@@ -1058,7 +1059,23 @@ export function HiLoGame() {
                         <Equal className="w-5 h-5 mr-2" />
                         <span>{t('hilo.same')} (7.7%)</span>
                         <span className="ml-2 px-2 py-0.5 rounded bg-[#FFD700]/20 text-[#FFD700] text-xs">{t('hilo.sameBonus')}</span>
-                    </Button>
+                      </Button>
+                      {/* Same机制提示：+2连胜可能触发自动结算 */}
+                      {(() => {
+                        const maxStreak = currentBetTier?.maxStreak ?? 5;
+                        const willTriggerAuto = streak + 2 >= maxStreak;
+                        return willTriggerAuto && streak > 0 ? (
+                          <div className="flex items-center justify-center gap-1 text-[10px] text-orange-400/80">
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>{t('hilo.sameAutoSettleTip').replace('{n}', maxStreak.toString())}</span>
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-center text-[#C9A347]/60">
+                            {t('hilo.sameTip')}
+                          </div>
+                        );
+                      })()}
+                    </div>
 
                     {/* 收手按钮 */}
                     {streak > 0 && (() => {
