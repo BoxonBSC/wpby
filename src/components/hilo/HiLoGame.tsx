@@ -421,26 +421,27 @@ export function HiLoGame() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-4 flex flex-wrap justify-center gap-3"
+          className="mb-4 flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-3"
         >
           {/* 游戏合约 */}
           <div 
-            className="flex items-center gap-2 px-3 py-2 rounded-xl"
+            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm"
             style={{
               background: 'linear-gradient(90deg, rgba(201, 163, 71, 0.1) 0%, rgba(201, 163, 71, 0.05) 100%)',
               border: '1px solid rgba(201, 163, 71, 0.25)',
             }}
           >
-            <span className="text-sm">🎴</span>
-            <span className="text-xs font-semibold" style={{ color: '#C9A347' }}>{t('hilo.gameContract')}:</span>
+            <span className="text-xs sm:text-sm">🎴</span>
+            <span className="text-[10px] sm:text-xs font-semibold whitespace-nowrap" style={{ color: '#C9A347' }}>{t('hilo.gameContract')}:</span>
             <code 
-              className="text-xs font-mono px-2 py-1 rounded"
+              className="text-[10px] sm:text-xs font-mono px-1.5 sm:px-2 py-0.5 sm:py-1 rounded"
               style={{ 
                 background: 'rgba(0, 0, 0, 0.3)',
                 color: 'rgba(255, 255, 255, 0.8)',
               }}
             >
-              {`${CYBER_HILO_ADDRESS.mainnet.slice(0, 10)}...${CYBER_HILO_ADDRESS.mainnet.slice(-8)}`}
+              <span className="hidden sm:inline">{`${CYBER_HILO_ADDRESS.mainnet.slice(0, 10)}...${CYBER_HILO_ADDRESS.mainnet.slice(-8)}`}</span>
+              <span className="sm:hidden">{`${CYBER_HILO_ADDRESS.mainnet.slice(0, 6)}...${CYBER_HILO_ADDRESS.mainnet.slice(-4)}`}</span>
             </code>
             <div className="flex items-center gap-1">
               <button
@@ -467,22 +468,23 @@ export function HiLoGame() {
 
           {/* 代币合约 */}
           <div 
-            className="flex items-center gap-2 px-3 py-2 rounded-xl"
+            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm"
             style={{
               background: 'linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%)',
               border: '1px solid rgba(255, 215, 0, 0.25)',
             }}
           >
-            <span className="text-sm">🪙</span>
-            <span className="text-xs font-semibold" style={{ color: '#FFD700' }}>{t('hilo.tokenContract')}:</span>
+            <span className="text-xs sm:text-sm">🪙</span>
+            <span className="text-[10px] sm:text-xs font-semibold whitespace-nowrap" style={{ color: '#FFD700' }}>{t('hilo.tokenContract')}:</span>
             <code 
-              className="text-xs font-mono px-2 py-1 rounded"
+              className="text-[10px] sm:text-xs font-mono px-1.5 sm:px-2 py-0.5 sm:py-1 rounded"
               style={{ 
                 background: 'rgba(0, 0, 0, 0.3)',
                 color: 'rgba(255, 255, 255, 0.8)',
               }}
             >
-              {`${CYBER_TOKEN_ADDRESS.mainnet.slice(0, 10)}...${CYBER_TOKEN_ADDRESS.mainnet.slice(-8)}`}
+              <span className="hidden sm:inline">{`${CYBER_TOKEN_ADDRESS.mainnet.slice(0, 10)}...${CYBER_TOKEN_ADDRESS.mainnet.slice(-8)}`}</span>
+              <span className="sm:hidden">{`${CYBER_TOKEN_ADDRESS.mainnet.slice(0, 6)}...${CYBER_TOKEN_ADDRESS.mainnet.slice(-4)}`}</span>
             </code>
             <div className="flex items-center gap-1">
               <button
@@ -546,12 +548,12 @@ export function HiLoGame() {
         )}
 
         {/* 主游戏区域 - 两栏布局 */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* 左侧 - 游戏区 + 奖励阶梯 */}
-          <div className="lg:col-span-9 space-y-4">
+          <div className="lg:col-span-9 space-y-3 sm:space-y-4">
             {/* 奖池显示 */}
             <div 
-              className="mb-4 rounded-xl p-4"
+              className="mb-3 sm:mb-4 rounded-xl p-3 sm:p-4"
               style={{
                 background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(201, 163, 71, 0.08) 100%)',
                 border: '1px solid rgba(255, 215, 0, 0.3)',
@@ -559,17 +561,17 @@ export function HiLoGame() {
               }}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-base sm:text-xl"
                     style={{ background: 'rgba(255, 215, 0, 0.2)' }}
                   >
                     💰
                   </div>
                   <div>
-                    <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.currentPool')}</div>
+                    <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.currentPool')}</div>
                     <div 
-                      className="text-2xl font-bold"
+                      className="text-lg sm:text-2xl font-bold"
                       style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
                     >
                       {Number(prizePool).toFixed(4)} BNB
@@ -577,9 +579,9 @@ export function HiLoGame() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.myCredits')}</div>
+                  <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.myCredits')}</div>
                   <div 
-                    className="text-xl font-bold"
+                    className="text-base sm:text-xl font-bold"
                     style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
                   >
                     {credits >= 1000000 
@@ -594,11 +596,11 @@ export function HiLoGame() {
             </div>
             
             <div 
-              className="rounded-2xl p-6 relative"
+              className="rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 relative"
               style={{
                 background: 'linear-gradient(180deg, rgba(20, 16, 12, 0.95) 0%, rgba(10, 8, 6, 0.98) 100%)',
                 border: '1px solid rgba(201, 163, 71, 0.25)',
-                minHeight: '500px',
+                minHeight: '400px',
               }}
             >
               {/* VRF等待状态覆盖层 */}
@@ -626,7 +628,7 @@ export function HiLoGame() {
                   <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full"
+                    className="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 px-3 sm:px-6 py-1 sm:py-2 rounded-full text-xs sm:text-sm"
                     style={{
                       background: `linear-gradient(90deg, ${currentBetTier.color}30 0%, transparent 100%)`,
                       border: `1px solid ${currentBetTier.color}60`,
@@ -635,15 +637,16 @@ export function HiLoGame() {
                     <span className="font-bold" style={{ color: currentBetTier.color }}>
                       {t('hilo.streak')} {streak}/{currentBetTier.maxStreak}
                     </span>
-                    <span className="text-[#C9A347] ml-2">| {currentTier?.percentage ?? 0}% (≈{currentReward.toFixed(4)} BNB)</span>
+                    <span className="text-[#C9A347] ml-1 sm:ml-2 hidden sm:inline">| {currentTier?.percentage ?? 0}% (≈{currentReward.toFixed(4)} BNB)</span>
+                    <span className="text-[#C9A347] ml-1 sm:hidden">| {currentTier?.percentage ?? 0}%</span>
                   </motion.div>
                 );
               })()}
 
               {/* 牌区 */}
-              <div className="flex items-center justify-center gap-8 min-h-[300px]">
+              <div className="flex items-center justify-center gap-4 sm:gap-8 min-h-[220px] sm:min-h-[280px] mt-8 sm:mt-4">
                 <div className="text-center">
-                  <div className="text-[#C9A347]/60 text-sm mb-2">{t('hilo.currentCard')}</div>
+                  <div className="text-[#C9A347]/60 text-xs sm:text-sm mb-1 sm:mb-2">{t('hilo.currentCard')}</div>
                   {/* 没有当前牌时显示牌背，有牌时正常显示 */}
                   <PlayingCard card={currentCard} isFlipped={!currentCard} />
                 </div>
@@ -699,7 +702,7 @@ export function HiLoGame() {
                     <div>
                       <label className="text-[#C9A347]/60 text-sm mb-3 block">{t('hilo.selectTier')}</label>
                       <div className="space-y-3">
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3">
                           {BET_TIERS.slice(0, 3).map((tier, index) => {
                             const canAfford = credits >= tier.betAmount;
                             const isSelected = selectedTierIndex === index;
@@ -713,7 +716,7 @@ export function HiLoGame() {
                                 onClick={() => handleSelectTier(index, canAfford)}
                                 disabled={!canAfford}
                                 className={`
-                                  p-3 rounded-xl transition-all text-center relative
+                                  p-2 sm:p-3 rounded-xl transition-all text-center relative
                                   ${canAfford ? 'hover:scale-105' : 'opacity-60 cursor-not-allowed'}
                                 `}
                                 style={{
@@ -724,18 +727,18 @@ export function HiLoGame() {
                                   boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
                                 }}
                               >
-                                <div className="font-bold text-base" style={{ color: canAfford ? tier.color : 'rgba(201, 163, 71, 0.5)' }}>
+                                <div className="font-bold text-sm sm:text-base" style={{ color: canAfford ? tier.color : 'rgba(201, 163, 71, 0.5)' }}>
                                   {tier.name}
                                 </div>
-                                <div className="text-[#C9A347]/60 text-xs">
+                                <div className="text-[#C9A347]/60 text-[10px] sm:text-xs">
                                   {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
                                 </div>
                                 {canAfford ? (
-                                  <div className="text-[10px] mt-1 text-[#FFD700]">
+                                  <div className="text-[9px] sm:text-[10px] mt-1 text-[#FFD700]">
                                     {t('hilo.maxPool').replace('{n}', String(maxRewardTier?.percentage ?? 0))}
                                   </div>
                                 ) : (
-                                  <div className="text-[10px] mt-1 text-[#FF6B6B]">
+                                  <div className="text-[9px] sm:text-[10px] mt-1 text-[#FF6B6B]">
                                     {t('hilo.needMore').replace('{n}', formatShortfall(shortfall))}
                                   </div>
                                 )}
@@ -743,7 +746,7 @@ export function HiLoGame() {
                             );
                           })}
                         </div>
-                        <div className="grid grid-cols-2 gap-3 max-w-[66%] mx-auto">
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-[66%] mx-auto">
                           {BET_TIERS.slice(3).map((tier, i) => {
                             const index = i + 3;
                             const canAfford = credits >= tier.betAmount;
@@ -758,7 +761,7 @@ export function HiLoGame() {
                                 onClick={() => handleSelectTier(index, canAfford)}
                                 disabled={!canAfford}
                                 className={`
-                                  p-3 rounded-xl transition-all text-center relative
+                                  p-2 sm:p-3 rounded-xl transition-all text-center relative
                                   ${canAfford ? 'hover:scale-105' : 'opacity-60 cursor-not-allowed'}
                                 `}
                                 style={{
@@ -769,18 +772,18 @@ export function HiLoGame() {
                                   boxShadow: isSelected ? `0 0 15px ${tier.color}40` : 'none',
                                 }}
                               >
-                                <div className="font-bold text-base" style={{ color: canAfford ? tier.color : 'rgba(201, 163, 71, 0.5)' }}>
+                                <div className="font-bold text-sm sm:text-base" style={{ color: canAfford ? tier.color : 'rgba(201, 163, 71, 0.5)' }}>
                                   {tier.name}
                                 </div>
-                                <div className="text-[#C9A347]/60 text-xs">
+                                <div className="text-[#C9A347]/60 text-[10px] sm:text-xs">
                                   {tier.betAmount >= 1000000 ? `${tier.betAmount / 1000000}M` : `${tier.betAmount / 1000}K`}
                                 </div>
                                 {canAfford ? (
-                                  <div className="text-[10px] mt-1 text-[#FFD700]">
+                                  <div className="text-[9px] sm:text-[10px] mt-1 text-[#FFD700]">
                                     {t('hilo.maxPool').replace('{n}', String(maxRewardTier?.percentage ?? 0))}
                                   </div>
                                 ) : (
-                                  <div className="text-[10px] mt-1 text-[#FF6B6B]">
+                                  <div className="text-[9px] sm:text-[10px] mt-1 text-[#FF6B6B]">
                                     {t('hilo.needMore').replace('{n}', formatShortfall(shortfall))}
                                   </div>
                                 )}
