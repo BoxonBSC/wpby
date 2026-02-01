@@ -17,21 +17,17 @@ import {
   REWARD_TIERS,
   SUITS,
   RANKS,
-  RANK_VALUES,
-  generateRandomCard,
   calculateHiLoReward,
   calculateWinProbability,
 } from '@/config/hilo';
 import { Button } from '@/components/ui/button';
-import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2, AlertCircle } from 'lucide-react';
+import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2 } from 'lucide-react';
 import { useAudio } from '@/hooks/useAudio';
 import { toast } from '@/hooks/use-toast';
 import { formatEther } from 'ethers';
 import { CYBER_HILO_ADDRESS } from '@/config/contracts';
 import { Copy, ExternalLink } from 'lucide-react';
 
-// 合约已部署到BSC主网
-const CONTRACT_DEPLOYED = true;
 
 // 将合约牌值转换为Card对象
 function cardFromValue(value: number): Card {
@@ -87,16 +83,13 @@ export function HiLoGame() {
   const [guessCorrect, setGuessCorrect] = useState<boolean | null>(null);
   const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null);
   
-  // 模拟模式状态（合约未部署时使用）
-  const [mockCredits, setMockCredits] = useState(1000000);
-  
   // 获取实际使用的凭证余额
-  const credits = CONTRACT_DEPLOYED ? Number(gameCredits) : mockCredits;
-  const effectivePrizePool = prizePoolSnapshot ?? (CONTRACT_DEPLOYED ? Number(prizePool) : 10);
+  const credits = Number(gameCredits);
+  const effectivePrizePool = prizePoolSnapshot ?? Number(prizePool);
   
   // 同步合约游戏状态到UI
   useEffect(() => {
-    if (!CONTRACT_DEPLOYED || !gameSession) return;
+    if (!gameSession) return;
     
     if (gameSession.active) {
       setGameState('playing');
@@ -109,8 +102,6 @@ export function HiLoGame() {
 
   // 监听VRF结果
   useEffect(() => {
-    if (!CONTRACT_DEPLOYED) return;
-    
     // 当VRF完成时刷新数据
     if (!isWaitingVRF && pendingRequest === 0n && gameState === 'playing') {
       refreshData();
@@ -124,29 +115,15 @@ export function HiLoGame() {
     
     playClickSound();
     
-    if (CONTRACT_DEPLOYED) {
-      // 真实合约调用
-      const firstCard = await contractStartGame(tier.betAmount);
-      if (firstCard !== null) {
-        playCardFlipSound();
-        setCurrentCard(cardFromValue(firstCard));
-        setCurrentBetTier(tier);
-        setStreak(0);
-        setGameState('playing');
-        setGuessCorrect(null);
-        setPrizePoolSnapshot(Number(prizePool));
-      }
-    } else {
-      // 模拟模式
+    const firstCard = await contractStartGame(tier.betAmount);
+    if (firstCard !== null) {
       playCardFlipSound();
-      setMockCredits(prev => prev - tier.betAmount);
+      setCurrentCard(cardFromValue(firstCard));
       setCurrentBetTier(tier);
-      setCurrentCard(generateRandomCard());
-      setNextCard(null);
       setStreak(0);
       setGameState('playing');
       setGuessCorrect(null);
-      setPrizePoolSnapshot(10); // 模拟10 BNB奖池
+      setPrizePoolSnapshot(Number(prizePool));
     }
   }, [credits, selectedTierIndex, prizePool, playClickSound, playCardFlipSound, contractStartGame]);
 
@@ -156,91 +133,17 @@ export function HiLoGame() {
     
     playClickSound();
     
-    if (CONTRACT_DEPLOYED) {
-      // 真实合约调用 - 支持 higher/lower/same
-      setIsRevealing(true);
-      const txHash = await contractGuess(guess);
-      
-      if (!txHash) {
-        setIsRevealing(false);
-        return;
-      }
-      
-      // 等待VRF回调，通过轮询检测结果
-      // useCyberHiLo会自动轮询并更新gameSession
-    } else {
-      // 模拟模式
-      setIsRevealing(true);
-      
-      const newCard = generateRandomCard();
-      setNextCard(newCard);
-      
-      setTimeout(() => {
-        playCardFlipSound();
-      }, 200);
-      
-      setTimeout(() => {
-        let correct = false;
-        
-        if (guess === 'higher') {
-          correct = newCard.value > currentCard.value;
-        } else if (guess === 'lower') {
-          correct = newCard.value < currentCard.value;
-        } else {
-          correct = newCard.value === currentCard.value;
-        }
-        
-        setGuessCorrect(correct);
-        
-        if (correct) {
-          // 猜相同成功跳2级（7.7%胜率补偿），其他跳1级
-          const streakIncrease = guess === 'same' ? HILO_CONFIG.sameGuessStreakBonus : 1;
-          const newStreak = Math.min(streak + streakIncrease, currentBetTier.maxStreak);
-          setStreak(newStreak);
-          playCorrectGuessSound();
-          
-          if (newStreak % 2 === 1 && newStreak > 1) {
-            setTimeout(() => playMilestoneSound(), 300);
-          }
-          
-          if (newStreak >= currentBetTier.maxStreak) {
-            const reward = calculateHiLoReward(newStreak, currentBetTier.maxStreak, effectivePrizePool);
-            setGameState('won');
-            setTimeout(() => playCashOutSound(), 500);
-            const result: HiLoResult = {
-              id: `${Date.now()}-${Math.random()}`,
-              betAmount: currentBetTier.betAmount,
-              betTier: currentBetTier.name,
-              streak: newStreak,
-              bnbWon: reward,
-              cashedOut: true,
-              timestamp: Date.now(),
-            };
-            setResults(prev => [result, ...prev]);
-          } else {
-            setCurrentCard(newCard);
-            setNextCard(null);
-            setGameState('playing');
-          }
-        } else {
-          playWrongGuessSound();
-          setGameState('lost');
-          const result: HiLoResult = {
-            id: `${Date.now()}-${Math.random()}`,
-            betAmount: currentBetTier.betAmount,
-            betTier: currentBetTier.name,
-            streak,
-            bnbWon: 0,
-            cashedOut: false,
-            timestamp: Date.now(),
-          };
-          setResults(prev => [result, ...prev]);
-        }
-        
-        setIsRevealing(false);
-      }, HILO_CONFIG.animation.flipDuration + HILO_CONFIG.animation.revealDelay);
+    setIsRevealing(true);
+    const txHash = await contractGuess(guess);
+    
+    if (!txHash) {
+      setIsRevealing(false);
+      return;
     }
-  }, [gameState, currentCard, isRevealing, streak, currentBetTier, effectivePrizePool, playClickSound, playCardFlipSound, playCorrectGuessSound, playWrongGuessSound, playMilestoneSound, playCashOutSound, contractGuess]);
+    
+    // 等待VRF回调，通过轮询检测结果
+    // useCyberHiLo会自动轮询并更新gameSession
+  }, [gameState, currentCard, isRevealing, playClickSound, contractGuess]);
 
   // 收手兑现
   const cashOut = useCallback(async () => {
@@ -248,26 +151,10 @@ export function HiLoGame() {
     
     playCashOutSound();
     
-    if (CONTRACT_DEPLOYED) {
-      const success = await contractCashOut();
-      if (success) {
-        setGameState('won');
-        const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
-        const result: HiLoResult = {
-          id: `${Date.now()}-${Math.random()}`,
-          betAmount: currentBetTier.betAmount,
-          betTier: currentBetTier.name,
-          streak,
-          bnbWon: reward,
-          cashedOut: true,
-          timestamp: Date.now(),
-        };
-        setResults(prev => [result, ...prev]);
-      }
-    } else {
-      const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
+    const success = await contractCashOut();
+    if (success) {
       setGameState('won');
-      
+      const reward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
       const result: HiLoResult = {
         id: `${Date.now()}-${Math.random()}`,
         betAmount: currentBetTier.betAmount,
@@ -291,10 +178,7 @@ export function HiLoGame() {
     setGuessCorrect(null);
     setPrizePoolSnapshot(null);
     setIsRevealing(false);
-    
-    if (CONTRACT_DEPLOYED) {
-      refreshData();
-    }
+    refreshData();
   }, [playClickSound, refreshData]);
 
   // 选择门槛
@@ -307,7 +191,7 @@ export function HiLoGame() {
 
   // 领取奖励
   const handleClaimPrize = useCallback(async () => {
-    if (CONTRACT_DEPLOYED && Number(unclaimedPrize) > 0) {
+    if (Number(unclaimedPrize) > 0) {
       const success = await claimPrize();
       if (success) {
         toast({ title: '奖励已领取!' });
@@ -344,23 +228,8 @@ export function HiLoGame() {
           <span>5% 用于 VRF 随机数服务充值</span>
         </div>
         
-        {/* 合约未部署提示 */}
-        {!CONTRACT_DEPLOYED && (
-          <div 
-            className="mb-4 px-4 py-2 rounded-lg flex items-center gap-2 text-sm"
-            style={{
-              background: 'rgba(255, 200, 100, 0.1)',
-              border: '1px solid rgba(255, 200, 100, 0.3)',
-              color: '#FFC864',
-            }}
-          >
-            <AlertCircle className="w-4 h-4" />
-            <span>演示模式 - 合约部署后将连接真实链上游戏</span>
-          </div>
-        )}
-        
         {/* 待领取奖励提示 */}
-        {CONTRACT_DEPLOYED && Number(unclaimedPrize) > 0 && (
+        {Number(unclaimedPrize) > 0 && (
           <div 
             className="mb-4 px-4 py-3 rounded-lg flex items-center justify-between"
             style={{
