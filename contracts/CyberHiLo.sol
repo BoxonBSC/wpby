@@ -828,4 +828,82 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, Ownable, ReentrancyGuard, Pausable 
     }
     
     // ============ 无withdraw函数 - Owner无法提取资金 ============
+    
+    // ============ 动态描述接口（兼容Flap Vault规范） ============
+    
+    /**
+     * @notice 返回合约当前状态的动态描述
+     * @dev 实现类似Flap VaultBase的description()接口
+     * @return 描述合约状态的字符串
+     */
+    function description() public view returns (string memory) {
+        uint256 prizePool = address(this).balance;
+        uint256 availablePool = getAvailablePool();
+        
+        return string(abi.encodePacked(
+            "CyberHiLo - Hi-Lo Card Game on BSC. ",
+            "Prize Pool: ", _formatBNB(prizePool), " BNB. ",
+            "Available: ", _formatBNB(availablePool), " BNB. ",
+            "Total Games: ", _toString(totalGames), ". ",
+            "Total Paid: ", _formatBNB(totalPaidOut), " BNB. ",
+            "Powered by Chainlink VRF 2.5."
+        ));
+    }
+    
+    /**
+     * @notice 格式化BNB金额为字符串（4位小数）
+     */
+    function _formatBNB(uint256 weiAmount) internal pure returns (string memory) {
+        uint256 whole = weiAmount / 1e18;
+        uint256 decimals = (weiAmount % 1e18) / 1e14; // 4位小数
+        
+        return string(abi.encodePacked(
+            _toString(whole),
+            ".",
+            _padZeros(_toString(decimals), 4)
+        ));
+    }
+    
+    /**
+     * @notice 将uint256转换为字符串
+     */
+    function _toString(uint256 value) internal pure returns (string memory) {
+        if (value == 0) return "0";
+        
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        
+        return string(buffer);
+    }
+    
+    /**
+     * @notice 用前导零填充字符串
+     */
+    function _padZeros(string memory str, uint256 targetLength) internal pure returns (string memory) {
+        bytes memory strBytes = bytes(str);
+        if (strBytes.length >= targetLength) return str;
+        
+        bytes memory padded = new bytes(targetLength);
+        uint256 paddingLength = targetLength - strBytes.length;
+        
+        for (uint256 i = 0; i < paddingLength; i++) {
+            padded[i] = "0";
+        }
+        for (uint256 i = 0; i < strBytes.length; i++) {
+            padded[paddingLength + i] = strBytes[i];
+        }
+        
+        return string(padded);
+    }
 }
