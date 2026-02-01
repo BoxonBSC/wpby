@@ -79,6 +79,7 @@ export function HiLoGame() {
   // 合约Hook
   const {
     prizePool,
+    totalBurned,
     gameCredits,
     gameSession,
     pendingRequest,
@@ -551,45 +552,98 @@ export function HiLoGame() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* 左侧 - 游戏区 + 奖励阶梯 */}
           <div className="lg:col-span-9 space-y-3 sm:space-y-4">
-            {/* 奖池显示 */}
-            <div 
-              className="mb-3 sm:mb-4 rounded-xl p-3 sm:p-4"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(201, 163, 71, 0.08) 100%)',
-                border: '1px solid rgba(255, 215, 0, 0.3)',
-                boxShadow: '0 0 30px rgba(255, 215, 0, 0.1)',
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
+            {/* 统计栏：奖池 + 全网燃烧 + 我的凭证 */}
+            <div className="mb-3 sm:mb-4 grid grid-cols-3 gap-2 sm:gap-3">
+              {/* 奖池 */}
+              <div 
+                className="rounded-xl p-2.5 sm:p-4"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(201, 163, 71, 0.08) 100%)',
+                  border: '1px solid rgba(255, 215, 0, 0.3)',
+                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.08)',
+                }}
+              >
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <div 
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-base sm:text-xl"
+                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-lg flex-shrink-0"
                     style={{ background: 'rgba(255, 215, 0, 0.2)' }}
                   >
                     💰
                   </div>
-                  <div>
-                    <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.currentPool')}</div>
+                  <div className="min-w-0">
+                    <div className="text-[9px] sm:text-xs truncate" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.currentPool')}</div>
                     <div 
-                      className="text-lg sm:text-2xl font-bold"
+                      className="text-sm sm:text-xl font-bold truncate"
                       style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
                     >
-                      {Number(prizePool).toFixed(4)} BNB
+                      {Number(prizePool).toFixed(4)} <span className="text-[10px] sm:text-sm">BNB</span>
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.myCredits')}</div>
+              </div>
+
+              {/* 全网燃烧 */}
+              <div 
+                className="rounded-xl p-2.5 sm:p-4"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 100, 50, 0.15) 0%, rgba(201, 80, 20, 0.08) 100%)',
+                  border: '1px solid rgba(255, 100, 50, 0.3)',
+                  boxShadow: '0 0 20px rgba(255, 100, 50, 0.08)',
+                }}
+              >
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <div 
-                    className="text-base sm:text-xl font-bold"
-                    style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
+                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-lg flex-shrink-0"
+                    style={{ background: 'rgba(255, 100, 50, 0.2)' }}
                   >
-                    {credits >= 1000000 
-                      ? `${(credits / 1000000).toFixed(2)}M`
-                      : credits >= 1000
-                      ? `${(credits / 1000).toFixed(1)}K`
-                      : Math.floor(credits).toLocaleString()
-                    }
+                    🔥
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[9px] sm:text-xs truncate" style={{ color: 'rgba(255, 150, 100, 0.8)' }}>{t('hilo.totalBurned')}</div>
+                    <div 
+                      className="text-sm sm:text-xl font-bold truncate"
+                      style={{ fontFamily: '"Cinzel", serif', color: '#FF6432' }}
+                    >
+                      {(() => {
+                        const burned = Number(totalBurned);
+                        if (burned >= 1000000) return `${(burned / 1000000).toFixed(2)}M`;
+                        if (burned >= 1000) return `${(burned / 1000).toFixed(1)}K`;
+                        return burned.toFixed(0);
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 我的凭证 */}
+              <div 
+                className="rounded-xl p-2.5 sm:p-4"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 255, 200, 0.15) 0%, rgba(0, 200, 150, 0.08) 100%)',
+                  border: '1px solid rgba(0, 255, 200, 0.3)',
+                  boxShadow: '0 0 20px rgba(0, 255, 200, 0.08)',
+                }}
+              >
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div 
+                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-lg flex-shrink-0"
+                    style={{ background: 'rgba(0, 255, 200, 0.2)' }}
+                  >
+                    🎫
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[9px] sm:text-xs truncate" style={{ color: 'rgba(0, 255, 200, 0.7)' }}>{t('hilo.myCredits')}</div>
+                    <div 
+                      className="text-sm sm:text-xl font-bold truncate"
+                      style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
+                    >
+                      {credits >= 1000000 
+                        ? `${(credits / 1000000).toFixed(2)}M`
+                        : credits >= 1000
+                        ? `${(credits / 1000).toFixed(1)}K`
+                        : Math.floor(credits).toLocaleString()
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
