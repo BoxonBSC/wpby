@@ -577,13 +577,6 @@ export function HiLoGame() {
                 })()}
               </div>
             </div>
-
-            {/* 横向奖励阶梯 - 放在游戏区下方 */}
-            <HorizontalRewardTiers
-              currentStreak={streak}
-              prizePool={effectivePrizePool}
-              currentBetTier={currentBetTier}
-            />
           </div>
 
           {/* 右侧 - 代币兑换 + 历史记录 */}
@@ -591,6 +584,15 @@ export function HiLoGame() {
             <CreditsExchange />
             <HiLoResults results={results} />
           </div>
+        </div>
+
+        {/* 横向奖励阶梯 - 铺满整个页面宽度 */}
+        <div className="mt-6">
+          <HorizontalRewardTiers
+            currentStreak={streak}
+            prizePool={effectivePrizePool}
+            currentBetTier={currentBetTier}
+          />
         </div>
 
         {/* 合约地址展示 */}
