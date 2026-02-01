@@ -30,8 +30,8 @@ import { formatEther } from 'ethers';
 import { CYBER_HILO_ADDRESS } from '@/config/contracts';
 import { Copy, ExternalLink } from 'lucide-react';
 
-// 合约是否已部署（部署后改为true）
-const CONTRACT_DEPLOYED = false;
+// 合约已部署到BSC主网
+const CONTRACT_DEPLOYED = true;
 
 // 将合约牌值转换为Card对象
 function cardFromValue(value: number): Card {
