@@ -470,9 +470,9 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
   const calculateSafeStreak = useCallback((tierIndex: number, poolBNB: number): number => {
     if (poolBNB <= 0) return 0;
     
-    // 门槛等级对应的最大连胜数: [5, 8, 12, 16, 20]
-    const maxStreaks = [5, 8, 12, 16, 20];
-    const maxStreak = maxStreaks[tierIndex] || 5;
+    // 门槛等级对应的最大连胜数（与合约 setMaxStreaks 同步）
+    const maxStreaks = [12, 13, 14, 15, 16];
+    const maxStreak = maxStreaks[tierIndex] || 12;
     
     // 从最大连胜往下找，哪个级别的奖励在可用余额范围内
     for (let streak = maxStreak; streak >= 1; streak--) {
