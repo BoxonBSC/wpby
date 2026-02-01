@@ -80,8 +80,20 @@ export function PlayingCard({ card, isFlipped = false, isNew = false, size = 'lg
         </div>
 
         {/* 背面 */}
-        <div
+        <motion.div
           className="absolute inset-0 rounded-xl"
+          animate={isFlipped ? {
+            boxShadow: [
+              '0 0 20px rgba(201, 163, 71, 0.3)',
+              '0 0 35px rgba(201, 163, 71, 0.5)',
+              '0 0 20px rgba(201, 163, 71, 0.3)',
+            ],
+          } : {}}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
           style={{
             background: 'linear-gradient(145deg, #1a1612 0%, #0f0c08 100%)',
             border: '2px solid #C9A347',
@@ -91,8 +103,16 @@ export function PlayingCard({ card, isFlipped = false, isNew = false, size = 'lg
           }}
         >
           {/* 背面花纹 */}
-          <div 
+          <motion.div 
             className="absolute inset-2 rounded-lg"
+            animate={isFlipped ? {
+              opacity: [0.8, 1, 0.8],
+            } : {}}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
             style={{
               background: `
                 repeating-linear-gradient(
@@ -106,15 +126,24 @@ export function PlayingCard({ card, isFlipped = false, isNew = false, size = 'lg
               border: '1px solid rgba(201, 163, 71, 0.3)',
             }}
           />
-          <div 
+          <motion.div 
             className="absolute inset-4 rounded flex items-center justify-center"
+            animate={isFlipped ? {
+              scale: [1, 1.05, 1],
+              opacity: [0.5, 0.7, 0.5],
+            } : {}}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
             style={{
               background: 'linear-gradient(135deg, rgba(201, 163, 71, 0.2) 0%, transparent 100%)',
             }}
           >
-            <span className="text-[#C9A347] text-3xl font-bold opacity-50">♠</span>
-          </div>
-        </div>
+            <span className="text-[#C9A347] text-3xl font-bold">♠</span>
+          </motion.div>
+        </motion.div>
       </motion.div>
     </div>
   );
