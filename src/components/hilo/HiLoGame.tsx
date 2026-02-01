@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlayingCard } from './PlayingCard';
 import { HorizontalRewardTiers } from './HorizontalRewardTiers';
@@ -36,6 +36,11 @@ function cardFromValue(value: number): Card {
   const rank = RANKS[value - 1];
   return { suit, rank, value };
 }
+
+type PendingGuess = {
+  guess: Guess;
+  prevValue: number;
+};
 
 export function HiLoGame() {
   // 钱包状态
@@ -81,11 +86,15 @@ export function HiLoGame() {
   const [nextCard, setNextCard] = useState<Card | null>(null);
   const [streak, setStreak] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [pendingGuess, setPendingGuess] = useState<PendingGuess | null>(null);
   const [selectedTierIndex, setSelectedTierIndex] = useState(0);
   const [currentBetTier, setCurrentBetTier] = useState(BET_TIERS[0]);
   const [results, setResults] = useState<HiLoResult[]>([]);
   const [guessCorrect, setGuessCorrect] = useState<boolean | null>(null);
   const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null);
+
+  // 防止重复结算同一轮猜测
+  const settledGuessRef = useRef<string | null>(null);
   
   // 获取实际使用的凭证余额
   const credits = Number(gameCredits);
@@ -101,15 +110,83 @@ export function HiLoGame() {
   // 同步合约游戏状态到UI
   useEffect(() => {
     if (!gameSession) return;
-    
+
     if (gameSession.active) {
       setGameState('playing');
-      setCurrentCard(cardFromValue(gameSession.currentCard));
       setStreak(gameSession.currentStreak);
       setCurrentBetTier(BET_TIERS[gameSession.betTierIndex] || BET_TIERS[0]);
       setPrizePoolSnapshot(Number(formatEther(gameSession.prizePoolSnapshot)));
+
+      // 避免在“揭示动画中”覆盖 UI 的 current/next card
+      if (!isRevealing && !pendingGuess) {
+        setCurrentCard(cardFromValue(gameSession.currentCard));
+        setNextCard(null);
+      }
+    } else {
+      // 合约会话已结束（通常表示失败或已结算）。如果前端还停留在 playing，则切到 lost
+      if (gameState === 'playing' && !isRevealing) {
+        setGameState('lost');
+      }
     }
-  }, [gameSession]);
+  }, [gameSession, gameState, isRevealing, pendingGuess]);
+
+  // VRF 完成后：结算本轮猜测，展示结果并解除“揭示中”卡死
+  useEffect(() => {
+    if (!pendingGuess || !gameSession) return;
+    if (!isRevealing) return;
+
+    // 等待 VRF 完成（pendingRequest 清零）
+    if (isWaitingVRF || pendingRequest !== 0n) return;
+
+    // 同一轮只结算一次
+    const settleKey = `${gameSession.timestamp.toString()}-${pendingGuess.prevValue}-${pendingGuess.guess}-${gameSession.currentCard}-${gameSession.currentStreak}-${gameSession.active}`;
+    if (settledGuessRef.current === settleKey) return;
+    settledGuessRef.current = settleKey;
+
+    const newValue = Number(gameSession.currentCard);
+    const { prevValue, guess } = pendingGuess;
+
+    const won =
+      guess === 'higher'
+        ? newValue > prevValue
+        : guess === 'lower'
+          ? newValue < prevValue
+          : newValue === prevValue;
+
+    setGuessCorrect(won);
+    const revealed = cardFromValue(newValue);
+    setNextCard(revealed);
+
+    playCardFlipSound();
+    if (won) playCorrectGuessSound();
+    else playWrongGuessSound();
+
+    const t = window.setTimeout(() => {
+      setCurrentCard(revealed);
+      setNextCard(null);
+      setIsRevealing(false);
+      setPendingGuess(null);
+
+      // 合约 session 可能会在此时结束；为了让 UI 及时给出“失败”反馈，这里兜底一次
+      if (!won || !gameSession.active) {
+        setGameState('lost');
+      }
+
+      // 结果提示展示片刻后自动消失
+      window.setTimeout(() => setGuessCorrect(null), 900);
+    }, HILO_CONFIG.animation.flipDuration);
+
+    return () => window.clearTimeout(t);
+  }, [
+    pendingGuess,
+    gameSession,
+    isRevealing,
+    isWaitingVRF,
+    pendingRequest,
+    playCardFlipSound,
+    playCorrectGuessSound,
+    playWrongGuessSound,
+  ]);
 
   // 监听VRF结果
   useEffect(() => {
@@ -144,11 +221,15 @@ export function HiLoGame() {
     
     playClickSound();
     
+    setGuessCorrect(null);
+    setNextCard(null);
+    setPendingGuess({ guess, prevValue: currentCard.value });
     setIsRevealing(true);
     const txHash = await contractGuess(guess);
     
     if (!txHash) {
       setIsRevealing(false);
+      setPendingGuess(null);
       return;
     }
     
@@ -415,7 +496,17 @@ export function HiLoGame() {
                 requestId={vrfState.requestId}
                 startTime={vrfState.startTime}
                 pollCount={vrfState.pollCount}
-                onCancel={cancelStuckRequest}
+                onCancel={async () => {
+                  const ok = await cancelStuckRequest();
+                  if (ok) {
+                    setIsRevealing(false);
+                    setPendingGuess(null);
+                    setNextCard(null);
+                    setGuessCorrect(null);
+                    settledGuessRef.current = null;
+                  }
+                  return ok;
+                }}
                 onRefresh={refreshData}
               />
               
@@ -703,29 +794,34 @@ export function HiLoGame() {
       {/* 钱包连接弹窗 */}
       <AnimatePresence>
         {showWalletModal && (
-          <>
+          <motion.div
+            key="wallet-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50"
+          >
             {/* 遮罩 */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
               onClick={() => setShowWalletModal(false)}
             />
-            
+
             {/* 弹窗 */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+              className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none"
             >
-              <div 
+              <div
                 className="w-full max-w-sm relative p-5 rounded-2xl pointer-events-auto"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(26, 22, 18, 0.98) 0%, rgba(15, 12, 8, 0.98) 100%)',
+                  background:
+                    'linear-gradient(180deg, rgba(26, 22, 18, 0.98) 0%, rgba(15, 12, 8, 0.98) 100%)',
                   border: '1px solid rgba(201, 163, 71, 0.3)',
-                  boxShadow: '0 0 40px rgba(201, 163, 71, 0.15), inset 0 1px 0 rgba(201, 163, 71, 0.2)',
+                  boxShadow:
+                    '0 0 40px rgba(201, 163, 71, 0.15), inset 0 1px 0 rgba(201, 163, 71, 0.2)',
                 }}
               >
                 <button
@@ -735,19 +831,19 @@ export function HiLoGame() {
                 >
                   <X className="w-5 h-5" />
                 </button>
-                
-                <h3 
+
+                <h3
                   className="text-lg font-bold mb-4 flex items-center gap-2"
                   style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
                 >
                   <Wallet className="w-5 h-5" />
                   连接钱包
                 </h3>
-                
+
                 <WalletConnect />
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

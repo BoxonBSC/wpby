@@ -56,8 +56,9 @@ export function VRFWaitingOverlay({
   
   // 状态级别
   const getStatusLevel = () => {
+    // 10-30 秒属于正常区间；超过 30 秒开始提示“可能卡住”；超过 45 秒给出明确超时提示
     if (elapsedTime < 30) return 'normal';
-    if (elapsedTime < 60) return 'warning';
+    if (elapsedTime < 45) return 'warning';
     return 'timeout';
   };
   
@@ -206,7 +207,7 @@ export function VRFWaitingOverlay({
                 刷新
               </Button>
               
-              {statusLevel === 'timeout' && (
+              {(statusLevel === 'warning' || statusLevel === 'timeout') && requestId > 0n && (
                 <Button
                   onClick={handleCancel}
                   disabled={isCancelling}
