@@ -597,7 +597,20 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
 
     try {
       const amountWei = parseUnits(amount.toString(), 18);
-      const tx = await tokenContractRef.current.approve(getContractAddress(), amountWei);
+      // 用 populateTransaction + signer.sendTransaction，避免部分钱包 provider 丢失 data 字段
+      const provider = providerRef.current;
+      const signer = provider ? await provider.getSigner() : null;
+      if (!signer) {
+        setState(prev => ({ ...prev, error: '钱包签名器不可用，请重连钱包' }));
+        return false;
+      }
+
+      const approveReq = await tokenContractRef.current.approve.populateTransaction(getContractAddress(), amountWei);
+      if (!approveReq.data || approveReq.data === '0x') {
+        throw new Error('无法生成授权交易数据（approve data 为空）');
+      }
+
+      const tx = await signer.sendTransaction(approveReq);
       await tx.wait();
       await refreshUserData();
       return true;
@@ -610,31 +623,57 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
 
   // 充值凭证（自动处理授权）
   const depositCredits = useCallback(async (amount: number): Promise<{ ok: boolean; error?: string }> => {
-    await initSignerContracts();
-    
-    if (!signerContractRef.current || !tokenContractRef.current) {
+    // 这里不要依赖 ref 里的 signer 合约（可能会在切换钱包/Provider 时变脏），每次写入都用当前 provider 重建
+    const nativeProvider = getNativeWalletProvider();
+    const walletProvider = nativeProvider || web3ModalProvider;
+    if (!walletProvider || !isConnected || !address) {
       return { ok: false, error: '请先连接钱包' };
     }
 
     try {
-      const amountWei = parseUnits(amount.toString(), 18);
       const contractAddress = getContractAddress();
+      const tokenAddress = getTokenAddress();
+
+      const provider = new BrowserProvider(
+        walletProvider as { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> }
+      );
+      const signer = await provider.getSigner();
+
+      const hilo = new Contract(contractAddress, CYBER_HILO_ABI, signer);
+      const token = new Contract(tokenAddress, CYBER_TOKEN_ABI, signer);
+
+      const amountWei = parseUnits(amount.toString(), 18);
       
       // 步骤1: 检查当前授权额度
       console.log('[CyberHiLo] Checking allowance...');
-      const currentAllowance = await tokenContractRef.current.allowance(address, contractAddress);
+      const currentAllowance = await token.allowance(address, contractAddress);
       console.log('[CyberHiLo] Current allowance:', currentAllowance.toString(), 'Need:', amountWei.toString());
       
       // 步骤2: 如果授权不足，先进行授权
       if (currentAllowance < amountWei) {
         console.log('[CyberHiLo] Insufficient allowance, requesting approval...');
-        
-        // 授权一个较大的金额，避免每次都需要授权（用户体验更好）
-        // 这里授权 1亿 代币，足够很长时间使用
-        const approveAmount = parseUnits('100000000', 18); // 100M tokens
-        
+
+        // 兼容部分代币：非 0 -> 非 0 授权可能会 revert（先置 0 再授权）
+        if (currentAllowance > 0n) {
+          try {
+            const resetReq = await token.approve.populateTransaction(contractAddress, 0n);
+            if (!resetReq.data || resetReq.data === '0x') {
+              throw new Error('无法生成重置授权交易数据（data 为空）');
+            }
+            const resetTx = await signer.sendTransaction(resetReq);
+            await resetTx.wait();
+          } catch (resetErr) {
+            console.error('[CyberHiLo] Reset approve failed:', resetErr);
+          }
+        }
+
+        // 授权“本次需要的数量”，避免部分代币对超大授权做限制
         try {
-          const approveTx = await tokenContractRef.current.approve(contractAddress, approveAmount);
+          const approveReq = await token.approve.populateTransaction(contractAddress, amountWei);
+          if (!approveReq.data || approveReq.data === '0x') {
+            throw new Error('无法生成授权交易数据（approve data 为空）');
+          }
+          const approveTx = await signer.sendTransaction(approveReq);
           console.log('[CyberHiLo] Approval tx sent:', approveTx.hash);
           await approveTx.wait();
           console.log('[CyberHiLo] Approval confirmed');
@@ -642,11 +681,17 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
           console.error('[CyberHiLo] Approval failed:', approveErr);
           return { ok: false, error: '授权失败：' + toFriendlyTxError(approveErr) };
         }
+
+        // 二次校验
+        const allowanceAfter = await token.allowance(address, contractAddress);
+        if (allowanceAfter < amountWei) {
+          return { ok: false, error: '授权未生效：请在钱包里确认授权对象是“HiLo 游戏合约地址”，然后重试' };
+        }
       }
       
       // 步骤3: 执行充值
       console.log('[CyberHiLo] Depositing credits...');
-      const tx = await signerContractRef.current.depositCredits(amountWei);
+      const tx = await hilo.depositCredits(amountWei);
       await tx.wait();
       console.log('[CyberHiLo] Deposit confirmed');
       
@@ -657,7 +702,7 @@ export function useCyberHiLo(): UseCyberHiLoReturn {
       console.error('[CyberHiLo] Deposit failed:', err);
       return { ok: false, error: errorMsg };
     }
-  }, [initSignerContracts, refreshUserData, getContractAddress, address]);
+  }, [address, getContractAddress, getNativeWalletProvider, getTokenAddress, isConnected, refreshUserData, web3ModalProvider]);
 
   // 取消卡住的请求
   const cancelStuckRequest = useCallback(async (): Promise<boolean> => {
