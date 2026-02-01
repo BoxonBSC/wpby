@@ -684,7 +684,7 @@ export function HiLoGame() {
 
           {/* 右侧 - 代币兑换 + 历史记录 */}
           <div className="lg:col-span-3 space-y-4">
-            <CreditsExchange />
+            <CreditsExchange gameType="hilo" />
             <HiLoResults results={results} />
           </div>
         </div>
