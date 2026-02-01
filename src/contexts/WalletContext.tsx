@@ -73,10 +73,12 @@ function detectWallets(): WalletInfo[] {
   
   const getOkxProvider = () => {
     if (!win) return undefined;
-    const okxWin = win as unknown as { okxwallet?: unknown };
-    if (okxWin.okxwallet) return okxWin.okxwallet;
+    // 优先使用 OKX 注入到 window.ethereum 的 EIP-1193 provider（更兼容 ethers / 交易 data）
     const eth = win.ethereum as unknown as { isOkxWallet?: boolean; isOKExWallet?: boolean };
     if (eth?.isOkxWallet || eth?.isOKExWallet) return win.ethereum;
+    // 兜底再使用独立注入的 window.okxwallet
+    const okxWin = win as unknown as { okxwallet?: unknown };
+    if (okxWin.okxwallet) return okxWin.okxwallet;
     return undefined;
   };
 
@@ -127,10 +129,10 @@ function getWalletProvider(walletType: WalletType): unknown | null {
     case 'metamask':
       return win.ethereum;
     case 'okx': {
-      // OKX钱包优先使用独立注入，否则检查ethereum对象
-      if (win.okxwallet) return win.okxwallet;
+      // OKX：优先使用 window.ethereum（当它是 OKX 注入时），兜底才用 window.okxwallet
       const eth = win.ethereum as { isOkxWallet?: boolean; isOKExWallet?: boolean } | undefined;
       if (eth?.isOkxWallet || eth?.isOKExWallet) return win.ethereum;
+      if (win.okxwallet) return win.okxwallet;
       return null;
     }
     case 'binance':
