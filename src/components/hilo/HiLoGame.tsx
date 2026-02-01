@@ -601,7 +601,8 @@ export function HiLoGame() {
               <div className="flex items-center justify-center gap-8 min-h-[300px]">
                 <div className="text-center">
                   <div className="text-[#C9A347]/60 text-sm mb-2">当前牌</div>
-                  <PlayingCard card={currentCard} isFlipped={false} />
+                  {/* 没有当前牌时显示牌背，有牌时正常显示 */}
+                  <PlayingCard card={currentCard} isFlipped={!currentCard} />
                 </div>
 
                 {gameState === 'playing' && !isRevealing && !isWaitingVRF && (
