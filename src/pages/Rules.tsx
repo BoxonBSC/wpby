@@ -127,7 +127,7 @@ const Rules = () => {
                 </h3>
                 <div className="bg-black/30 rounded-xl p-4 space-y-3">
                   <p className="text-[#C9A347]/90">
-                    <strong className="text-[#FFD700]">什么是凭证？</strong> 凭证是游戏的入场券，用 CYBER 代币兑换获得。
+                    <strong className="text-[#FFD700]">什么是凭证？</strong> 凭证是游戏内的虚拟货币，用王牌博弈（CYBER）代币兑换获得。
                   </p>
                   <div className="flex items-center gap-2 text-[#C9A347]/80 text-sm">
                     <ArrowRight className="w-4 h-4 text-[#FFD700]" />
