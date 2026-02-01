@@ -654,6 +654,11 @@ const Rules = () => {
                 {t('rules.faq5A')}
               </p>
             </div>
+            
+            <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30">
+              <h4 className="font-bold text-orange-400 mb-2">{t('rules.faq6Q')}</h4>
+              <p className="text-[#C9A347]/80 text-sm" dangerouslySetInnerHTML={{ __html: t('rules.faq6A') }} />
+            </div>
           </div>
         </motion.div>
       </main>
