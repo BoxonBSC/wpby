@@ -115,6 +115,7 @@ export function HiLoGame() {
   const [guessCorrect, setGuessCorrect] = useState<boolean | null>(null);
   const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null);
   const [isRefreshingPrize, setIsRefreshingPrize] = useState(false);
+  const [isStartingGame, setIsStartingGame] = useState(false);
 
   // 防止重复结算同一轮猜测
   const settledGuessRef = useRef<string | null>(null);
@@ -280,24 +281,29 @@ export function HiLoGame() {
   // 开始游戏
   const startGame = useCallback(async () => {
     const tier = BET_TIERS[selectedTierIndex];
-    if (credits < tier.betAmount) return;
+    if (credits < tier.betAmount || isStartingGame) return;
     
+    setIsStartingGame(true);
     playClickSound();
     clearCardCache(); // 新游戏清除旧缓存
     
-    const firstCard = await contractStartGame(tier.betAmount);
-    if (firstCard !== null) {
-      playCardFlipSound();
-      // 用当前时间戳作为 sessionKey（此时还没有 gameSession.timestamp）
-      const newSessionKey = Date.now().toString();
-      setCurrentCard(cardFromValue(firstCard, newSessionKey));
-      setCurrentBetTier(tier);
-      setStreak(0);
-      setGameState('playing');
-      setGuessCorrect(null);
-      setPrizePoolSnapshot(Number(prizePool));
+    try {
+      const firstCard = await contractStartGame(tier.betAmount);
+      if (firstCard !== null) {
+        playCardFlipSound();
+        // 用当前时间戳作为 sessionKey（此时还没有 gameSession.timestamp）
+        const newSessionKey = Date.now().toString();
+        setCurrentCard(cardFromValue(firstCard, newSessionKey));
+        setCurrentBetTier(tier);
+        setStreak(0);
+        setGameState('playing');
+        setGuessCorrect(null);
+        setPrizePoolSnapshot(Number(prizePool));
+      }
+    } finally {
+      setIsStartingGame(false);
     }
-  }, [credits, selectedTierIndex, prizePool, playClickSound, playCardFlipSound, contractStartGame]);
+  }, [credits, selectedTierIndex, prizePool, playClickSound, playCardFlipSound, contractStartGame, isStartingGame]);
 
   // 猜测
   const makeGuess = useCallback(async (guess: Guess) => {
@@ -772,24 +778,43 @@ export function HiLoGame() {
                     
                     <Button
                       onClick={isConnected ? startGame : () => setShowWalletModal(true)}
-                      disabled={isConnected && credits < BET_TIERS[selectedTierIndex].betAmount}
+                      disabled={(isConnected && credits < BET_TIERS[selectedTierIndex].betAmount) || isStartingGame}
                       className="w-full h-14 text-lg font-bold"
                       style={{
-                        background: !isConnected 
-                          ? 'linear-gradient(135deg, #C9A347 0%, #8B7230 100%)'
-                          : credits >= BET_TIERS[selectedTierIndex].betAmount
-                            ? `linear-gradient(135deg, ${BET_TIERS[selectedTierIndex].color} 0%, ${BET_TIERS[selectedTierIndex].color}CC 100%)`
-                            : 'rgba(201, 163, 71, 0.2)',
-                        color: !isConnected 
-                          ? '#000' 
-                          : credits >= BET_TIERS[selectedTierIndex].betAmount ? '#000' : 'rgba(201, 163, 71, 0.5)',
+                        background: isStartingGame
+                          ? 'rgba(201, 163, 71, 0.3)'
+                          : !isConnected 
+                            ? 'linear-gradient(135deg, #C9A347 0%, #8B7230 100%)'
+                            : credits >= BET_TIERS[selectedTierIndex].betAmount
+                              ? `linear-gradient(135deg, ${BET_TIERS[selectedTierIndex].color} 0%, ${BET_TIERS[selectedTierIndex].color}CC 100%)`
+                              : 'rgba(201, 163, 71, 0.2)',
+                        color: isStartingGame
+                          ? '#FFD700'
+                          : !isConnected 
+                            ? '#000' 
+                            : credits >= BET_TIERS[selectedTierIndex].betAmount ? '#000' : 'rgba(201, 163, 71, 0.5)',
                       }}
                     >
-                      {!isConnected ? <Wallet className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
-                      {!isConnected ? '点击连接钱包' : (
-                        <>开始游戏 ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
-                          ? `${BET_TIERS[selectedTierIndex].betAmount / 1000000}M` 
-                          : `${BET_TIERS[selectedTierIndex].betAmount / 1000}K`})</>
+                      {isStartingGame ? (
+                        <>
+                          <motion.span
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            className="mr-2"
+                          >
+                            ⏳
+                          </motion.span>
+                          正在授权...
+                        </>
+                      ) : (
+                        <>
+                          {!isConnected ? <Wallet className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
+                          {!isConnected ? '点击连接钱包' : (
+                            <>开始游戏 ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
+                              ? `${BET_TIERS[selectedTierIndex].betAmount / 1000000}M` 
+                              : `${BET_TIERS[selectedTierIndex].betAmount / 1000}K`})</>
+                          )}
+                        </>
                       )}
                     </Button>
                   </div>
