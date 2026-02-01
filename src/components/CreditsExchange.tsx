@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@/contexts/WalletContext';
-import { useCyberSlots } from '@/hooks/useCyberSlots';
 import { useCyberHiLo } from '@/hooks/useCyberHiLo';
 import { Flame, ArrowRight, Ticket, CheckCircle, Coins, Keyboard } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -9,20 +8,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 const EXCHANGE_AMOUNTS = [100000, 500000, 1000000, 5000000];
 
-interface CreditsExchangeProps {
-  gameType?: 'slots' | 'hilo';
-}
-
-export function CreditsExchange({ gameType = 'slots' }: CreditsExchangeProps) {
+export function CreditsExchange() {
   const { isConnected } = useWallet();
-  
-  // 根据 gameType 使用不同的 hook
-  const slotsHook = useCyberSlots();
-  const hiloHook = useCyberHiLo();
-  
-  // 选择正确的数据源
-  const activeHook = gameType === 'hilo' ? hiloHook : slotsHook;
-  const { tokenBalance, gameCredits, depositCredits, error: contractError, refreshData } = activeHook;
+  const { tokenBalance, gameCredits, depositCredits, error: contractError, refreshData } = useCyberHiLo();
   
   const { t } = useLanguage();
   const [selectedAmount, setSelectedAmount] = useState(EXCHANGE_AMOUNTS[1]);

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet, WalletType, WalletInfo } from '@/contexts/WalletContext';
-import { useCyberSlots } from '@/hooks/useCyberSlots';
+import { useCyberHiLo } from '@/hooks/useCyberHiLo';
 import { Wallet, LogOut, Copy, ExternalLink, Ticket, ChevronDown, X, Smartphone, QrCode } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -22,7 +22,7 @@ export function WalletConnect() {
     disconnect, isConnecting, error, availableWallets, connectedWallet,
   } = useWallet();
   
-  const { tokenBalance: chainTokenBalance, gameCredits: chainGameCredits } = useCyberSlots();
+  const { tokenBalance: chainTokenBalance, gameCredits: chainGameCredits } = useCyberHiLo();
   const [showWalletSelector, setShowWalletSelector] = useState(false);
   
   const tokenBalance = parseFloat(chainTokenBalance);

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wallet, LogOut, Ticket, X, Flame } from 'lucide-react';
 import { useWallet } from '@/contexts/WalletContext';
-import { useCyberSlots } from '@/hooks/useCyberSlots';
+import { useCyberHiLo } from '@/hooks/useCyberHiLo';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { WalletConnect } from './WalletConnect';
 import { CreditsExchange } from './CreditsExchange';
@@ -10,7 +10,7 @@ import { CreditsExchange } from './CreditsExchange';
 export function NavbarWalletButton() {
   const { t } = useLanguage();
   const { address, isConnected, disconnect } = useWallet();
-  const { gameCredits } = useCyberSlots();
+  const { gameCredits } = useCyberHiLo();
   const [showPanel, setShowPanel] = useState(false);
 
   const shortenAddress = (addr: string) => `${addr.slice(0, 4)}...${addr.slice(-4)}`;
