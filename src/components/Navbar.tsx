@@ -284,12 +284,12 @@ export function Navbar() {
               >
                 {/* 描边层 - 模拟立体效果 */}
                 <span
-                  className="absolute inset-0 text-2xl font-black select-none pointer-events-none"
+                  className="absolute inset-0 text-2xl font-bold select-none pointer-events-none"
                   aria-hidden="true"
                   style={{
-                    fontFamily: '"Ma Shan Zheng", "ZCOOL XiaoWei", "Noto Serif SC", serif',
-                    letterSpacing: '0.08em',
-                    WebkitTextStroke: '3px rgba(139, 90, 43, 0.8)',
+                    fontFamily: '"Cinzel", "Noto Serif SC", serif',
+                    letterSpacing: '0.12em',
+                    WebkitTextStroke: '2px rgba(139, 90, 43, 0.6)',
                     color: 'transparent',
                   }}
                 >
@@ -297,10 +297,10 @@ export function Navbar() {
                 </span>
                 {/* 主文字层 - 金色渐变 */}
                 <motion.span 
-                  className="relative text-2xl font-black"
+                  className="relative text-2xl font-bold"
                   style={{
-                    fontFamily: '"Ma Shan Zheng", "ZCOOL XiaoWei", "Noto Serif SC", serif',
-                    letterSpacing: '0.08em',
+                    fontFamily: '"Cinzel", "Noto Serif SC", serif',
+                    letterSpacing: '0.12em',
                     background: 'linear-gradient(180deg, #FFF8DC 0%, #FFD700 25%, #DAA520 50%, #B8860B 75%, #8B6914 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -315,11 +315,11 @@ export function Navbar() {
                 </motion.span>
                 {/* 高光层 */}
                 <motion.span
-                  className="absolute inset-0 text-2xl font-black select-none pointer-events-none"
+                  className="absolute inset-0 text-2xl font-bold select-none pointer-events-none"
                   aria-hidden="true"
                   style={{
-                    fontFamily: '"Ma Shan Zheng", "ZCOOL XiaoWei", "Noto Serif SC", serif',
-                    letterSpacing: '0.08em',
+                    fontFamily: '"Cinzel", "Noto Serif SC", serif',
+                    letterSpacing: '0.12em',
                     background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 50%, rgba(255,255,255,0.2) 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
