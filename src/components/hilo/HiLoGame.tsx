@@ -64,7 +64,7 @@ type PendingGuess = {
 
 export function HiLoGame() {
   // 钱包状态
-  const { isConnected, address } = useWallet();
+  const { isConnected, address, connectWalletConnect } = useWallet();
   
   // 持久化游戏记录（按钱包地址存储）
   const { results, addResult } = useHiLoHistory(address);
@@ -777,7 +777,7 @@ export function HiLoGame() {
                     </div>
                     
                     <Button
-                      onClick={isConnected ? startGame : () => setShowWalletModal(true)}
+                      onClick={isConnected ? startGame : connectWalletConnect}
                       disabled={(isConnected && credits < BET_TIERS[selectedTierIndex].betAmount) || isStartingGame}
                       className="w-full h-14 text-lg font-bold"
                       style={{
