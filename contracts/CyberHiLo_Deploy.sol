@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 
-// 使用 Chainlink 自带的 ConfirmedOwner（VRFConsumerBaseV2Plus 已继承）
-// 避免 OpenZeppelin Ownable 的 OwnershipTransferred 事件冲突
 contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     
     uint256 public betLevel1 = 50000 * 10**18;
@@ -176,14 +174,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         gameCredits[msg.sender] -= betAmount;
         emit CreditsUsed(msg.sender, betAmount);
         
-        firstCard = uint8((uint256(keccak256(abi.encodePacked(
-            block.timestamp,
-            block.prevrandao,
-            msg.sender,
-            totalGames,
-            blockhash(block.number - 1),
-            gasleft()
-        ))) % 13) + 1);
+        firstCard = _generateFirstCard();
         
         gameSessions[msg.sender] = GameSession({
             player: msg.sender,
@@ -204,6 +195,17 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         return firstCard;
     }
     
+    function _generateFirstCard() private view returns (uint8) {
+        return uint8((uint256(keccak256(abi.encodePacked(
+            block.timestamp,
+            block.prevrandao,
+            msg.sender,
+            totalGames,
+            blockhash(block.number - 1),
+            gasleft()
+        ))) % 13) + 1);
+    }
+    
     function guess(uint8 guessType) external nonReentrant whenNotPaused returns (uint256 requestId) {
         require(msg.sender == tx.origin, "Only EOA allowed");
         require(guessType <= 2, "Invalid guess type");
@@ -215,18 +217,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         uint8 maxStreak = getMaxStreakForTier(session.betTierIndex);
         require(session.currentStreak < maxStreak, "Max streak reached, cash out");
         
-        uint8 potentialNewStreak = session.currentStreak + (guessType == 2 ? 2 : 1);
-        if (potentialNewStreak > maxStreak) {
-            potentialNewStreak = maxStreak;
-        }
-        uint256 potentialNewLock = calculateReward(potentialNewStreak, session.prizePoolSnapshot);
-        uint256 currentLock = playerLockedReward[msg.sender];
-        
-        if (potentialNewLock > currentLock) {
-            uint256 additionalLockNeeded = potentialNewLock - currentLock;
-            uint256 availablePool = getAvailablePool();
-            require(availablePool >= additionalLockNeeded, "Pool insufficient for next level, please cash out");
-        }
+        _checkPoolForNextLevel(session, guessType, maxStreak);
         
         requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
@@ -254,6 +245,20 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         return requestId;
     }
     
+    function _checkPoolForNextLevel(GameSession storage session, uint8 guessType, uint8 maxStreak) private view {
+        uint8 potentialNewStreak = session.currentStreak + (guessType == 2 ? 2 : 1);
+        if (potentialNewStreak > maxStreak) {
+            potentialNewStreak = maxStreak;
+        }
+        uint256 potentialNewLock = calculateReward(potentialNewStreak, session.prizePoolSnapshot);
+        uint256 currentLock = playerLockedReward[msg.sender];
+        
+        if (potentialNewLock > currentLock) {
+            uint256 additionalLockNeeded = potentialNewLock - currentLock;
+            require(getAvailablePool() >= additionalLockNeeded, "Pool insufficient for next level, please cash out");
+        }
+    }
+    
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
         VRFRequest storage request = vrfRequests[requestId];
         require(request.player != address(0), "Invalid request");
@@ -267,71 +272,110 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         
         uint8 newCard = uint8((randomWords[0] % 13) + 1);
         uint8 oldCard = session.currentCard;
-        
-        bool won;
-        if (request.guessType == 2) {
-            won = (newCard == oldCard);
-        } else if (request.guessType == 1) {
-            won = (newCard > oldCard);
-        } else {
-            won = (newCard < oldCard);
-        }
+        bool won = _checkWin(request.guessType, oldCard, newCard);
         
         if (won) {
-            uint8 streakIncrease = (request.guessType == 2) ? 2 : 1;
-            uint8 maxStreak = getMaxStreakForTier(session.betTierIndex);
-            uint8 newStreak = session.currentStreak + streakIncrease;
-            if (newStreak > maxStreak) {
-                newStreak = maxStreak;
-            }
-            session.currentStreak = newStreak;
-            session.currentCard = newCard;
-            
-            uint256 newLockAmount = calculateReward(newStreak, session.prizePoolSnapshot);
-            uint256 oldLockAmount = playerLockedReward[request.player];
-            
-            if (newLockAmount > oldLockAmount) {
-                uint256 additionalLock = newLockAmount - oldLockAmount;
-                uint256 availableForLock = address(this).balance > totalLockedRewards 
-                    ? address(this).balance - totalLockedRewards 
-                    : 0;
-                
-                if (availableForLock >= additionalLock) {
-                    playerLockedReward[request.player] = newLockAmount;
-                    totalLockedRewards += additionalLock;
-                } else {
-                    if (session.currentStreak > playerStats[request.player].maxStreak) {
-                        playerStats[request.player].maxStreak = session.currentStreak;
-                    }
-                    emit GuessResult(request.player, requestId, oldCard, newCard, true, session.currentStreak, 0);
-                    emit PoolInsufficientForceSettled(request.player, session.currentStreak, availableForLock, additionalLock);
-                    _cashOut(request.player);
-                    return;
-                }
-            }
-            
-            if (session.currentStreak > playerStats[request.player].maxStreak) {
-                playerStats[request.player].maxStreak = session.currentStreak;
-            }
-            
-            uint256 potentialReward = calculateReward(session.currentStreak, session.prizePoolSnapshot);
-            emit GuessResult(request.player, requestId, oldCard, newCard, true, session.currentStreak, potentialReward);
-            
-            if (session.currentStreak >= maxStreak) {
-                _cashOut(request.player);
-            }
+            _handleWin(request.player, requestId, session, request.guessType, oldCard, newCard);
         } else {
-            uint8 lostStreak = session.currentStreak;
-            session.active = false;
+            _handleLoss(request.player, requestId, session, oldCard, newCard);
+        }
+    }
+    
+    function _checkWin(uint8 guessType, uint8 oldCard, uint8 newCard) private pure returns (bool) {
+        if (guessType == 2) return newCard == oldCard;
+        if (guessType == 1) return newCard > oldCard;
+        return newCard < oldCard;
+    }
+    
+    function _handleWin(
+        address player,
+        uint256 requestId,
+        GameSession storage session,
+        uint8 guessType,
+        uint8 oldCard,
+        uint8 newCard
+    ) private {
+        uint8 streakIncrease = (guessType == 2) ? 2 : 1;
+        uint8 maxStreak = getMaxStreakForTier(session.betTierIndex);
+        uint8 newStreak = session.currentStreak + streakIncrease;
+        if (newStreak > maxStreak) newStreak = maxStreak;
+        
+        session.currentStreak = newStreak;
+        session.currentCard = newCard;
+        
+        bool poolSufficient = _updateLockAmount(player, newStreak, session.prizePoolSnapshot);
+        
+        if (!poolSufficient) {
+            _updateMaxStreak(player, newStreak);
+            emit GuessResult(player, requestId, oldCard, newCard, true, newStreak, 0);
+            uint256 available = _getAvailableForLock();
+            uint256 needed = calculateReward(newStreak, session.prizePoolSnapshot) - playerLockedReward[player];
+            emit PoolInsufficientForceSettled(player, newStreak, available, needed);
+            _cashOut(player);
+            return;
+        }
+        
+        _updateMaxStreak(player, newStreak);
+        uint256 potentialReward = calculateReward(newStreak, session.prizePoolSnapshot);
+        emit GuessResult(player, requestId, oldCard, newCard, true, newStreak, potentialReward);
+        
+        if (newStreak >= maxStreak) {
+            _cashOut(player);
+        }
+    }
+    
+    function _handleLoss(
+        address player,
+        uint256 requestId,
+        GameSession storage session,
+        uint8 oldCard,
+        uint8 newCard
+    ) private {
+        uint8 lostStreak = session.currentStreak;
+        session.active = false;
+        
+        _releaseLock(player);
+        
+        emit GuessResult(player, requestId, oldCard, newCard, false, 0, 0);
+        emit GameLost(player, lostStreak);
+    }
+    
+    function _updateLockAmount(address player, uint8 newStreak, uint256 poolSnapshot) private returns (bool) {
+        uint256 newLockAmount = calculateReward(newStreak, poolSnapshot);
+        uint256 oldLockAmount = playerLockedReward[player];
+        
+        if (newLockAmount > oldLockAmount) {
+            uint256 additionalLock = newLockAmount - oldLockAmount;
+            uint256 availableForLock = _getAvailableForLock();
             
-            uint256 lockedAmount = playerLockedReward[request.player];
-            if (lockedAmount > 0) {
-                totalLockedRewards -= lockedAmount;
-                playerLockedReward[request.player] = 0;
+            if (availableForLock < additionalLock) {
+                return false;
             }
             
-            emit GuessResult(request.player, requestId, oldCard, newCard, false, 0, 0);
-            emit GameLost(request.player, lostStreak);
+            playerLockedReward[player] = newLockAmount;
+            totalLockedRewards += additionalLock;
+        }
+        return true;
+    }
+    
+    function _getAvailableForLock() private view returns (uint256) {
+        if (address(this).balance > totalLockedRewards) {
+            return address(this).balance - totalLockedRewards;
+        }
+        return 0;
+    }
+    
+    function _updateMaxStreak(address player, uint8 streak) private {
+        if (streak > playerStats[player].maxStreak) {
+            playerStats[player].maxStreak = streak;
+        }
+    }
+    
+    function _releaseLock(address player) private {
+        uint256 lockedAmount = playerLockedReward[player];
+        if (lockedAmount > 0) {
+            totalLockedRewards -= lockedAmount;
+            playerLockedReward[player] = 0;
         }
     }
     
@@ -351,51 +395,57 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
     function _cashOut(address player) internal {
         GameSession storage session = gameSessions[player];
         
-        uint256 lockedAmount = playerLockedReward[player];
-        if (lockedAmount > 0) {
-            totalLockedRewards -= lockedAmount;
-            playerLockedReward[player] = 0;
-        }
+        _releaseLock(player);
         
         uint256 grossPrize = calculateReward(session.currentStreak, session.prizePoolSnapshot);
         uint8 finalStreak = session.currentStreak;
         session.active = false;
         
         if (grossPrize > 0) {
-            uint256 currentPool = address(this).balance > totalLockedRewards 
-                ? address(this).balance - totalLockedRewards 
-                : 0;
-            if (grossPrize > currentPool) {
-                grossPrize = currentPool;
-            }
-            
-            uint256 playerPrize = (grossPrize * PLAYER_PRIZE_PERCENT) / 10000;
-            uint256 operationFee = grossPrize - playerPrize;
-            
-            playerStats[player].totalWins++;
-            playerStats[player].totalWinnings += playerPrize;
-            totalPaidOut += playerPrize;
-            
-            if (operationFee > 0 && operationWallet != address(0)) {
-                (bool feeSuccess, ) = operationWallet.call{value: operationFee}("");
-                if (feeSuccess) {
-                    totalOperationFees += operationFee;
-                    emit OperationFeeSent(operationFee);
-                } else {
-                    playerPrize += operationFee;
-                    emit OperationFeeTransferFailed(operationFee);
-                }
-            }
-            
-            (bool prizeSuccess, ) = player.call{value: playerPrize}("");
-            if (!prizeSuccess) {
-                unclaimedPrizes[player] += playerPrize;
-                emit PrizeTransferFailed(player, playerPrize);
-            }
-            
-            emit GameCashedOut(player, grossPrize, playerPrize, finalStreak);
+            _processPayout(player, grossPrize, finalStreak);
         } else {
             emit GameCashedOut(player, 0, 0, finalStreak);
+        }
+    }
+    
+    function _processPayout(address player, uint256 grossPrize, uint8 finalStreak) private {
+        uint256 currentPool = _getAvailableForLock();
+        if (grossPrize > currentPool) {
+            grossPrize = currentPool;
+        }
+        
+        uint256 playerPrize = (grossPrize * PLAYER_PRIZE_PERCENT) / 10000;
+        uint256 operationFee = grossPrize - playerPrize;
+        
+        playerStats[player].totalWins++;
+        playerStats[player].totalWinnings += playerPrize;
+        totalPaidOut += playerPrize;
+        
+        playerPrize = _sendOperationFee(operationFee, playerPrize);
+        _sendPlayerPrize(player, playerPrize);
+        
+        emit GameCashedOut(player, grossPrize, playerPrize, finalStreak);
+    }
+    
+    function _sendOperationFee(uint256 operationFee, uint256 playerPrize) private returns (uint256) {
+        if (operationFee > 0 && operationWallet != address(0)) {
+            (bool feeSuccess, ) = operationWallet.call{value: operationFee}("");
+            if (feeSuccess) {
+                totalOperationFees += operationFee;
+                emit OperationFeeSent(operationFee);
+            } else {
+                playerPrize += operationFee;
+                emit OperationFeeTransferFailed(operationFee);
+            }
+        }
+        return playerPrize;
+    }
+    
+    function _sendPlayerPrize(address player, uint256 playerPrize) private {
+        (bool prizeSuccess, ) = player.call{value: playerPrize}("");
+        if (!prizeSuccess) {
+            unclaimedPrizes[player] += playerPrize;
+            emit PrizeTransferFailed(player, playerPrize);
         }
     }
     
@@ -422,11 +472,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         pendingRequest[msg.sender] = 0;
         req.fulfilled = true;
         
-        uint256 lockedAmount = playerLockedReward[msg.sender];
-        if (lockedAmount > 0) {
-            totalLockedRewards -= lockedAmount;
-            playerLockedReward[msg.sender] = 0;
-        }
+        _releaseLock(msg.sender);
         
         GameSession storage session = gameSessions[msg.sender];
         if (session.active) {
@@ -447,10 +493,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         }
         
         uint256 lockedAmount = playerLockedReward[player];
-        if (lockedAmount > 0) {
-            totalLockedRewards -= lockedAmount;
-            playerLockedReward[player] = 0;
-        }
+        _releaseLock(player);
         
         uint8 streak = session.currentStreak;
         session.active = false;
@@ -621,11 +664,7 @@ contract CyberHiLo is VRFConsumerBaseV2Plus, ReentrancyGuard, Pausable {
         pendingRequest[player] = 0;
         req.fulfilled = true;
         
-        uint256 lockedAmount = playerLockedReward[player];
-        if (lockedAmount > 0) {
-            totalLockedRewards -= lockedAmount;
-            playerLockedReward[player] = 0;
-        }
+        _releaseLock(player);
         
         GameSession storage session = gameSessions[player];
         if (session.active) {
