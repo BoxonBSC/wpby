@@ -111,6 +111,7 @@ export function HiLoGame() {
   const [results, setResults] = useState<HiLoResult[]>([]);
   const [guessCorrect, setGuessCorrect] = useState<boolean | null>(null);
   const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null);
+  const [isRefreshingPrize, setIsRefreshingPrize] = useState(false);
 
   // 防止重复结算同一轮猜测
   const settledGuessRef = useRef<string | null>(null);
@@ -244,6 +245,16 @@ export function HiLoGame() {
       refreshData();
     }
   }, [isWaitingVRF, pendingRequest, gameState, refreshData]);
+  
+  // 胜利时自动刷新待领取余额
+  useEffect(() => {
+    if (gameState === 'won') {
+      const timer = setTimeout(() => {
+        refreshData();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState, refreshData]);
 
   // 开始游戏
   const startGame = useCallback(async () => {
@@ -801,6 +812,7 @@ export function HiLoGame() {
                 {(gameState === 'won' || gameState === 'lost') && (() => {
                   const currentTier = REWARD_TIERS.find(t => t.streak === streak);
                   const hasUnclaimedPrize = Number(unclaimedPrize) > 0;
+                  
                   return (
                     <div className="text-center space-y-4">
                       <div 
@@ -816,8 +828,8 @@ export function HiLoGame() {
                         )}
                       </div>
                       
-                      {/* 醒目的领取奖励提示 */}
-                      {hasUnclaimedPrize && (
+                      {/* 胜利时始终显示领取奖励提示 */}
+                      {gameState === 'won' && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -848,35 +860,94 @@ export function HiLoGame() {
                           <div className="relative z-10">
                             <div className="flex items-center justify-center gap-2 mb-2">
                               <HandCoins className="w-6 h-6 text-[#FFD700]" />
-                              <span className="text-[#FFD700] font-bold text-lg">待领取奖励</span>
+                              <span className="text-[#FFD700] font-bold text-lg">
+                                {hasUnclaimedPrize ? '待领取奖励' : '奖励已存入合约'}
+                              </span>
                             </div>
-                            <div className="text-2xl font-bold text-white mb-3">
-                              {Number(unclaimedPrize).toFixed(4)} BNB
-                            </div>
-                            <Button
-                              onClick={async () => {
-                                const success = await claimPrize();
-                                if (success) {
-                                  toast({
-                                    title: "🎉 领取成功!",
-                                    description: `${Number(unclaimedPrize).toFixed(4)} BNB 已发送到您的钱包`,
-                                  });
-                                }
-                              }}
-                              className="w-full h-12 text-lg font-bold animate-pulse"
-                              style={{
-                                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                                color: '#000',
-                                boxShadow: '0 0 20px rgba(255, 215, 0, 0.5)',
-                              }}
-                            >
-                              <HandCoins className="w-5 h-5 mr-2" />
-                              立即领取奖励
-                            </Button>
+                            
+                            {hasUnclaimedPrize ? (
+                              <>
+                                <div className="text-2xl font-bold text-white mb-3">
+                                  {Number(unclaimedPrize).toFixed(4)} BNB
+                                </div>
+                                <Button
+                                  onClick={async () => {
+                                    const success = await claimPrize();
+                                    if (success) {
+                                      toast({
+                                        title: "🎉 领取成功!",
+                                        description: `${Number(unclaimedPrize).toFixed(4)} BNB 已发送到您的钱包`,
+                                      });
+                                    }
+                                  }}
+                                  className="w-full h-12 text-lg font-bold animate-pulse"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                                    color: '#000',
+                                    boxShadow: '0 0 20px rgba(255, 215, 0, 0.5)',
+                                  }}
+                                >
+                                  <HandCoins className="w-5 h-5 mr-2" />
+                                  立即领取奖励
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-[#C9A347]/80 text-sm mb-3">
+                                  奖励已存入合约待领取余额，请稍候或点击刷新
+                                </p>
+                                <Button
+                                  onClick={async () => {
+                                    setIsRefreshingPrize(true);
+                                    await refreshData();
+                                    setTimeout(() => setIsRefreshingPrize(false), 1000);
+                                  }}
+                                  disabled={isRefreshingPrize}
+                                  className="w-full h-12 text-lg font-bold"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #C9A347 0%, #8B7230 100%)',
+                                    color: '#000',
+                                  }}
+                                >
+                                  {isRefreshingPrize ? (
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                  ) : (
+                                    <HandCoins className="w-5 h-5 mr-2" />
+                                  )}
+                                  {isRefreshingPrize ? '刷新中...' : '刷新待领取余额'}
+                                </Button>
+                              </>
+                            )}
+                            
                             <p className="text-[#C9A347]/70 text-xs mt-2">
-                              点击按钮将 BNB 转入您的钱包（需支付少量Gas费）
+                              领取时需支付少量Gas费，95%奖励到账
                             </p>
                           </div>
+                        </motion.div>
+                      )}
+                      
+                      {/* 失败时如果有待领取奖励也显示 */}
+                      {gameState === 'lost' && hasUnclaimedPrize && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-3 rounded-lg"
+                          style={{
+                            background: 'rgba(201, 163, 71, 0.1)',
+                            border: '1px solid rgba(201, 163, 71, 0.3)',
+                          }}
+                        >
+                          <p className="text-[#C9A347] text-sm mb-2">
+                            您有 {Number(unclaimedPrize).toFixed(4)} BNB 待领取
+                          </p>
+                          <Button
+                            onClick={claimPrize}
+                            size="sm"
+                            className="bg-[#C9A347] text-black hover:bg-[#FFD700]"
+                          >
+                            <HandCoins className="w-4 h-4 mr-1" />
+                            领取奖励
+                          </Button>
                         </motion.div>
                       )}
                       
