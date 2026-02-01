@@ -9,7 +9,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 // 最小兑换金额
 const MIN_AMOUNT = 100000; // 10万起
 
-export function CreditsExchange() {
+interface CreditsExchangeProps {
+  onExchangeSuccess?: () => void;
+}
+
+export function CreditsExchange({ onExchangeSuccess }: CreditsExchangeProps) {
   const { isConnected } = useWallet();
   const { tokenBalance, gameCredits, depositCredits, error: contractError, refreshData } = useCyberHiLo();
   
@@ -57,6 +61,8 @@ export function CreditsExchange() {
         });
         setTimeout(() => setShowSuccess(false), 2000);
         await refreshData();
+        // 通知父组件刷新数据
+        onExchangeSuccess?.();
       } else {
         toast({
           title: t('exchange.failed'),
