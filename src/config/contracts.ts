@@ -16,7 +16,7 @@ export const CYBER_HILO_ADDRESS = {
 };
 
 export const CYBER_TOKEN_ADDRESS = {
-  mainnet: '0x895d296d7a95ffc288f969edefbba664a25a7777',
+  mainnet: '0xf9c6f974715b03cc9d0dcda3d9583674a2d87777',
   testnet: '0x0000000000000000000000000000000000000000',
 };
 
