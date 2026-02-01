@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SuccessAnimationProps {
   amount: number;
@@ -8,6 +9,7 @@ interface SuccessAnimationProps {
 }
 
 export function SuccessAnimation({ amount, onComplete }: SuccessAnimationProps) {
+  const { t } = useLanguage();
   const [showConfetti, setShowConfetti] = useState(true);
   const [displayAmount, setDisplayAmount] = useState(0);
 
@@ -188,7 +190,7 @@ export function SuccessAnimation({ amount, onComplete }: SuccessAnimationProps) 
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              到账成功！
+              {t('success.arrived')}
             </span>
             <Sparkles className="w-5 h-5 text-[#00FFC8]" />
           </div>
@@ -224,7 +226,7 @@ export function SuccessAnimation({ amount, onComplete }: SuccessAnimationProps) 
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            (扣除5%手续费后)
+            {t('success.afterFee')}
           </motion.p>
         </motion.div>
 
@@ -236,7 +238,7 @@ export function SuccessAnimation({ amount, onComplete }: SuccessAnimationProps) 
           transition={{ delay: 0.8 }}
         >
           <p className="text-[#00FFC8]/70 text-xs px-4 py-2 rounded-lg bg-[#00FFC8]/10">
-            💡 奖励已通过内部交易自动转入，余额已增加
+            {t('success.autoTransfer')}
           </p>
         </motion.div>
       </motion.div>

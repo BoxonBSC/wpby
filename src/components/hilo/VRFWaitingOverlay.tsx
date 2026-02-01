@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Clock, AlertTriangle, X, RefreshCw } from 'lucide-react';
+import { Loader2, Clock, AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VRFWaitingOverlayProps {
   isVisible: boolean;
@@ -16,6 +17,7 @@ export function VRFWaitingOverlay({
   startTime,
   onCancel,
 }: VRFWaitingOverlayProps) {
+  const { t } = useLanguage();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isCancelling, setIsCancelling] = useState(false);
   
@@ -37,7 +39,9 @@ export function VRFWaitingOverlay({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return mins > 0 ? `${mins}分${secs}秒` : `${secs}秒`;
+    return mins > 0 
+      ? t('vrf.formatMin').replace('{min}', mins.toString()).replace('{sec}', secs.toString())
+      : t('vrf.formatSec').replace('{sec}', secs.toString());
   };
   
   // 处理取消
@@ -52,7 +56,6 @@ export function VRFWaitingOverlay({
   
   // 状态级别
   const getStatusLevel = () => {
-    // 10-30 秒属于正常区间；超过 30 秒开始提示“可能卡住”；超过 45 秒给出明确超时提示
     if (elapsedTime < 30) return 'normal';
     if (elapsedTime < 45) return 'warning';
     return 'timeout';
@@ -88,7 +91,6 @@ export function VRFWaitingOverlay({
           >
             {/* 动画图标 */}
             <div className="relative mb-6">
-              {/* 外圈旋转 */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
@@ -98,10 +100,7 @@ export function VRFWaitingOverlay({
                 }}
               />
               
-              {/* 内圈 */}
-              <div 
-                className="absolute inset-0 flex items-center justify-center"
-              >
+              <div className="absolute inset-0 flex items-center justify-center">
                 <div 
                   className="w-16 h-16 rounded-full flex items-center justify-center"
                   style={{ background: colors.bg, border: `2px solid ${colors.border}60` }}
@@ -120,14 +119,14 @@ export function VRFWaitingOverlay({
               className="text-xl font-bold mb-2"
               style={{ color: colors.text }}
             >
-              {statusLevel === 'timeout' ? '等待超时' : '等待链上确认'}
+              {statusLevel === 'timeout' ? t('vrf.timeout') : t('vrf.waiting')}
             </h3>
             
             {/* 描述 */}
             <p className="text-[#C9A347]/70 text-sm mb-4">
               {statusLevel === 'timeout' 
-                ? 'VRF回调可能卡住了，可尝试取消请求'
-                : 'Chainlink VRF正在生成可验证随机数'
+                ? t('vrf.maybeStuck')
+                : t('vrf.generating')
               }
             </p>
             
@@ -164,7 +163,7 @@ export function VRFWaitingOverlay({
                 />
               </div>
               <p className="text-[10px] text-[#C9A347]/40 mt-1">
-                通常需要 10-30 秒
+                {t('vrf.usually')}
               </p>
             </div>
             
@@ -182,7 +181,7 @@ export function VRFWaitingOverlay({
                 ) : (
                   <>
                     <X className="w-4 h-4 mr-1" />
-                    取消请求
+                    {t('vrf.cancel')}
                   </>
                 )}
               </Button>
@@ -191,7 +190,7 @@ export function VRFWaitingOverlay({
             {/* 提示 */}
             {statusLevel !== 'timeout' && (
               <p className="text-[10px] text-[#C9A347]/30 mt-3">
-                请勿关闭页面，结果将自动更新
+                {t('vrf.doNotClose')}
               </p>
             )}
           </motion.div>
