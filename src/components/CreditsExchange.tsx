@@ -144,7 +144,7 @@ export function CreditsExchange({ onExchangeSuccess }: CreditsExchangeProps) {
                 {t('exchange.title')}
               </h3>
               <p className="text-[10px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
-                销毁代币 → 永久凭证
+                {t('exchange.burnToPermanent')}
               </p>
             </div>
           </div>
@@ -235,7 +235,7 @@ export function CreditsExchange({ onExchangeSuccess }: CreditsExchangeProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px]" style={{ color: 'rgba(201, 163, 71, 0.6)' }}>
-              兑换数量 <span style={{ color: 'rgba(201, 163, 71, 0.4)' }}>(最低10万)</span>
+              {t('exchange.exchangeAmount')} <span style={{ color: 'rgba(201, 163, 71, 0.4)' }}>({t('exchange.minAmount')})</span>
             </span>
             <div 
               className="text-base font-bold px-3 py-1 rounded-lg"
@@ -374,7 +374,12 @@ export function CreditsExchange({ onExchangeSuccess }: CreditsExchangeProps) {
                 className="flex items-center justify-center gap-2"
               >
                 <Flame className="w-4 h-4" />
-                {!isConnected ? '请先连接钱包' : amount > tokenBalanceNum ? '余额不足' : t('exchange.button')}
+                {!isConnected 
+                  ? t('exchange.pleaseConnectWallet') 
+                  : amount > tokenBalanceNum 
+                    ? t('exchange.insufficientBalance') 
+                    : t('exchange.button')
+                }
               </motion.span>
             )}
           </AnimatePresence>
@@ -386,16 +391,16 @@ export function CreditsExchange({ onExchangeSuccess }: CreditsExchangeProps) {
           style={{ borderTop: '1px solid rgba(201, 163, 71, 0.1)' }}
         >
           <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
-            🔥 销毁不可逆
+            {t('exchange.burnIrreversible')}
           </span>
           <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
-            🎟️ 1:1 兑换
+            {t('exchange.oneToOne')}
           </span>
           <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
-            🔒 凭证不可转账
+            {t('exchange.nonTransferable')}
           </span>
           <span className="text-[9px]" style={{ color: 'rgba(201, 163, 71, 0.5)' }}>
-            💰 中奖领BNB
+            {t('exchange.winBnb')}
           </span>
         </div>
       </div>

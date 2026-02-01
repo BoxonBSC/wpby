@@ -10,6 +10,7 @@ import { WalletConnect } from '@/components/WalletConnect';
 import { useWallet } from '@/contexts/WalletContext';
 import { useCyberHiLo } from '@/hooks/useCyberHiLo';
 import { useHiLoHistory } from '@/hooks/useHiLoHistory';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   HILO_CONFIG,
   HiLoGameState,
@@ -64,6 +65,8 @@ type PendingGuess = {
 };
 
 export function HiLoGame() {
+  const { t } = useLanguage();
+  
   // 钱包状态
   const { isConnected, address } = useWallet();
   
@@ -358,14 +361,14 @@ export function HiLoGame() {
         addResult(result);
         
         toast({
-          title: "🎉 收手成功！",
-          description: `${reward.toFixed(4)} BNB 已自动转入钱包`,
+          title: t('hilo.cashoutSuccess'),
+          description: t('hilo.cashoutSuccessDesc').replace('{amount}', reward.toFixed(4)),
         });
       }
     } finally {
       setIsCashingOut(false);
     }
-  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound, contractCashOut, addResult, isCashingOut]);
+  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound, contractCashOut, addResult, isCashingOut, t]);
 
   // 重新开始
   const resetGame = useCallback(() => {
@@ -394,10 +397,10 @@ export function HiLoGame() {
     if (Number(unclaimedPrize) > 0) {
       const success = await claimPrize();
       if (success) {
-        toast({ title: '奖励已领取!' });
+        toast({ title: t('hilo.rewardClaimed') });
       }
     }
-  }, [claimPrize, unclaimedPrize]);
+  }, [claimPrize, unclaimedPrize, t]);
 
   const currentReward = calculateHiLoReward(streak, currentBetTier.maxStreak, effectivePrizePool);
   const higherProb = currentCard ? (calculateWinProbability(currentCard.value, 'higher') * 100).toFixed(1) : '0';
@@ -429,7 +432,7 @@ export function HiLoGame() {
             }}
           >
             <span className="text-sm">🎴</span>
-            <span className="text-xs font-semibold" style={{ color: '#C9A347' }}>游戏合约:</span>
+            <span className="text-xs font-semibold" style={{ color: '#C9A347' }}>{t('hilo.gameContract')}:</span>
             <code 
               className="text-xs font-mono px-2 py-1 rounded"
               style={{ 
@@ -443,7 +446,7 @@ export function HiLoGame() {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(CYBER_HILO_ADDRESS.mainnet);
-                  toast({ title: '游戏合约地址已复制!' });
+                  toast({ title: t('contract.gameContractCopied') });
                 }}
                 className="p-1.5 rounded-lg transition-colors hover:bg-[#C9A347]/20"
                 title="复制地址"
@@ -471,7 +474,7 @@ export function HiLoGame() {
             }}
           >
             <span className="text-sm">🪙</span>
-            <span className="text-xs font-semibold" style={{ color: '#FFD700' }}>代币合约:</span>
+            <span className="text-xs font-semibold" style={{ color: '#FFD700' }}>{t('hilo.tokenContract')}:</span>
             <code 
               className="text-xs font-mono px-2 py-1 rounded"
               style={{ 
@@ -485,7 +488,7 @@ export function HiLoGame() {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(CYBER_TOKEN_ADDRESS.mainnet);
-                  toast({ title: '代币合约地址已复制!' });
+                  toast({ title: t('contract.tokenContractCopied') });
                 }}
                 className="p-1.5 rounded-lg transition-colors hover:bg-[#FFD700]/20"
                 title="复制地址"
@@ -514,10 +517,10 @@ export function HiLoGame() {
             color: '#C9A347',
           }}
         >
-          <span className="font-semibold">💰 资金分配：</span>
-          <span className="ml-2">95% 用于玩家奖励发放</span>
+          <span className="font-semibold">{t('hilo.fundsAllocation')}</span>
+          <span className="ml-2">{t('hilo.playerReward')}</span>
           <span className="mx-2">|</span>
-          <span>5% 用于 VRF 随机数服务充值</span>
+          <span>{t('hilo.vrfFunding')}</span>
         </div>
         
         {/* 待领取奖励提示 */}
@@ -530,14 +533,14 @@ export function HiLoGame() {
             }}
           >
             <span style={{ color: '#00FFC8' }}>
-              您有 {Number(unclaimedPrize).toFixed(4)} BNB 待领取
+              {t('hilo.unclaimedBnb').replace('{amount}', Number(unclaimedPrize).toFixed(4))}
             </span>
             <Button
               onClick={handleClaimPrize}
               size="sm"
               className="bg-[#00FFC8] text-black hover:bg-[#00FFC8]/80"
             >
-              领取奖励
+              {t('hilo.claimReward')}
             </Button>
           </div>
         )}
@@ -564,7 +567,7 @@ export function HiLoGame() {
                     💰
                   </div>
                   <div>
-                    <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>当前奖池</div>
+                    <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.currentPool')}</div>
                     <div 
                       className="text-2xl font-bold"
                       style={{ fontFamily: '"Cinzel", serif', color: '#FFD700' }}
@@ -574,7 +577,7 @@ export function HiLoGame() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>我的凭证</div>
+                  <div className="text-xs" style={{ color: 'rgba(201, 163, 71, 0.7)' }}>{t('hilo.myCredits')}</div>
                   <div 
                     className="text-xl font-bold"
                     style={{ fontFamily: '"Cinzel", serif', color: '#00FFC8' }}
@@ -630,7 +633,7 @@ export function HiLoGame() {
                     }}
                   >
                     <span className="font-bold" style={{ color: currentBetTier.color }}>
-                      连胜 {streak}/{currentBetTier.maxStreak}
+                      {t('hilo.streak')} {streak}/{currentBetTier.maxStreak}
                     </span>
                     <span className="text-[#C9A347] ml-2">| {currentTier?.percentage ?? 0}% (≈{currentReward.toFixed(4)} BNB)</span>
                   </motion.div>
@@ -640,7 +643,7 @@ export function HiLoGame() {
               {/* 牌区 */}
               <div className="flex items-center justify-center gap-8 min-h-[300px]">
                 <div className="text-center">
-                  <div className="text-[#C9A347]/60 text-sm mb-2">当前牌</div>
+                  <div className="text-[#C9A347]/60 text-sm mb-2">{t('hilo.currentCard')}</div>
                   {/* 没有当前牌时显示牌背，有牌时正常显示 */}
                   <PlayingCard card={currentCard} isFlipped={!currentCard} />
                 </div>
@@ -652,7 +655,7 @@ export function HiLoGame() {
                 {/* 揭示阶段：显示待揭示的牌（VRF等待中或正在揭示动画） */}
                 {(isWaitingVRF || isRevealing) && (
                   <div className="text-center">
-                    <div className="text-[#C9A347]/60 text-sm mb-2">下一张</div>
+                    <div className="text-[#C9A347]/60 text-sm mb-2">{t('hilo.nextCard')}</div>
                     {/* VRF等待中或nextCard未设置时显示牌背 */}
                     {(isWaitingVRF || !nextCard) ? (
                       <PlayingCard card={null} isFlipped={true} />
@@ -683,7 +686,7 @@ export function HiLoGame() {
                         : '0 0 20px rgba(248, 113, 113, 0.8)',
                     }}
                   >
-                    {guessCorrect ? '正确!' : '错误!'}
+                    {guessCorrect ? t('hilo.correct') : t('hilo.wrong')}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -694,7 +697,7 @@ export function HiLoGame() {
                 {gameState === 'idle' && (
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[#C9A347]/60 text-sm mb-3 block">选择门槛等级</label>
+                      <label className="text-[#C9A347]/60 text-sm mb-3 block">{t('hilo.selectTier')}</label>
                       <div className="space-y-3">
                         <div className="grid grid-cols-3 gap-3">
                           {BET_TIERS.slice(0, 3).map((tier, index) => {
@@ -729,11 +732,11 @@ export function HiLoGame() {
                                 </div>
                                 {canAfford ? (
                                   <div className="text-[10px] mt-1 text-[#FFD700]">
-                                    最高 {maxRewardTier?.percentage ?? 0}% 奖池
+                                    {t('hilo.maxPool').replace('{n}', String(maxRewardTier?.percentage ?? 0))}
                                   </div>
                                 ) : (
                                   <div className="text-[10px] mt-1 text-[#FF6B6B]">
-                                    还差 {formatShortfall(shortfall)}
+                                    {t('hilo.needMore').replace('{n}', formatShortfall(shortfall))}
                                   </div>
                                 )}
                               </button>
@@ -774,11 +777,11 @@ export function HiLoGame() {
                                 </div>
                                 {canAfford ? (
                                   <div className="text-[10px] mt-1 text-[#FFD700]">
-                                    最高 {maxRewardTier?.percentage ?? 0}% 奖池
+                                    {t('hilo.maxPool').replace('{n}', String(maxRewardTier?.percentage ?? 0))}
                                   </div>
                                 ) : (
                                   <div className="text-[10px] mt-1 text-[#FF6B6B]">
-                                    还差 {formatShortfall(shortfall)}
+                                    {t('hilo.needMore').replace('{n}', formatShortfall(shortfall))}
                                   </div>
                                 )}
                               </button>
@@ -816,13 +819,13 @@ export function HiLoGame() {
                           >
                             ⏳
                           </motion.span>
-                          正在授权...
+                          {t('hilo.authorizing')}
                         </>
                       ) : (
                         <>
                           {!isConnected ? <Wallet className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
-                          {!isConnected ? '点击连接钱包' : (
-                            <>开始游戏 ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
+                          {!isConnected ? t('hilo.clickConnect') : (
+                            <>{t('hilo.startGame')} ({BET_TIERS[selectedTierIndex].betAmount >= 1000000 
                               ? `${BET_TIERS[selectedTierIndex].betAmount / 1000000}M` 
                               : `${BET_TIERS[selectedTierIndex].betAmount / 1000}K`})</>
                           )}
@@ -841,7 +844,7 @@ export function HiLoGame() {
                         className="h-16 flex flex-col items-center justify-center bg-green-600/80 hover:bg-green-500"
                       >
                         <ChevronUp className="w-6 h-6" />
-                        <span className="text-sm">更高 ({higherProb}%)</span>
+                        <span className="text-sm">{t('hilo.higher')} ({higherProb}%)</span>
                       </Button>
                       
                       <Button
@@ -849,18 +852,18 @@ export function HiLoGame() {
                         className="h-16 flex flex-col items-center justify-center bg-red-600/80 hover:bg-red-500"
                       >
                         <ChevronDown className="w-6 h-6" />
-                        <span className="text-sm">更低 ({lowerProb}%)</span>
+                        <span className="text-sm">{t('hilo.lower')} ({lowerProb}%)</span>
                       </Button>
                     </div>
 
                     {/* 相同选项 - 高风险高回报 (7.7%胜率，成功跳2级) */}
-                    <Button
-                      onClick={() => makeGuess('same')}
-                      className="w-full h-12 bg-gradient-to-r from-[#C9A347]/60 to-[#FFD700]/40 hover:from-[#C9A347]/80 hover:to-[#FFD700]/60 border border-[#C9A347]/40"
-                    >
-                      <Equal className="w-5 h-5 mr-2" />
-                      <span>相同 (7.7%)</span>
-                      <span className="ml-2 px-2 py-0.5 rounded bg-[#FFD700]/20 text-[#FFD700] text-xs">+2级</span>
+                      <Button
+                        onClick={() => makeGuess('same')}
+                        className="w-full h-12 bg-gradient-to-r from-[#C9A347]/60 to-[#FFD700]/40 hover:from-[#C9A347]/80 hover:to-[#FFD700]/60 border border-[#C9A347]/40"
+                      >
+                        <Equal className="w-5 h-5 mr-2" />
+                        <span>{t('hilo.same')} (7.7%)</span>
+                        <span className="ml-2 px-2 py-0.5 rounded bg-[#FFD700]/20 text-[#FFD700] text-xs">{t('hilo.sameBonus')}</span>
                     </Button>
 
                     {/* 收手按钮 */}
@@ -875,12 +878,12 @@ export function HiLoGame() {
                           {isCashingOut ? (
                             <>
                               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                              正在结算，请稍候...
+                              {t('hilo.settling')}
                             </>
                           ) : (
                             <>
                               <HandCoins className="w-5 h-5 mr-2" />
-                              收手兑现 {currentTier?.percentage ?? 0}% 奖池 (≈{currentReward.toFixed(4)} BNB)
+                              {t('hilo.cashout').replace('{percent}', String(currentTier?.percentage ?? 0)).replace('{amount}', currentReward.toFixed(4))}
                             </>
                           )}
                         </Button>
@@ -892,7 +895,7 @@ export function HiLoGame() {
                 {/* 等待揭示 */}
                 {isRevealing && !isWaitingVRF && (
                   <div className="text-center py-8">
-                    <div className="text-[#C9A347] text-xl animate-pulse">揭示中...</div>
+                    <div className="text-[#C9A347] text-xl animate-pulse">{t('hilo.revealing')}</div>
                   </div>
                 )}
 
@@ -908,11 +911,11 @@ export function HiLoGame() {
                       >
                         {gameState === 'won' ? (
                           <>
-                            <div>🎉 恭喜获得 {currentTier?.percentage ?? 0}% 奖池!</div>
+                            <div>{t('hilo.congrats').replace('{percent}', String(currentTier?.percentage ?? 0))}</div>
                             <div className="text-lg mt-1">≈ {currentReward.toFixed(4)} BNB</div>
                           </>
                         ) : (
-                          <>游戏结束 - 连胜 {streak} 次</>
+                          <>{t('hilo.gameOver').replace('{n}', String(streak))}</>
                         )}
                       </div>
                       
@@ -952,7 +955,7 @@ export function HiLoGame() {
                                 <div className="flex items-center justify-center gap-2 mb-2">
                                   <HandCoins className="w-6 h-6 text-[#FFD700]" />
                                   <span className="text-[#FFD700] font-bold text-lg">
-                                    待领取奖励
+                                    {t('hilo.pendingReward')}
                                   </span>
                                 </div>
                                 <div className="text-2xl font-bold text-white mb-3">
@@ -963,8 +966,8 @@ export function HiLoGame() {
                                     const success = await claimPrize();
                                     if (success) {
                                       toast({
-                                        title: "🎉 领取成功!",
-                                        description: `${Number(unclaimedPrize).toFixed(4)} BNB 已发送到您的钱包`,
+                                        title: t('hilo.claimSuccess'),
+                                        description: t('hilo.claimSuccessDesc').replace('{amount}', Number(unclaimedPrize).toFixed(4)),
                                       });
                                     }
                                   }}
@@ -976,10 +979,10 @@ export function HiLoGame() {
                                   }}
                                 >
                                   <HandCoins className="w-5 h-5 mr-2" />
-                                  立即领取奖励
+                                  {t('hilo.claimNow')}
                                 </Button>
                                 <p className="text-[#C9A347]/70 text-xs mt-2">
-                                  领取时需支付少量Gas费，95%奖励到账
+                                  {t('hilo.gasFeeNote')}
                                 </p>
                               </>
                             ) : (
@@ -995,7 +998,7 @@ export function HiLoGame() {
                                   }}
                                 >
                                   <Play className="w-5 h-5 mr-2" />
-                                  再来一局
+                                  {t('hilo.playAgain')}
                                 </Button>
                               </>
                             )}
@@ -1015,7 +1018,7 @@ export function HiLoGame() {
                           }}
                         >
                           <p className="text-[#C9A347] text-sm mb-2">
-                            您有 {Number(unclaimedPrize).toFixed(4)} BNB 待领取
+                            {t('hilo.unclaimedBnb').replace('{amount}', Number(unclaimedPrize).toFixed(4))}
                           </p>
                           <Button
                             onClick={claimPrize}
@@ -1023,7 +1026,7 @@ export function HiLoGame() {
                             className="bg-[#C9A347] text-black hover:bg-[#FFD700]"
                           >
                             <HandCoins className="w-4 h-4 mr-1" />
-                            领取奖励
+                            {t('hilo.claimReward')}
                           </Button>
                         </motion.div>
                       )}
@@ -1037,7 +1040,7 @@ export function HiLoGame() {
                         }}
                       >
                         <Play className="w-5 h-5 mr-2" />
-                        再来一局
+                        {t('hilo.playAgain')}
                       </Button>
                     </div>
                   );
