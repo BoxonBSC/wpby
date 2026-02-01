@@ -956,38 +956,31 @@ export function HiLoGame() {
                                   <HandCoins className="w-5 h-5 mr-2" />
                                   立即领取奖励
                                 </Button>
+                                <p className="text-[#C9A347]/70 text-xs mt-2">
+                                  领取时需支付少量Gas费，95%奖励到账
+                                </p>
                               </>
                             ) : (
                               <>
+                                <div className="text-2xl font-bold text-[#00FFC8] mb-2">
+                                  🎉 奖励已发送到钱包！
+                                </div>
                                 <p className="text-[#C9A347]/80 text-sm mb-3">
-                                  奖励已存入合约待领取余额，请稍候或点击刷新
+                                  {currentReward} BNB（扣除5%手续费后）已自动转入您的钱包地址，请查看钱包余额
                                 </p>
                                 <Button
-                                  onClick={async () => {
-                                    setIsRefreshingPrize(true);
-                                    await refreshData();
-                                    setTimeout(() => setIsRefreshingPrize(false), 1000);
-                                  }}
-                                  disabled={isRefreshingPrize}
+                                  onClick={() => resetGame()}
                                   className="w-full h-12 text-lg font-bold"
                                   style={{
-                                    background: 'linear-gradient(135deg, #C9A347 0%, #8B7230 100%)',
+                                    background: 'linear-gradient(135deg, #00FFC8 0%, #00AA88 100%)',
                                     color: '#000',
                                   }}
                                 >
-                                  {isRefreshingPrize ? (
-                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                  ) : (
-                                    <HandCoins className="w-5 h-5 mr-2" />
-                                  )}
-                                  {isRefreshingPrize ? '刷新中...' : '刷新待领取余额'}
+                                  <Play className="w-5 h-5 mr-2" />
+                                  再来一局
                                 </Button>
                               </>
                             )}
-                            
-                            <p className="text-[#C9A347]/70 text-xs mt-2">
-                              领取时需支付少量Gas费，95%奖励到账
-                            </p>
                           </div>
                         </motion.div>
                       )}
