@@ -23,7 +23,7 @@ import {
   calculateWinProbability,
 } from '@/config/hilo';
 import { Button } from '@/components/ui/button';
-import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2, Wallet, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, Equal, HandCoins, Play, Loader2, Wallet, X, CheckCircle } from 'lucide-react';
 import { useAudio } from '@/hooks/useAudio';
 import { toast } from '@/hooks/use-toast';
 import { formatEther } from 'ethers';
@@ -924,15 +924,15 @@ export function HiLoGame() {
                           />
                           
                           <div className="relative z-10">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                              <HandCoins className="w-6 h-6 text-[#FFD700]" />
-                              <span className="text-[#FFD700] font-bold text-lg">
-                                {hasUnclaimedPrize ? '待领取奖励' : '奖励已存入合约'}
-                              </span>
-                            </div>
-                            
                             {hasUnclaimedPrize ? (
                               <>
+                                {/* 转账失败，需要手动领取 */}
+                                <div className="flex items-center justify-center gap-2 mb-2">
+                                  <HandCoins className="w-6 h-6 text-[#FFD700]" />
+                                  <span className="text-[#FFD700] font-bold text-lg">
+                                    待领取奖励
+                                  </span>
+                                </div>
                                 <div className="text-2xl font-bold text-white mb-3">
                                   {Number(unclaimedPrize).toFixed(4)} BNB
                                 </div>
@@ -962,11 +962,21 @@ export function HiLoGame() {
                               </>
                             ) : (
                               <>
+                                {/* 奖励已自动发送到钱包 */}
+                                <div className="flex items-center justify-center gap-2 mb-2">
+                                  <CheckCircle className="w-6 h-6 text-[#00FFC8]" />
+                                  <span className="text-[#00FFC8] font-bold text-lg">
+                                    领取成功！
+                                  </span>
+                                </div>
                                 <div className="text-2xl font-bold text-[#00FFC8] mb-2">
-                                  🎉 奖励已发送到钱包！
+                                  🎉 奖励已自动到账
                                 </div>
                                 <p className="text-[#C9A347]/80 text-sm mb-3">
-                                  {currentReward} BNB（扣除5%手续费后）已自动转入您的钱包地址，请查看钱包余额
+                                  {currentReward} BNB（扣除5%手续费）已通过内部交易转入您的钱包
+                                </p>
+                                <p className="text-[#C9A347]/60 text-xs mb-3">
+                                  💡 提示：内部交易不会显示在钱包历史中，但余额已增加。可在BSCScan查看详情。
                                 </p>
                                 <Button
                                   onClick={() => resetGame()}
