@@ -8,6 +8,7 @@ import { CreditsExchange } from '@/components/CreditsExchange';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useWallet } from '@/contexts/WalletContext';
 import { useCyberHiLo } from '@/hooks/useCyberHiLo';
+import { useHiLoHistory } from '@/hooks/useHiLoHistory';
 import {
   HILO_CONFIG,
   HiLoGameState,
@@ -63,7 +64,10 @@ type PendingGuess = {
 
 export function HiLoGame() {
   // 钱包状态
-  const { isConnected } = useWallet();
+  const { isConnected, address } = useWallet();
+  
+  // 持久化游戏记录（按钱包地址存储）
+  const { results, addResult } = useHiLoHistory(address);
   
   // 钱包连接弹窗状态
   const [showWalletModal, setShowWalletModal] = useState(false);
@@ -108,7 +112,6 @@ export function HiLoGame() {
   const [pendingGuess, setPendingGuess] = useState<PendingGuess | null>(null);
   const [selectedTierIndex, setSelectedTierIndex] = useState(0);
   const [currentBetTier, setCurrentBetTier] = useState(BET_TIERS[0]);
-  const [results, setResults] = useState<HiLoResult[]>([]);
   const [guessCorrect, setGuessCorrect] = useState<boolean | null>(null);
   const [prizePoolSnapshot, setPrizePoolSnapshot] = useState<number | null>(null);
   const [isRefreshingPrize, setIsRefreshingPrize] = useState(false);
@@ -215,7 +218,7 @@ export function HiLoGame() {
           cashedOut: true,
           timestamp: Date.now(),
         };
-        setResults(prev => [result, ...prev]);
+        addResult(result);
       }
       // else: won && gameSession.active -> 继续游戏，不改变状态
 
@@ -236,6 +239,7 @@ export function HiLoGame() {
     playCashOutSound,
     currentBetTier,
     effectivePrizePool,
+    addResult,
   ]);
 
   // 监听VRF结果
@@ -319,9 +323,9 @@ export function HiLoGame() {
         cashedOut: true,
         timestamp: Date.now(),
       };
-      setResults(prev => [result, ...prev]);
+      addResult(result);
     }
-  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound, contractCashOut]);
+  }, [gameState, streak, currentBetTier, effectivePrizePool, playCashOutSound, contractCashOut, addResult]);
 
   // 重新开始
   const resetGame = useCallback(() => {
