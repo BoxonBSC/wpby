@@ -146,19 +146,14 @@ export const BET_LEVELS = [
   { value: 250000, label: '250K', multiplier: '20x' },
 ];
 
-// HiLo 投注等级（匹配合约）
+// HiLo 投注等级（单一门槛500K）
 export const HILO_BET_LEVELS = [
-  { value: 50000, label: '50K', tier: 'bronze', maxStreak: 5 },
-  { value: 100000, label: '100K', tier: 'silver', maxStreak: 8 },
-  { value: 200000, label: '200K', tier: 'gold', maxStreak: 12 },
-  { value: 500000, label: '500K', tier: 'platinum', maxStreak: 16 },
-  { value: 1000000, label: '1M', tier: 'diamond', maxStreak: 20 },
+  { value: 500000, label: '500K', tier: 'standard', maxStreak: 12 },
 ];
 
-// HiLo 奖励百分比表（万分比，匹配合约）
+// HiLo 奖励百分比表（万分比，12级）
+// 0.2%, 0.4%, 0.8%, 1.5%, 3%, 5%, 10%, 18%, 30%, 50%, 70%, 100%
 export const HILO_REWARD_PERCENTAGES = [
-  2, 5, 10, 15, 25,      // 1-5连胜
-  40, 60, 100, 150, 250, // 6-10连胜
-  400, 600, 900, 1300, 1800, // 11-15连胜
-  2500, 3500, 5000, 7000, 10000, // 16-20连胜
+  20, 40, 80, 150, 300, 500,     // 1-6连胜
+  1000, 1800, 3000, 5000, 7000, 10000, // 7-12连胜
 ];
