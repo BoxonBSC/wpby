@@ -124,51 +124,52 @@ export function useLeaderboard() {
 
       // 2. 使用原生 eth_getLogs RPC 获取事件日志（免费）
       const currentBlock = await provider.getBlockNumber();
-      // 分批查询，每批 2000 个区块（避免 RPC 限制）
-      const batchSize = 2000;
-      const totalBlocks = 10000; // 约 8 小时
+      // BSC 公共 RPC 限制很严格，每批只查 100 个区块
+      const batchSize = 100;
+      const totalBlocks = 2000; // 约 1.5 小时（减少请求数）
       const fromBlock = Math.max(0, currentBlock - totalBlocks);
 
       const playerData = new Map<string, LeaderboardEntry>();
       const recent: RecentWin[] = [];
 
-      // 分批获取日志
+      // 串行获取日志（避免并行请求被限流）
       for (let start = fromBlock; start < currentBlock; start += batchSize) {
         const end = Math.min(start + batchSize - 1, currentBlock);
-        const logs = await fetchLogsViaRPC(start, end);
-        
-        for (const log of logs) {
-          const parsed = parseGameCashedOutEvent(log);
-          if (!parsed) continue;
+        try {
+          const logs = await fetchLogsViaRPC(start, end);
+          
+          for (const log of logs) {
+            const parsed = parseGameCashedOutEvent(log);
+            if (!parsed) continue;
 
-          const { player, playerPrize, streak } = parsed;
-          // RPC 返回的区块号是十六进制
-          const blockNum = parseInt(log.blockNumber, 16);
-          const timestamp = estimateTimestamp(blockNum, currentBlock);
+            const { player, playerPrize, streak } = parsed;
+            const blockNum = parseInt(log.blockNumber, 16);
+            const timestamp = estimateTimestamp(blockNum, currentBlock);
 
-          // 更新排行榜
-          const existing = playerData.get(player.toLowerCase()) || {
-            player,
-            totalWins: 0,
-            totalBnbWon: 0,
-            maxStreak: 0,
-            lastWinTime: 0,
-          };
+            const existing = playerData.get(player.toLowerCase()) || {
+              player,
+              totalWins: 0,
+              totalBnbWon: 0,
+              maxStreak: 0,
+              lastWinTime: 0,
+            };
 
-          existing.totalWins += 1;
-          existing.totalBnbWon += playerPrize;
-          existing.maxStreak = Math.max(existing.maxStreak, streak);
-          existing.lastWinTime = Math.max(existing.lastWinTime, timestamp);
-          playerData.set(player.toLowerCase(), existing);
+            existing.totalWins += 1;
+            existing.totalBnbWon += playerPrize;
+            existing.maxStreak = Math.max(existing.maxStreak, streak);
+            existing.lastWinTime = Math.max(existing.lastWinTime, timestamp);
+            playerData.set(player.toLowerCase(), existing);
 
-          // 添加到最近获胜
-          recent.push({
-            player,
-            bnbWon: playerPrize,
-            streak,
-            timestamp,
-            txHash: log.transactionHash,
-          });
+            recent.push({
+              player,
+              bnbWon: playerPrize,
+              streak,
+              timestamp,
+              txHash: log.transactionHash,
+            });
+          }
+        } catch (e) {
+          console.warn('Batch failed, continuing:', e);
         }
       }
 
