@@ -35,8 +35,11 @@ contract CyberHiLoAdmin {
         function setVRFConfig(uint16 requestConfirmations, uint32 callbackGasLimit) external;
         function pause() external;
         function unpause() external;
+        function acceptOwnership() external;
         // 注意：emergencyRescuePrize 故意不包含在此接口中
     }
+    
+    event OwnershipAccepted(address indexed operator);
     
     event BetLevelsUpdated(uint256[5] newLevels, address indexed operator);
     event MaxStreaksUpdated(uint8[5] newMaxStreaks, address indexed operator);
@@ -158,6 +161,15 @@ contract CyberHiLoAdmin {
     function unpause() external onlyAdmin {
         ICyberHiLo(hiloContract).unpause();
         emit ContractUnpaused(msg.sender);
+    }
+    
+    /**
+     * @notice 接受主合约所有权（完成两步式转移的第二步）
+     * @dev 在主合约调用 transferOwnership(本合约地址) 后调用此函数
+     */
+    function acceptOwnership() external onlyAdmin {
+        ICyberHiLo(hiloContract).acceptOwnership();
+        emit OwnershipAccepted(msg.sender);
     }
     
     /**
