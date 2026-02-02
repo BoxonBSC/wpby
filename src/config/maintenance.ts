@@ -1,7 +1,7 @@
 // 维护模式配置
 
 // 是否启用维护模式
-export const MAINTENANCE_MODE = true;
+export const MAINTENANCE_MODE = false;
 
 // 管理员钱包地址（这些地址可以绕过维护模式）
 // 添加你的钱包地址（小写）
