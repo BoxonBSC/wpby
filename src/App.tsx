@@ -12,6 +12,7 @@ import { shouldShowMaintenance } from "@/config/maintenance";
 import Index from "./pages/Index";
 import History from "./pages/History";
 import Rules from "./pages/Rules";
+import ClaimGift from "./pages/ClaimGift";
 import NotFound from "./pages/NotFound";
 
 // 初始化 Web3Modal
@@ -41,6 +42,7 @@ function AppRoutes() {
         <Route path="/" element={<Index />} />
         <Route path="/history" element={<History />} />
         <Route path="/rules" element={<Rules />} />
+        <Route path="/claim/:claimCode" element={<ClaimGift />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
