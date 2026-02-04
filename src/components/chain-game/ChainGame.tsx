@@ -1,29 +1,41 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Clock, Trophy, Users, TrendingUp, Zap, Crown, Gift, ArrowUp, Wallet } from 'lucide-react';
+import { Flame, Clock, Trophy, Users, TrendingUp, Zap, Crown, Gift, ArrowUp, Wallet, Coins, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useWallet } from '@/contexts/WalletContext';
+
+// 经济模型配置
+const ECONOMIC_MODEL = {
+  prizePoolRate: 70,      // 70% 进入奖池
+  earlyBirdRate: 15,      // 15% 早期玩家分红
+  previousHolderRate: 10, // 10% 上一任持有者
+  taxRate: 5,             // 5% 运营/VRF费用
+  priceIncrement: 10,     // 每次接盘价格递增10%
+  countdownReset: 300,    // 接盘后倒计时重置为5分钟
+};
+
 // 模拟数据
 const mockRoundData = {
   roundId: 42,
   currentHolder: '0x1234...5678',
-  currentPrice: 1234567,
-  nextPrice: 1358024,
-  prizePool: 8765432,
-  taxPool: 123456,
+  previousHolder: '0x9ABC...DEF0',
+  currentPrice: 50000,        // 当前接盘价格 (代币，将被销毁)
+  nextPrice: 55000,           // 下一个接盘价格 (+10%)
+  prizePoolBNB: 2.847,        // BNB奖池
+  totalBurned: 1250000,       // 已销毁代币总量
   totalParticipants: 15,
   earlyBirds: [
-    { address: '0xABC...DEF', earned: 12345 },
-    { address: '0xDEF...GHI', earned: 10234 },
-    { address: '0xGHI...JKL', earned: 8123 },
+    { address: '0xABC...DEF', rank: 1, earnedBNB: 0.142 },
+    { address: '0xDEF...GHI', rank: 2, earnedBNB: 0.098 },
+    { address: '0xGHI...JKL', rank: 3, earnedBNB: 0.067 },
   ],
   history: [
-    { address: '0x111...222', price: 100000, time: '2分钟前' },
-    { address: '0x333...444', price: 110000, time: '1分30秒前' },
-    { address: '0x555...666', price: 121000, time: '1分钟前' },
-    { address: '0x777...888', price: 133100, time: '45秒前' },
-    { address: '0x1234...5678', price: 1234567, time: '刚刚' },
+    { address: '0x111...222', price: 50000, bnbAdded: 0.035, time: '2分钟前' },
+    { address: '0x333...444', price: 55000, bnbAdded: 0.039, time: '1分30秒前' },
+    { address: '0x555...666', price: 60500, bnbAdded: 0.042, time: '1分钟前' },
+    { address: '0x777...888', price: 66550, bnbAdded: 0.047, time: '45秒前' },
+    { address: '0x1234...5678', price: 73205, bnbAdded: 0.051, time: '刚刚' },
   ],
 };
 
@@ -216,35 +228,35 @@ export function ChainGame() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
-                  <TrendingUp className="w-4 h-4" />
-                  当前价格
+                  <Coins className="w-4 h-4 text-orange-400" />
+                  接盘价格
                 </div>
-                <div className="text-xl font-bold text-white">{formatNumber(mockRoundData.currentPrice)}</div>
-                <div className="text-xs text-slate-500">CYBER</div>
+                <div className="text-xl font-bold text-orange-400">{formatNumber(mockRoundData.currentPrice)}</div>
+                <div className="text-xs text-slate-500">代币 (销毁)</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
                   <ArrowUp className="w-4 h-4 text-green-400" />
-                  接盘价格
+                  下次价格
                 </div>
                 <div className="text-xl font-bold text-green-400">{formatNumber(mockRoundData.nextPrice)}</div>
-                <div className="text-xs text-slate-500">+10%</div>
+                <div className="text-xs text-slate-500">+{ECONOMIC_MODEL.priceIncrement}%</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
-                  <Trophy className="w-4 h-4 text-cyan-400" />
-                  奖池总额
+                  <Trophy className="w-4 h-4 text-yellow-400" />
+                  BNB 奖池
                 </div>
-                <div className="text-xl font-bold text-cyan-400">{formatNumber(mockRoundData.prizePool)}</div>
-                <div className="text-xs text-slate-500">CYBER</div>
+                <div className="text-xl font-bold text-yellow-400">{mockRoundData.prizePoolBNB.toFixed(3)}</div>
+                <div className="text-xs text-slate-500">BNB</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
-                  <Gift className="w-4 h-4 text-purple-400" />
-                  税金加成
+                  <Flame className="w-4 h-4 text-red-400" />
+                  已销毁代币
                 </div>
-                <div className="text-xl font-bold text-purple-400">{formatNumber(mockRoundData.taxPool)}</div>
-                <div className="text-xs text-slate-500">CYBER</div>
+                <div className="text-xl font-bold text-red-400">{formatNumber(mockRoundData.totalBurned)}</div>
+                <div className="text-xs text-slate-500">永久销毁</div>
               </div>
             </div>
 
@@ -273,7 +285,7 @@ export function ChainGame() {
               </Button>
               {!isEnded && (
                 <p className="text-center text-sm text-slate-500 mt-3">
-                  接盘后倒计时重置，无人接盘则您赢得全部奖池
+                  🔥 接盘消耗 {formatNumber(mockRoundData.nextPrice)} 代币（永久销毁）· 赢取 {mockRoundData.prizePoolBNB.toFixed(3)} BNB
                 </p>
               )}
             </div>
@@ -289,21 +301,27 @@ export function ChainGame() {
             transition={{ delay: 0.2 }}
             className="rounded-2xl bg-slate-900/60 backdrop-blur border border-slate-700/50 p-5"
           >
-            <div className="flex items-center gap-2 text-white font-semibold mb-4">
-              <Crown className="w-5 h-5 text-yellow-400" />
-              早期玩家分红
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <Crown className="w-5 h-5 text-yellow-400" />
+                早期玩家分红
+              </div>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/30">
+                <Percent className="w-3 h-3 text-yellow-400" />
+                <span className="text-xs text-yellow-400">{ECONOMIC_MODEL.earlyBirdRate}%</span>
+              </div>
             </div>
             <div className="space-y-3">
-              {mockRoundData.earlyBirds.map((bird, index) => (
+              {mockRoundData.earlyBirds.map((bird) => (
                 <div
                   key={bird.address}
                   className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
+                    <span className="text-xl">{bird.rank === 1 ? '🥇' : bird.rank === 2 ? '🥈' : '🥉'}</span>
                     <span className="font-mono text-sm text-slate-300">{bird.address}</span>
                   </div>
-                  <span className="text-green-400 font-medium">+{formatNumber(bird.earned)}</span>
+                  <span className="text-yellow-400 font-medium">+{bird.earnedBNB.toFixed(3)} BNB</span>
                 </div>
               ))}
             </div>
@@ -332,16 +350,19 @@ export function ChainGame() {
                     <span className="font-mono text-sm text-slate-300">{record.address}</span>
                     <span className="text-xs text-slate-500">{record.time}</span>
                   </div>
-                  <span className={`font-medium ${index === 0 ? 'text-cyan-400' : 'text-slate-400'}`}>
-                    {formatNumber(record.price)}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className={`font-medium ${index === 0 ? 'text-orange-400' : 'text-slate-400'}`}>
+                      {formatNumber(record.price)} 代币
+                    </span>
+                    <span className="text-xs text-yellow-400">+{record.bnbAdded} BNB</span>
+                  </div>
                 </div>
               ))}
             </div>
           </motion.div>
         </div>
 
-        {/* 游戏规则 */}
+        {/* 经济模型说明 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -350,14 +371,38 @@ export function ChainGame() {
         >
           <div className="flex items-center gap-2 text-white font-semibold mb-4">
             <Zap className="w-5 h-5 text-yellow-400" />
-            游戏规则
+            游戏规则 · 销毁代币，赢取BNB
           </div>
+          
+          {/* 资金分配图示 */}
+          <div className="mb-6 p-4 rounded-xl bg-slate-800/30">
+            <div className="text-sm text-slate-400 mb-3">每次接盘的资金分配：</div>
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                <Trophy className="w-4 h-4 text-yellow-400" />
+                <span className="text-yellow-400 text-sm font-medium">{ECONOMIC_MODEL.prizePoolRate}% 奖池</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
+                <Crown className="w-4 h-4 text-cyan-400" />
+                <span className="text-cyan-400 text-sm font-medium">{ECONOMIC_MODEL.earlyBirdRate}% 早鸟分红</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
+                <Gift className="w-4 h-4 text-green-400" />
+                <span className="text-green-400 text-sm font-medium">{ECONOMIC_MODEL.previousHolderRate}% 上任持有者</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                <Percent className="w-4 h-4 text-purple-400" />
+                <span className="text-purple-400 text-sm font-medium">{ECONOMIC_MODEL.taxRate}% VRF费用</span>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: '📈', text: '接盘价格必须比上家高10%' },
-              { icon: '⏱️', text: '每次接盘后倒计时重置为5分钟' },
-              { icon: '🏆', text: '倒计时结束时，持有者赢得全部奖池' },
-              { icon: '💰', text: '前3名参与者享受后续接盘分红' },
+              { icon: '🔥', text: '接盘消耗的代币将被永久销毁' },
+              { icon: '📈', text: `每次接盘价格递增${ECONOMIC_MODEL.priceIncrement}%` },
+              { icon: '⏱️', text: `接盘后倒计时重置为${ECONOMIC_MODEL.countdownReset / 60}分钟` },
+              { icon: '🏆', text: '最后持有者赢得BNB奖池' },
             ].map((rule, index) => (
               <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-slate-800/30">
                 <span className="text-2xl">{rule.icon}</span>
