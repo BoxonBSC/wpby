@@ -1,18 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Clock, Trophy, Users, TrendingUp, Zap, Crown, Gift, ArrowUp, Wallet, Coins, Percent } from 'lucide-react';
+import { Flame, Clock, Trophy, Users, Zap, Crown, Gift, ArrowUp, Wallet, Coins, Percent, Timer, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useWallet } from '@/contexts/WalletContext';
 
-// 经济模型配置
-const ECONOMIC_MODEL = {
+// 游戏配置
+const GAME_CONFIG = {
+  roundDurationMinutes: 60,   // 每轮60分钟
+  priceIncrement: 10,         // 每次接盘价格递增10%
+  startPrice: 1000,           // 每轮起始价格
+};
+
+// 动态比例配置
+const DYNAMIC_TIERS = [
+  { minPlayers: 1, maxPlayers: 3, winnerRate: 40, label: '🥶 冷启动' },
+  { minPlayers: 4, maxPlayers: 8, winnerRate: 55, label: '🌱 萌芽期' },
+  { minPlayers: 9, maxPlayers: 15, winnerRate: 70, label: '🔥 活跃期' },
+  { minPlayers: 16, maxPlayers: 25, winnerRate: 80, label: '🚀 热门期' },
+  { minPlayers: 26, maxPlayers: Infinity, winnerRate: 88, label: '💎 爆发期' },
+];
+
+// 资金分配比例
+const FUND_DISTRIBUTION = {
   prizePoolRate: 70,      // 70% 进入奖池
   earlyBirdRate: 15,      // 15% 早期玩家分红
   previousHolderRate: 10, // 10% 上一任持有者
-  taxRate: 5,             // 5% 运营/VRF费用
-  priceIncrement: 10,     // 每次接盘价格递增10%
-  countdownReset: 300,    // 接盘后倒计时重置为5分钟
+  taxRate: 5,             // 5% VRF费用
+};
+
+// 获取当前动态比例
+const getCurrentTier = (participants: number) => {
+  return DYNAMIC_TIERS.find(tier => 
+    participants >= tier.minPlayers && participants <= tier.maxPlayers
+  ) || DYNAMIC_TIERS[0];
 };
 
 // 模拟数据
@@ -20,10 +41,10 @@ const mockRoundData = {
   roundId: 42,
   currentHolder: '0x1234...5678',
   previousHolder: '0x9ABC...DEF0',
-  currentPrice: 50000,        // 当前接盘价格 (代币，将被销毁)
-  nextPrice: 55000,           // 下一个接盘价格 (+10%)
-  prizePoolBNB: 2.847,        // BNB奖池
-  totalBurned: 1250000,       // 已销毁代币总量
+  currentPrice: 50000,
+  nextPrice: 55000,
+  prizePoolBNB: 2.847,
+  totalBurned: 1250000,
   totalParticipants: 15,
   earlyBirds: [
     { address: '0xABC...DEF', rank: 1, earnedBNB: 0.142 },
@@ -31,34 +52,61 @@ const mockRoundData = {
     { address: '0xGHI...JKL', rank: 3, earnedBNB: 0.067 },
   ],
   history: [
-    { address: '0x111...222', price: 50000, bnbAdded: 0.035, time: '2分钟前' },
-    { address: '0x333...444', price: 55000, bnbAdded: 0.039, time: '1分30秒前' },
-    { address: '0x555...666', price: 60500, bnbAdded: 0.042, time: '1分钟前' },
-    { address: '0x777...888', price: 66550, bnbAdded: 0.047, time: '45秒前' },
-    { address: '0x1234...5678', price: 73205, bnbAdded: 0.051, time: '刚刚' },
+    { address: '0x111...222', price: 50000, bnbAdded: 0.035, time: '14:35' },
+    { address: '0x333...444', price: 55000, bnbAdded: 0.039, time: '14:42' },
+    { address: '0x555...666', price: 60500, bnbAdded: 0.042, time: '14:48' },
+    { address: '0x777...888', price: 66550, bnbAdded: 0.047, time: '14:53' },
+    { address: '0x1234...5678', price: 73205, bnbAdded: 0.051, time: '14:57' },
   ],
 };
 
+// 计算下一个整点时间
+const getNextHourTime = () => {
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(next.getHours() + 1, 0, 0, 0);
+  return next;
+};
+
+// 格式化时间为 HH:MM
+const formatHourMinute = (date: Date) => {
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+};
+
 export function ChainGame() {
-  const [timeLeft, setTimeLeft] = useState(180);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [nextDrawTime, setNextDrawTime] = useState(getNextHourTime());
   const [isEnded, setIsEnded] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const { isConnected, address } = useWallet();
 
+  // 当前动态比例
+  const currentTier = useMemo(() => getCurrentTier(mockRoundData.totalParticipants), []);
+  const winnerAmount = (mockRoundData.prizePoolBNB * currentTier.winnerRate / 100).toFixed(3);
+  const rolloverAmount = (mockRoundData.prizePoolBNB * (100 - currentTier.winnerRate) / 100).toFixed(3);
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsEnded(true);
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const updateCountdown = () => {
+      const now = new Date();
+      const diff = Math.max(0, Math.floor((nextDrawTime.getTime() - now.getTime()) / 1000));
+      
+      if (diff <= 0) {
+        setIsEnded(true);
+        // 自动开启下一轮
+        setTimeout(() => {
+          setNextDrawTime(getNextHourTime());
+          setIsEnded(false);
+        }, 5000);
+      }
+      
+      setTimeLeft(diff);
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [nextDrawTime]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -68,6 +116,9 @@ export function ChainGame() {
 
   const formatNumber = (num: number) => num.toLocaleString();
   const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+
+  // 是否在最后5分钟
+  const isLastFiveMinutes = timeLeft <= 300 && timeLeft > 0;
 
   const handleTakeover = async () => {
     if (!isConnected) {
@@ -142,7 +193,7 @@ export function ChainGame() {
           animate={{ opacity: 1 }}
           className="text-center text-slate-400 -mt-4"
         >
-          接盘价格递增10% · 无人接盘时最后持有者通吃
+          每整点开奖 · 销毁代币，赢取BNB · 动态奖励比例
         </motion.p>
 
         {/* 主卡片 */}
@@ -155,19 +206,27 @@ export function ChainGame() {
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
           
           <div className="p-6 md:p-8">
-            {/* 轮次和参与人数 */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30">
-                <Flame className="w-4 h-4 text-cyan-400" />
-                <span className="text-cyan-400 font-medium">第 #{mockRoundData.roundId} 轮</span>
+            {/* 轮次和参与人数 + 动态比例 */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30">
+                  <Flame className="w-4 h-4 text-cyan-400" />
+                  <span className="text-cyan-400 font-medium">第 #{mockRoundData.roundId} 轮</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <Users className="w-4 h-4" />
+                  <span>{mockRoundData.totalParticipants} 人</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-slate-400">
-                <Users className="w-4 h-4" />
-                <span>{mockRoundData.totalParticipants} 人参与</span>
+              {/* 动态比例指示 */}
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30">
+                <span className="text-lg">{currentTier.label}</span>
+                <span className="text-yellow-400 font-bold">{currentTier.winnerRate}%</span>
+                <span className="text-slate-500 text-sm">赢家比例</span>
               </div>
             </div>
 
-            {/* 倒计时区域 */}
+            {/* 开奖时间和倒计时 */}
             <div className="text-center mb-8">
               <AnimatePresence mode="wait">
                 {!isEnded ? (
@@ -177,29 +236,53 @@ export function ChainGame() {
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
                   >
+                    {/* 开奖时间 */}
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <CalendarClock className="w-5 h-5 text-cyan-400" />
+                      <span className="text-slate-400">开奖时间</span>
+                      <span className="text-2xl font-bold text-cyan-400">{formatHourMinute(nextDrawTime)}</span>
+                    </div>
+                    
+                    {/* 倒计时 */}
                     <div className="flex items-center justify-center gap-2 text-slate-500 mb-2">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm uppercase tracking-wider">倒计时</span>
+                      <Timer className="w-4 h-4" />
+                      <span className="text-sm uppercase tracking-wider">
+                        {isLastFiveMinutes ? '⚡ 最后冲刺' : '距离开奖'}
+                      </span>
                     </div>
                     <div
                       className={`text-6xl md:text-8xl font-mono font-bold tracking-tight ${
-                        timeLeft <= 30
-                          ? 'text-red-400 animate-pulse'
-                          : timeLeft <= 60
-                          ? 'text-orange-400'
+                        isLastFiveMinutes
+                          ? timeLeft <= 60
+                            ? 'text-red-400 animate-pulse'
+                            : 'text-orange-400'
                           : 'text-white'
                       }`}
                     >
                       {formatTime(timeLeft)}
                     </div>
+                    
                     {/* 进度条 */}
-                    <div className="mt-4 mx-auto max-w-md h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="mt-4 mx-auto max-w-md h-2 bg-slate-800 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-gradient-to-r from-cyan-400 to-purple-400"
-                        initial={{ width: '100%' }}
-                        animate={{ width: `${(timeLeft / 300) * 100}%` }}
+                        className={`h-full ${isLastFiveMinutes ? 'bg-gradient-to-r from-orange-400 to-red-400' : 'bg-gradient-to-r from-cyan-400 to-purple-400'}`}
+                        animate={{ width: `${(timeLeft / 3600) * 100}%` }}
                         transition={{ duration: 0.5 }}
                       />
+                    </div>
+                    
+                    {/* 奖金预览 */}
+                    <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="w-4 h-4 text-yellow-400" />
+                        <span className="text-slate-400">赢家获得</span>
+                        <span className="text-yellow-400 font-bold">{winnerAmount} BNB</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ArrowUp className="w-4 h-4 text-cyan-400" />
+                        <span className="text-slate-400">滚入下轮</span>
+                        <span className="text-cyan-400 font-bold">{rolloverAmount} BNB</span>
+                      </div>
                     </div>
                   </motion.div>
                 ) : (
@@ -211,7 +294,9 @@ export function ChainGame() {
                   >
                     <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-4 animate-bounce" />
                     <div className="text-3xl font-bold text-white mb-2">🎉 本轮结束！</div>
-                    <div className="text-slate-400">恭喜 {mockRoundData.currentHolder} 获胜</div>
+                    <div className="text-slate-400 mb-2">恭喜 {mockRoundData.currentHolder} 获胜</div>
+                    <div className="text-yellow-400 text-xl font-bold">+{winnerAmount} BNB</div>
+                    <div className="text-sm text-slate-500 mt-2">下一轮即将开始...</div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -240,7 +325,7 @@ export function ChainGame() {
                   下次价格
                 </div>
                 <div className="text-xl font-bold text-green-400">{formatNumber(mockRoundData.nextPrice)}</div>
-                <div className="text-xs text-slate-500">+{ECONOMIC_MODEL.priceIncrement}%</div>
+                <div className="text-xs text-slate-500">+{GAME_CONFIG.priceIncrement}%</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
@@ -308,7 +393,7 @@ export function ChainGame() {
               </div>
               <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/30">
                 <Percent className="w-3 h-3 text-yellow-400" />
-                <span className="text-xs text-yellow-400">{ECONOMIC_MODEL.earlyBirdRate}%</span>
+                <span className="text-xs text-yellow-400">{FUND_DISTRIBUTION.earlyBirdRate}%</span>
               </div>
             </div>
             <div className="space-y-3">
@@ -380,29 +465,54 @@ export function ChainGame() {
             <div className="flex flex-wrap gap-2">
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
                 <Trophy className="w-4 h-4 text-yellow-400" />
-                <span className="text-yellow-400 text-sm font-medium">{ECONOMIC_MODEL.prizePoolRate}% 奖池</span>
+                <span className="text-yellow-400 text-sm font-medium">{FUND_DISTRIBUTION.prizePoolRate}% 奖池</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
                 <Crown className="w-4 h-4 text-cyan-400" />
-                <span className="text-cyan-400 text-sm font-medium">{ECONOMIC_MODEL.earlyBirdRate}% 早鸟分红</span>
+                <span className="text-cyan-400 text-sm font-medium">{FUND_DISTRIBUTION.earlyBirdRate}% 早鸟分红</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
                 <Gift className="w-4 h-4 text-green-400" />
-                <span className="text-green-400 text-sm font-medium">{ECONOMIC_MODEL.previousHolderRate}% 上任持有者</span>
+                <span className="text-green-400 text-sm font-medium">{FUND_DISTRIBUTION.previousHolderRate}% 上任持有者</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
                 <Percent className="w-4 h-4 text-purple-400" />
-                <span className="text-purple-400 text-sm font-medium">{ECONOMIC_MODEL.taxRate}% VRF费用</span>
+                <span className="text-purple-400 text-sm font-medium">{FUND_DISTRIBUTION.taxRate}% VRF费用</span>
               </div>
+            </div>
+          </div>
+
+          {/* 动态比例说明 */}
+          <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-yellow-500/5 to-orange-500/5 border border-yellow-500/20">
+            <div className="text-sm text-slate-400 mb-3">🎯 动态赢家比例（参与人数越多，奖励越高）：</div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              {DYNAMIC_TIERS.map((tier, index) => (
+                <div 
+                  key={index}
+                  className={`p-2 rounded-lg text-center ${
+                    tier.winnerRate === currentTier.winnerRate 
+                      ? 'bg-yellow-500/20 border border-yellow-500/50' 
+                      : 'bg-slate-800/30'
+                  }`}
+                >
+                  <div className="text-lg">{tier.label.split(' ')[0]}</div>
+                  <div className={`text-xs ${tier.winnerRate === currentTier.winnerRate ? 'text-yellow-400' : 'text-slate-500'}`}>
+                    {tier.minPlayers}-{tier.maxPlayers === Infinity ? '∞' : tier.maxPlayers}人
+                  </div>
+                  <div className={`font-bold ${tier.winnerRate === currentTier.winnerRate ? 'text-yellow-400' : 'text-slate-400'}`}>
+                    {tier.winnerRate}%
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { icon: '🔥', text: '接盘消耗的代币将被永久销毁' },
-              { icon: '📈', text: `每次接盘价格递增${ECONOMIC_MODEL.priceIncrement}%` },
-              { icon: '⏱️', text: `接盘后倒计时重置为${ECONOMIC_MODEL.countdownReset / 60}分钟` },
-              { icon: '🏆', text: '最后持有者赢得BNB奖池' },
+              { icon: '📈', text: `每次接盘价格递增${GAME_CONFIG.priceIncrement}%` },
+              { icon: '⏰', text: '每整点自动开奖，开启新一轮' },
+              { icon: '🏆', text: '开奖时最后持有者赢得BNB奖池' },
             ].map((rule, index) => (
               <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-slate-800/30">
                 <span className="text-2xl">{rule.icon}</span>
