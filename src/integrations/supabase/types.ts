@@ -14,7 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      social_gifts: {
+        Row: {
+          amount: number
+          claim_code: string
+          claim_tweet_id: string | null
+          claimed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          recipient_address: string | null
+          recipient_twitter: string
+          sender_address: string
+          sender_tx_hash: string | null
+          status: string
+          verification_code: string | null
+        }
+        Insert: {
+          amount: number
+          claim_code: string
+          claim_tweet_id?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          recipient_address?: string | null
+          recipient_twitter: string
+          sender_address: string
+          sender_tx_hash?: string | null
+          status?: string
+          verification_code?: string | null
+        }
+        Update: {
+          amount?: number
+          claim_code?: string
+          claim_tweet_id?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          recipient_address?: string | null
+          recipient_twitter?: string
+          sender_address?: string
+          sender_tx_hash?: string | null
+          status?: string
+          verification_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
