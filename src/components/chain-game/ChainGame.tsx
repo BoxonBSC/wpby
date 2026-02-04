@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Clock, Trophy, Users, TrendingUp, Zap, Crown, Gift, ArrowUp } from 'lucide-react';
+import { Flame, Clock, Trophy, Users, TrendingUp, Zap, Crown, Gift, ArrowUp, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import { WalletConnect } from '@/components/WalletConnect';
+import { useWallet } from '@/contexts/WalletContext';
 // 模拟数据
 const mockRoundData = {
   roundId: 42,
@@ -30,6 +31,8 @@ export function ChainGame() {
   const [timeLeft, setTimeLeft] = useState(180);
   const [isEnded, setIsEnded] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
+  const [showWallet, setShowWallet] = useState(false);
+  const { isConnected, address } = useWallet();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -52,8 +55,13 @@ export function ChainGame() {
   };
 
   const formatNumber = (num: number) => num.toLocaleString();
+  const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
   const handleTakeover = async () => {
+    if (!isConnected) {
+      setShowWallet(true);
+      return;
+    }
     setIsTaking(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsTaking(false);
@@ -67,20 +75,63 @@ export function ChainGame() {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
+      {/* 钱包弹窗 */}
+      <AnimatePresence>
+        {showWallet && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowWallet(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm"
+              onClick={e => e.stopPropagation()}
+            >
+              <WalletConnect />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="relative max-w-5xl mx-auto space-y-8">
-        {/* 标题 */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
+        {/* 顶部导航 */}
+        <div className="flex items-center justify-between">
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400"
+          >
             ⚡ 击鼓传花
-          </h1>
-          <p className="mt-2 text-slate-400">
-            接盘价格递增10% · 无人接盘时最后持有者通吃
-          </p>
-        </motion.div>
+          </motion.h1>
+          
+          <motion.button
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            onClick={() => setShowWallet(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 transition-colors"
+          >
+            <Wallet className="w-4 h-4 text-cyan-400" />
+            {isConnected && address ? (
+              <span className="text-sm font-mono text-white">{shortenAddress(address)}</span>
+            ) : (
+              <span className="text-sm text-slate-300">连接钱包</span>
+            )}
+          </motion.button>
+        </div>
+
+        {/* 副标题 */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center text-slate-400 -mt-4"
+        >
+          接盘价格递增10% · 无人接盘时最后持有者通吃
+        </motion.p>
 
         {/* 主卡片 */}
         <motion.div
