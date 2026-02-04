@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import History from "./pages/History";
 import Rules from "./pages/Rules";
 import ClaimGift from "./pages/ClaimGift";
+import ChainGamePage from "./pages/ChainGamePage";
 import NotFound from "./pages/NotFound";
 
 // 初始化 Web3Modal
@@ -43,6 +44,7 @@ function AppRoutes() {
         <Route path="/history" element={<History />} />
         <Route path="/rules" element={<Rules />} />
         <Route path="/claim/:claimCode" element={<ClaimGift />} />
+        <Route path="/chain-game" element={<ChainGamePage />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
