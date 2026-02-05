@@ -16,7 +16,7 @@ import { useWallet } from '@/contexts/WalletContext';
 
 // 游戏配置
 const GAME_CONFIG = {
-  roundDurationMinutes: 60,   // 每轮60分钟
+  roundDurationMinutes: 30,   // 每轮30分钟
   priceIncrement: 10,         // 每次接盘价格递增10%
   startPrice: 10000,          // 每轮起始价格（最小接盘金额）
   minPrice: 10000,            // 最小接盘金额
