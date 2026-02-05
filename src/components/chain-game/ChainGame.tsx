@@ -61,6 +61,7 @@ export function ChainGame() {
   const [nextDrawTime, setNextDrawTime] = useState(getDefaultEndTime());
   const [isEnded, setIsEnded] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
+  const [bidAmount, setBidAmount] = useState<string>('');
   const [showWallet, setShowWallet] = useState(false);
    const [isLoading, setIsLoading] = useState(true);
    const { isConnected, address } = useWallet();
@@ -92,6 +93,8 @@ export function ChainGame() {
    // 格式化代币数量
    const currentBidFormatted = Number(ethers.formatEther(roundData.currentBid)).toLocaleString(undefined, { maximumFractionDigits: 0 });
    const minBidFormatted = Number(ethers.formatEther(roundData.minBid)).toLocaleString(undefined, { maximumFractionDigits: 0 });
+   const tokenBalanceNum = Number(tokenBalance.replace(/,/g, ''));
+   const minBidNum = Number(ethers.formatEther(roundData.minBid));
  
    // 获取合约数据
    const fetchContractData = async () => {
@@ -283,6 +286,19 @@ export function ChainGame() {
       setShowWallet(true);
       return;
     }
+    
+    // 解析用户输入金额，默认用最低出价
+    const inputAmount = bidAmount ? Number(bidAmount) : 0;
+    if (inputAmount < minBidNum) {
+      toast.error(`最低出价 ${minBidFormatted} 代币`);
+      return;
+    }
+    if (inputAmount > tokenBalanceNum && tokenBalanceNum > 0) {
+      toast.error('余额不足');
+      return;
+    }
+    
+    const bidValue = ethers.parseEther(inputAmount.toString());
      
      if (!IS_CONTRACT_DEPLOYED) {
        toast.info('🎮 演示模式：合约尚未部署');
@@ -290,15 +306,16 @@ export function ChainGame() {
        setRoundData(prev => ({
          ...prev,
          currentHolder: address || '',
-         currentBid: prev.minBid,
-         minBid: prev.minBid * BigInt(110) / BigInt(100),
+         currentBid: bidValue,
+         minBid: bidValue * BigInt(110) / BigInt(100),
          participantCount: prev.participantCount + 1,
        }));
        setBidHistory(prev => [{
          address: address || '',
-         bid: ethers.formatEther(roundData.minBid),
+         bid: ethers.formatEther(bidValue),
          time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
        }, ...prev].slice(0, 10));
+       setBidAmount('');
        return;
      }
      
@@ -317,11 +334,9 @@ export function ChainGame() {
        const tokenContract = new ethers.Contract(TOKEN_CONTRACT, CYBER_TOKEN_ABI, signer);
        const gameContract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, signer);
        
-       const minBid = roundData.minBid;
-       
        // 检查授权
        const allowance = await tokenContract.allowance(address, GAME_CONTRACT);
-       if (allowance < minBid) {
+       if (allowance < bidValue) {
          toast.loading('正在授权代币...');
          const approveTx = await tokenContract.approve(GAME_CONTRACT, ethers.MaxUint256);
          await approveTx.wait();
@@ -330,10 +345,11 @@ export function ChainGame() {
        
        // 出价
         toast.loading('正在出价...');
-       const tx = await gameContract.placeBid(minBid);
+       const tx = await gameContract.placeBid(bidValue);
        await tx.wait();
        
         toast.success('出价成功！🔥');
+       setBidAmount('');
        fetchContractData();
      } catch (error: any) {
        console.error('Takeover failed:', error);
@@ -629,7 +645,7 @@ export function ChainGame() {
                    最低出价
                 </div>
                  <div className="text-xl font-bold text-green-400">{minBidFormatted}</div>
-                <div className="text-xs text-slate-500">+{GAME_CONFIG.priceIncrement}%</div>
+                <div className="text-xs text-slate-500">不设上限</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
@@ -649,11 +665,61 @@ export function ChainGame() {
               </div>
             </div>
 
-             {/* 操作按钮 */}
+             {/* 出价输入区 */}
              <div className="max-w-md mx-auto space-y-3">
+              {/* 金额输入框 */}
+              {!isEnded && (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={bidAmount}
+                      onChange={(e) => setBidAmount(e.target.value)}
+                      placeholder={`最低 ${minBidFormatted}`}
+                      min={minBidNum}
+                      disabled={isEnded || isTaking}
+                      className="w-full h-14 px-4 pr-20 text-lg font-bold rounded-2xl bg-slate-800/80 border border-slate-600 text-white placeholder-slate-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-colors disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-medium">
+                      代币
+                    </span>
+                  </div>
+                  {/* 快捷金额按钮 */}
+                  <div className="flex gap-2">
+                    {[
+                      { label: '最低', value: minBidNum },
+                      { label: '5万', value: 50000 },
+                      { label: '10万', value: 100000 },
+                      { label: '全部', value: tokenBalanceNum },
+                    ].filter(q => q.value >= minBidNum).map((quick) => (
+                      <button
+                        key={quick.label}
+                        onClick={() => setBidAmount(quick.value.toString())}
+                        disabled={isEnded || isTaking}
+                        className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-slate-800/60 border border-slate-700 text-slate-400 hover:border-cyan-500/50 hover:text-cyan-400 transition-colors disabled:opacity-50"
+                      >
+                        {quick.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* 余额提示 */}
+                  {isConnected && (
+                    <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+                      <span>钱包余额: {tokenBalance} {tokenSymbol}</span>
+                      {bidAmount && Number(bidAmount) > tokenBalanceNum && tokenBalanceNum > 0 && (
+                        <span className="text-red-400">余额不足</span>
+                      )}
+                      {bidAmount && Number(bidAmount) > 0 && Number(bidAmount) < minBidNum && (
+                        <span className="text-red-400">低于最低出价</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <Button
                 onClick={handleTakeover}
-                disabled={isEnded || isTaking}
+                disabled={isEnded || isTaking || (!!bidAmount && (Number(bidAmount) < minBidNum || (Number(bidAmount) > tokenBalanceNum && tokenBalanceNum > 0)))}
                 className="w-full h-16 text-xl font-bold rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-400 hover:via-purple-400 hover:to-pink-400 text-white shadow-lg shadow-purple-500/25 transition-all duration-300 disabled:opacity-50 disabled:shadow-none"
               >
                 {isTaking ? (
@@ -668,7 +734,9 @@ export function ChainGame() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <Flame className="w-6 h-6" />
-                     我要出价 ({minBidFormatted} 代币)
+                    {bidAmount && Number(bidAmount) >= minBidNum
+                      ? `出价 ${Number(bidAmount).toLocaleString()} 代币`
+                      : '我要出价'}
                   </span>
                 )}
               </Button>
@@ -823,7 +891,7 @@ export function ChainGame() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { icon: '🔥', text: '出价消耗的代币将被永久销毁' },
-              { icon: '📈', text: `每次出价价格递增${GAME_CONFIG.priceIncrement}%` },
+              { icon: '📈', text: '自由出价，最低10,000代币，上不封顶' },
               { icon: '⏰', text: '每小时自动开奖，开启新一轮' },
               { icon: '🏆', text: '开奖时最后持有者赢得BNB奖池' },
             ].map((rule, index) => (
