@@ -25,6 +25,7 @@ export const CYBER_CHAIN_GAME_ABI = [
   "function placeBid(uint256 tokenAmount) external",
   "function settleRound() external",
   "function claimRewards() external",
+  "function setToken(address _token) external",
   // 查询函数
   "function getCurrentRound() external view returns (uint256 roundId, uint256 startTime, uint256 endTime, uint256 prizePool, uint256 currentBid, address currentHolder, uint256 participantCount, bool settled)",
   "function getTimeRemaining() external view returns (uint256)",
@@ -35,7 +36,7 @@ export const CYBER_CHAIN_GAME_ABI = [
   "function totalRounds() external view returns (uint256)",
   "function totalBurned() external view returns (uint256)",
   "function totalPaidOut() external view returns (uint256)",
-  // 优化版新增查询函数
+  "function tokenSet() external view returns (bool)",
   "function getRecentBids() external view returns (tuple(address bidder, uint128 amount, uint64 timestamp)[20])",
   "function hasPlayerParticipated(address player) external view returns (bool)",
   "function getRoundResult(uint256 roundId) external view returns (tuple(address winner, uint128 prize, uint128 prizePool, uint32 participantCount, uint64 endTime, uint8 winnerRate))",
@@ -47,13 +48,12 @@ export const CYBER_CHAIN_GAME_ABI = [
   "function getAllTokenReceivers() external view returns (address[3])",
   "function roundDuration() external view returns (uint256)",
   // 常量
-  "function BID_INCREMENT() external pure returns (uint256)",
   "function PLATFORM_RATE() external pure returns (uint256)",
   "function MIN_FIRST_BID() external pure returns (uint256)",
   "function MAX_RECENT_BIDS() external pure returns (uint8)",
   // 动态比例
   "function dynamicTiers(uint256 index) external view returns (uint16 minPlayers, uint16 maxPlayers, uint8 winnerRate)",
-  // 事件（优化版）
+  // 事件
   "event RoundStarted(uint256 indexed roundId, uint64 startTime, uint64 endTime)",
   "event BidPlaced(uint256 indexed roundId, address indexed player, uint256 tokensBurned, uint256 newBid, uint32 participantCount)",
   "event RoundSettled(uint256 indexed roundId, address indexed winner, uint256 prize, uint256 platformFee, uint32 participants, uint8 winnerRate)",
@@ -62,13 +62,13 @@ export const CYBER_CHAIN_GAME_ABI = [
   "event PlatformFeeSent(address indexed platform, uint256 amount)",
   "event FallbackRewardClaimed(address indexed player, uint256 amount)",
   "event PrizePoolFunded(address indexed funder, uint256 amount)",
-  "event EmergencyWithdraw(address indexed to, uint256 amount)",
   "event SettlementBonusPaid(address indexed settler, uint256 amount)",
   "event PlatformWalletChanged(address indexed oldWallet, address indexed newWallet)",
   "event SettlementBonusPoolFunded(uint256 amount)",
   "event TokenReceiverChanged(uint8 indexed index, address indexed oldReceiver, address indexed newReceiver)",
   "event TokenReceived(address indexed receiver, uint256 amount)",
   "event RoundDurationChanged(uint256 oldDuration, uint256 newDuration)",
+  "event TokenSet(address indexed tokenAddress)",
 ] as const;
 
 // Chain Game 动态比例配置
