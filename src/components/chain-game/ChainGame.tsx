@@ -77,6 +77,8 @@ export function ChainGame() {
    const [bidHistory, setBidHistory] = useState<Array<{ address: string; bid: string; time: string }>>([]);
    const [playerStats, setPlayerStats] = useState({ wins: 0, earnings: '0', burned: '0', pending: '0' });
   const [hasParticipated, setHasParticipated] = useState(false);
+  const [tokenBalance, setTokenBalance] = useState<string>('0');
+  const [tokenSymbol, setTokenSymbol] = useState<string>('CYBER');
 
   // 当前动态比例
    const currentTier = useMemo(() => getCurrentTier(roundData.participantCount), [roundData.participantCount]);
@@ -171,6 +173,17 @@ export function ChainGame() {
           setHasParticipated(participated);
         } catch (e) {
           console.warn('Failed to check participation:', e);
+        }
+        
+        // 获取代币余额和符号
+        try {
+          const tokenContract = new ethers.Contract(TOKEN_CONTRACT, CYBER_TOKEN_ABI, provider);
+          const balance = await tokenContract.balanceOf(address);
+          const symbol = await tokenContract.symbol();
+          setTokenBalance(Number(ethers.formatEther(balance)).toLocaleString(undefined, { maximumFractionDigits: 0 }));
+          setTokenSymbol(symbol);
+        } catch (e) {
+          console.warn('Failed to fetch token balance:', e);
         }
        }
        
@@ -422,11 +435,15 @@ export function ChainGame() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => setShowWallet(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 transition-colors"
+           className="flex items-center gap-3 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 transition-colors"
           >
             <Wallet className="w-4 h-4 text-cyan-400" />
             {isConnected && address ? (
-              <span className="text-sm font-mono text-white">{shortenAddress(address)}</span>
+             <div className="flex items-center gap-3">
+               <span className="text-sm font-mono text-white">{shortenAddress(address)}</span>
+               <div className="h-4 w-px bg-slate-600" />
+               <span className="text-sm text-cyan-400 font-medium">{tokenBalance} {tokenSymbol}</span>
+             </div>
             ) : (
               <span className="text-sm text-slate-300">连接钱包</span>
             )}
