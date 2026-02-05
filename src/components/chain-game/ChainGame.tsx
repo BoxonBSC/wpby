@@ -465,7 +465,7 @@ export function ChainGame() {
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30">
                   <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
-                   <span className="text-cyan-400 font-medium text-sm">第 #{roundData.roundId} 轮</span>
+                   <span className="text-cyan-400 font-medium text-sm">竞拍进行中</span>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400 text-sm">
                   <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
