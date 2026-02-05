@@ -5,6 +5,7 @@
  import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  import "@openzeppelin/contracts/access/Ownable.sol";
  import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+ import "@openzeppelin/contracts/security/Pausable.sol";
  
  /**
   * @title CyberChainGame
@@ -15,8 +16,13 @@
   * - 精简历史存储（只存关键数据）
   * - Gas 消耗降低 60-80%
   * - 支持 10000+ 玩家
+  * 
+  * 安全特性：
+  * - 紧急暂停机制
+  * - 溢出保护
+  * - 重入保护
   */
- contract CyberChainGame is Ownable, ReentrancyGuard {
+ contract CyberChainGame is Ownable, ReentrancyGuard, Pausable {
      using SafeERC20 for IERC20;
  
      // ============ 常量 ============
@@ -89,6 +95,9 @@
      BidRecord[20] public recentBids;
      uint8 public recentBidIndex;
  
+     // 结算补贴（补偿首个出价者的结算 Gas）
+     uint256 public settlementBonus = 0.001 ether;
+ 
      // ============ 事件 ============
      event RoundStarted(uint256 indexed roundId, uint64 startTime, uint64 endTime);
      event BidPlaced(
@@ -112,6 +121,7 @@
      event FallbackRewardClaimed(address indexed player, uint256 amount);
      event PrizePoolFunded(address indexed funder, uint256 amount);
      event EmergencyWithdraw(address indexed to, uint256 amount);
+     event SettlementBonusPaid(address indexed settler, uint256 amount);
  
      // ============ 构造函数 ============
      constructor(address _token, address _platformWallet) {
@@ -133,7 +143,10 @@
  
      // ============ 接收BNB ============
      receive() external payable {
-         currentRound.prizePool += uint128(msg.value);
+         // 安全检查：防止溢出
+         uint256 newPool = uint256(currentRound.prizePool) + msg.value;
+         require(newPool <= type(uint128).max, "Pool overflow");
+         currentRound.prizePool = uint128(newPool);
          emit PrizePoolFunded(msg.sender, msg.value);
      }
  
@@ -142,11 +155,14 @@
      /**
       * @dev 出价竞拍 - O(1) 复杂度
       */
-     function placeBid(uint256 tokenAmount) external nonReentrant {
+     function placeBid(uint256 tokenAmount) external nonReentrant whenNotPaused {
+         bool didSettle = false;
+         
          // 检查并结算过期轮次
          if (block.timestamp >= currentRound.endTime && !currentRound.settled) {
              _settleRound();
              _startNewRound();
+             didSettle = true;
          }
  
          require(block.timestamp < currentRound.endTime, "Round ended");
@@ -188,6 +204,14 @@
              tokenAmount,
              currentRound.participantCount
          );
+         
+         // 补偿结算 Gas
+         if (didSettle && settlementBonus > 0 && address(this).balance >= settlementBonus) {
+             (bool bonusSuccess, ) = payable(msg.sender).call{value: settlementBonus}("");
+             if (bonusSuccess) {
+                 emit SettlementBonusPaid(msg.sender, settlementBonus);
+             }
+         }
      }
  
      /**
@@ -232,6 +256,12 @@
  
          uint128 inheritedPool = currentRound.prizePool;
  
+         // 清空最近出价记录（真正清空）
+         for (uint8 i = 0; i < MAX_RECENT_BIDS; i++) {
+             delete recentBids[i];
+         }
+         recentBidIndex = 0;
+ 
          currentRound = Round({
              roundId: uint64(totalRounds),
              startTime: startTime,
@@ -242,9 +272,6 @@
              participantCount: 0,
              settled: false
          });
- 
-         // 清空最近出价记录
-         recentBidIndex = 0;
  
          emit RoundStarted(totalRounds, startTime, endTime);
      }
@@ -414,6 +441,28 @@
          require(index < 5, "Invalid index");
          require(winnerRate <= 60, "Rate too high");
          dynamicTiers[index] = DynamicTier(minPlayers, maxPlayers, winnerRate);
+     }
+ 
+     /**
+      * @dev 设置结算补贴
+      */
+     function setSettlementBonus(uint256 _bonus) external onlyOwner {
+         require(_bonus <= 0.01 ether, "Bonus too high");
+         settlementBonus = _bonus;
+     }
+ 
+     /**
+      * @dev 暂停合约
+      */
+     function pause() external onlyOwner {
+         _pause();
+     }
+ 
+     /**
+      * @dev 恢复合约
+      */
+     function unpause() external onlyOwner {
+         _unpause();
      }
  
      function emergencyWithdraw() external onlyOwner {
