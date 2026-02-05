@@ -33,7 +33,7 @@ const getCurrentTier = (participants: number) => {
 const GAME_CONTRACT = CYBER_CHAIN_GAME_ADDRESS.mainnet;
 const TOKEN_CONTRACT = CYBER_TOKEN_ADDRESS.mainnet;
  
- const IS_CONTRACT_DEPLOYED = GAME_CONTRACT !== '0x0000000000000000000000000000000000000000';
+ 
  
  const getEthereumProvider = () => {
    if (typeof window !== 'undefined' && window.ethereum) {
@@ -89,11 +89,7 @@ export function ChainGame() {
    const minBidNum = Number(ethers.formatEther(roundData.minBid));
  
    // 获取合约数据
-   const fetchContractData = async () => {
-     if (!IS_CONTRACT_DEPLOYED) {
-       setIsLoading(false);
-       return;
-     }
+    const fetchContractData = async () => {
      
      const ethereum = getEthereumProvider();
      if (!ethereum) {
@@ -182,10 +178,8 @@ export function ChainGame() {
      }
    };
  
-   useEffect(() => {
-     if (!IS_CONTRACT_DEPLOYED) return;
-     
-     const ethereum = getEthereumProvider();
+    useEffect(() => {
+      const ethereum = getEthereumProvider();
      if (!ethereum) return;
      
      const provider = new ethers.BrowserProvider(ethereum);
@@ -279,24 +273,7 @@ export function ChainGame() {
     
     const bidValue = ethers.parseEther(inputAmount.toString());
      
-     if (!IS_CONTRACT_DEPLOYED) {
-       toast.info('🎮 演示模式：合约尚未部署');
-        setRoundData(prev => ({
-          ...prev,
-          currentHolder: address || '',
-          currentBid: bidValue,
-          minBid: bidValue + BigInt(1),
-          participantCount: prev.participantCount + 1,
-        }));
-       setBidHistory(prev => [{
-         address: address || '',
-         bid: ethers.formatEther(bidValue),
-         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-       }, ...prev].slice(0, 10));
-        setBidAmount('');
-        setBidSuccessTrigger(prev => prev + 1);
-        return;
-     }
+ 
      
      const ethereum = getEthereumProvider();
      if (!ethereum) {
@@ -337,11 +314,7 @@ export function ChainGame() {
      }
    };
  
-   const handleClaimRewards = async () => {
-     if (!IS_CONTRACT_DEPLOYED) {
-       toast.info('🎮 演示模式：合约尚未部署');
-       return;
-     }
+    const handleClaimRewards = async () => {
      
      const ethereum = getEthereumProvider();
      if (!ethereum || Number(playerStats.pending) <= 0) return;
@@ -361,28 +334,11 @@ export function ChainGame() {
      }
   };
 
-   useEffect(() => {
-     if (!IS_CONTRACT_DEPLOYED) {
-       setRoundData({
-         roundId: 1,
-         currentHolder: '',
-         currentBid: BigInt(0),
-         prizePool: ethers.parseEther('2.5'),
-         participantCount: 0,
-         minBid: ethers.parseEther('10000'),
-        settled: false,
-       });
-       setIsLoading(false);
-     }
-   }, []);
+ 
  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 p-3 sm:p-4 md:p-8">
-       {!IS_CONTRACT_DEPLOYED && (
-         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-sm font-medium">
-           🎮 演示模式 - 合约尚未部署
-         </div>
-       )}
+ 
        
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
