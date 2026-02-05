@@ -60,7 +60,6 @@ export function ChainGame() {
   const [nextDrawTime, setNextDrawTime] = useState(getDefaultEndTime());
   const [isEnded, setIsEnded] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
-  const [isSettling, setIsSettling] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
    const [isLoading, setIsLoading] = useState(true);
    const { isConnected, address } = useWallet();
@@ -238,12 +237,13 @@ export function ChainGame() {
      };
   }, [address]);
  
-   // 初始加载
+   // 初始加载 - 结束后加速轮询以快速检测新一轮
    useEffect(() => {
      fetchContractData();
-     const interval = setInterval(fetchContractData, 30000); // 每30秒刷新
+     const pollInterval = isEnded ? 5000 : 30000; // 结束后每5秒轮询，否则30秒
+     const interval = setInterval(fetchContractData, pollInterval);
      return () => clearInterval(interval);
-   }, [address]);
+   }, [address, isEnded]);
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -366,55 +366,6 @@ export function ChainGame() {
        toast.error(error.reason || '领取失败');
      }
   };
-
-   // 结算当前轮次
-   const handleSettleRound = async () => {
-     if (!IS_CONTRACT_DEPLOYED) {
-       toast.info('🎮 演示模式：合约尚未部署');
-       // 演示模式模拟结算
-       setRoundData(prev => ({
-         ...prev,
-         roundId: prev.roundId + 1,
-         currentHolder: '',
-         currentBid: BigInt(0),
-         participantCount: 0,
-         minBid: ethers.parseEther('10000'),
-         settled: false,
-       }));
-       setIsEnded(false);
-       setBidHistory([]);
-       setNextDrawTime(getDefaultEndTime());
-       toast.success('新一轮已开始！');
-       return;
-     }
-     
-     const ethereum = getEthereumProvider();
-     if (!ethereum) {
-       toast.error('请安装钱包');
-       return;
-     }
-     
-     setIsSettling(true);
-     
-     try {
-       const provider = new ethers.BrowserProvider(ethereum);
-       const signer = await provider.getSigner();
-       const gameContract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, signer);
-       
-       toast.loading('正在结算并开启新一轮...');
-       const tx = await gameContract.settleRound();
-       await tx.wait();
-       
-       toast.success('🎉 结算成功！新一轮已开始');
-       setBidHistory([]);
-       fetchContractData();
-     } catch (error: any) {
-       console.error('Settlement failed:', error);
-       toast.error(error.reason || '结算失败，请稍后重试');
-     } finally {
-       setIsSettling(false);
-     }
-   };
 
    // 演示模式初始化数据
    useEffect(() => {
@@ -612,28 +563,41 @@ export function ChainGame() {
                   >
                     <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-4 animate-bounce" />
                     <div className="text-3xl font-bold text-white mb-2">🎉 本轮结束！</div>
-                     <div className="text-slate-400 mb-2">恭喜 {shortenAddress(roundData.currentHolder || '0x0')} 获胜</div>
+                    <div className="text-slate-400 mb-2">恭喜 {shortenAddress(roundData.currentHolder || '0x0')} 获胜</div>
                     <div className="text-yellow-400 text-xl font-bold mb-4">+{winnerAmount} BNB</div>
-                    <Button
-                      onClick={handleSettleRound}
-                      disabled={isSettling}
-                      className="px-8 py-3 text-lg font-bold rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black shadow-lg shadow-yellow-500/25 transition-all"
-                    >
-                      {isSettling ? (
-                        <span className="flex items-center gap-2">
-                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-                            <Zap className="w-5 h-5" />
-                          </motion.div>
-                          结算中...
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-2">
-                          <Trophy className="w-5 h-5" />
-                          结算并开启下一轮
-                        </span>
-                      )}
-                    </Button>
-                    <div className="text-xs text-cyan-400 mt-2">💰 结算者可获得结算奖励 (BNB)</div>
+                    
+                    {/* 自动结算等待动画 */}
+                    <div className="flex flex-col items-center gap-3 mt-4">
+                      <div className="flex items-center gap-3">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        >
+                          <Zap className="w-6 h-6 text-cyan-400" />
+                        </motion.div>
+                        <span className="text-cyan-400 font-medium">正在自动结算中...</span>
+                        <motion.div
+                          animate={{ rotate: -360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        >
+                          <Zap className="w-6 h-6 text-cyan-400" />
+                        </motion.div>
+                      </div>
+                      
+                      {/* 进度点动画 */}
+                      <div className="flex gap-2">
+                        {[0, 1, 2].map(i => (
+                          <motion.div
+                            key={i}
+                            className="w-2 h-2 rounded-full bg-cyan-400"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                            transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.3 }}
+                          />
+                        ))}
+                      </div>
+                      
+                      <span className="text-xs text-slate-500 mt-1">奖金将自动发放至赢家钱包，新一轮即将开启</span>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
