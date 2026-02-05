@@ -979,7 +979,7 @@ export function ChainGame() {
               { icon: '🔥', text: '出价消耗的代币将被永久销毁' },
               { icon: '📈', text: '自由出价，最低10,000代币，上不封顶' },
               { icon: '⏰', text: '每小时自动开奖，开启新一轮' },
-              { icon: '🏆', text: '开奖时最后持有者赢得BNB奖池' },
+              { icon: '🏆', text: '开奖时最高出价者赢得BNB奖池' },
             ].map((rule, index) => (
               <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-slate-800/30">
                 <span className="text-2xl">{rule.icon}</span>
