@@ -34,6 +34,9 @@ const getCurrentTier = (participants: number) => {
 const GAME_CONTRACT = CYBER_CHAIN_GAME_ADDRESS.mainnet;
 const TOKEN_CONTRACT = CYBER_TOKEN_ADDRESS.mainnet;
  
+ // 检查合约是否已部署
+ const IS_CONTRACT_DEPLOYED = GAME_CONTRACT !== '0x0000000000000000000000000000000000000000';
+ 
  // 获取以太坊Provider
  const getEthereumProvider = () => {
    if (typeof window !== 'undefined' && window.ethereum) {
@@ -90,6 +93,12 @@ export function ChainGame() {
  
    // 获取合约数据
    const fetchContractData = async () => {
+     // 如果合约未部署，使用演示数据
+     if (!IS_CONTRACT_DEPLOYED) {
+       setIsLoading(false);
+       return;
+     }
+     
      const ethereum = getEthereumProvider();
      if (!ethereum) {
        setIsLoading(false);
@@ -139,8 +148,10 @@ export function ChainGame() {
  
    // 监听合约事件
    useEffect(() => {
+     if (!IS_CONTRACT_DEPLOYED) return;
+     
      const ethereum = getEthereumProvider();
-     if (!ethereum || GAME_CONTRACT === ethers.ZeroAddress) return;
+     if (!ethereum) return;
      
      const provider = new ethers.BrowserProvider(ethereum);
      const contract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, provider);
@@ -216,6 +227,24 @@ export function ChainGame() {
       return;
     }
      
+     if (!IS_CONTRACT_DEPLOYED) {
+       toast.info('🎮 演示模式：合约尚未部署');
+       // 演示模式下模拟接盘
+       setRoundData(prev => ({
+         ...prev,
+         currentHolder: address || '',
+         currentBid: prev.minBid,
+         minBid: prev.minBid * BigInt(110) / BigInt(100),
+         participantCount: prev.participantCount + 1,
+       }));
+       setBidHistory(prev => [{
+         address: address || '',
+         bid: ethers.formatEther(roundData.minBid),
+         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+       }, ...prev].slice(0, 10));
+       return;
+     }
+     
      const ethereum = getEthereumProvider();
      if (!ethereum) {
        toast.error('请安装钱包');
@@ -259,6 +288,11 @@ export function ChainGame() {
  
    // 领取奖励
    const handleClaimRewards = async () => {
+     if (!IS_CONTRACT_DEPLOYED) {
+       toast.info('🎮 演示模式：合约尚未部署');
+       return;
+     }
+     
      const ethereum = getEthereumProvider();
      if (!ethereum || Number(playerStats.pending) <= 0) return;
      
@@ -277,8 +311,30 @@ export function ChainGame() {
      }
   };
 
+   // 演示模式初始化数据
+   useEffect(() => {
+     if (!IS_CONTRACT_DEPLOYED) {
+       setRoundData({
+         roundId: 1,
+         currentHolder: '',
+         currentBid: BigInt(0),
+         prizePool: ethers.parseEther('2.5'), // 演示：2.5 BNB
+         participantCount: 0,
+         minBid: ethers.parseEther('10000'), // 10000 代币
+       });
+       setIsLoading(false);
+     }
+   }, []);
+ 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 p-4 md:p-8">
+       {/* 演示模式提示 */}
+       {!IS_CONTRACT_DEPLOYED && (
+         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-sm font-medium">
+           🎮 演示模式 - 合约尚未部署
+         </div>
+       )}
+       
       {/* 背景动效 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
