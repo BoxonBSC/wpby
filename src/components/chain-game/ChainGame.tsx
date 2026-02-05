@@ -627,7 +627,7 @@ export function ChainGame() {
               </AnimatePresence>
             </div>
 
-            {/* 当前持有者 */}
+            {/* 当前最高出价者 */}
             <div className="flex items-center justify-center gap-2 sm:gap-3 mb-6 md:mb-8 py-3 sm:py-4 px-4 sm:px-6 mx-auto max-w-md rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30">
               <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 flex-shrink-0" />
              <span className="text-slate-400 text-xs sm:text-sm">当前最高出价者</span>
