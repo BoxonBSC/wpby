@@ -449,6 +449,252 @@ export function ChainGame() {
             )}
           </motion.button>
         </div>
+          <motion.button
+      <div className="relative max-w-5xl mx-auto space-y-8">
+        {/* 顶部导航 */}
+        <div className="flex items-center justify-between">
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400"
+          >
+            ⚡ 击鼓传花
+          </motion.h1>
+          
+          <div className="flex items-center gap-3">
+            {/* 代币余额卡片 - 更醒目 */}
+            {isConnected && address && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/40 shadow-lg shadow-cyan-500/10"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <span className="text-sm font-bold text-white">$</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider">持有代币</span>
+                  <span className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+                    {tokenBalance} {tokenSymbol}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+            
+            <motion.button
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => setShowWallet(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 transition-colors"
+            >
+              <Wallet className="w-4 h-4 text-cyan-400" />
+              {isConnected && address ? (
+                <span className="text-sm font-mono text-white">{shortenAddress(address)}</span>
+              ) : (
+                <span className="text-sm text-slate-300">连接钱包</span>
+              )}
+            </motion.button>
+          </div>
+        </div>
+
+      <div className="relative max-w-5xl mx-auto space-y-8">
+      </AnimatePresence>
+
+      <div className="relative max-w-5xl mx-auto space-y-8">
+      </AnimatePresence>
+
+      <div className="relative max-w-5xl mx-auto space-y-8">
+        {/* 顶部导航 */}
+        <div className="flex items-center justify-between">
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400"
+          >
+            ⚡ 击鼓传花
+          </motion.h1>
+          
+          <div className="flex items-center gap-3">
+            {/* 代币余额卡片 - 更醒目 */}
+            {isConnected && address && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/40 shadow-lg shadow-cyan-500/10"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <span className="text-sm font-bold text-white">$</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider">持有代币</span>
+                  <span className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+                    {tokenBalance} {tokenSymbol}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+            
+            <motion.button
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => setShowWallet(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 transition-colors"
+            >
+              <Wallet className="w-4 h-4 text-cyan-400" />
+              {isConnected && address ? (
+                <span className="text-sm font-mono text-white">{shortenAddress(address)}</span>
+              ) : (
+                <span className="text-sm text-slate-300">连接钱包</span>
+              )}
+            </motion.button>
+          </div>
+        </div>
+        )}
+      </AnimatePresence>
+
+      <div className="relative max-w-5xl mx-auto space-y-8">
+        {/* 顶部导航 */}
+        <div className="flex items-center justify-between">
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400"
+          >
+            ⚡ 击鼓传花
+          </motion.h1>
+          
+          <div className="flex items-center gap-3">
+            {/* 代币余额卡片 - 更醒目 */}
+            {isConnected && address && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/40 shadow-lg shadow-cyan-500/10"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <span className="text-sm font-bold text-white">$</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider">持有代币</span>
+                  <span className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+                    {tokenBalance} {tokenSymbol}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+            
+            <motion.button
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => setShowWallet(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 transition-colors"
+            >
+              <Wallet className="w-4 h-4 text-cyan-400" />
+              {isConnected && address ? (
+                <span className="text-sm font-mono text-white">{shortenAddress(address)}</span>
+              ) : (
+                <span className="text-sm text-slate-300">连接钱包</span>
+              )}
+            </motion.button>
+          </div>
+        </div>
+        )}
+      </AnimatePresence>
+
+      <div className="relative max-w-5xl mx-auto space-y-8">
+        {/* 顶部导航 */}
+        <div className="flex items-center justify-between">
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400"
+          >
+            ⚡ 击鼓传花
+          </motion.h1>
+          
+          <div className="flex items-center gap-3">
+            {/* 代币余额卡片 - 更醒目 */}
+            {isConnected && address && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/40 shadow-lg shadow-cyan-500/10"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <span className="text-sm font-bold text-white">$</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider">持有代币</span>
+                  <span className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+                    {tokenBalance} {tokenSymbol}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+            
+            <motion.button
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => setShowWallet(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 transition-colors"
+            >
+              <Wallet className="w-4 h-4 text-cyan-400" />
+              {isConnected && address ? (
+                <span className="text-sm font-mono text-white">{shortenAddress(address)}</span>
+              ) : (
+                <span className="text-sm text-slate-300">连接钱包</span>
+              )}
+            </motion.button>
+          </div>
+        </div>
+      </AnimatePresence>
+
+      <div className="relative max-w-5xl mx-auto space-y-8">
+        {/* 顶部导航 */}
+        <div className="flex items-center justify-between">
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400"
+          >
+            ⚡ 击鼓传花
+          </motion.h1>
+          
+          <div className="flex items-center gap-3">
+            {/* 代币余额卡片 - 更醒目 */}
+            {isConnected && address && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/40 shadow-lg shadow-cyan-500/10"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <span className="text-sm font-bold text-white">$</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider">持有代币</span>
+                  <span className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+                    {tokenBalance} {tokenSymbol}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+            
+            <motion.button
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => setShowWallet(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 transition-colors"
+            >
+              <Wallet className="w-4 h-4 text-cyan-400" />
+              {isConnected && address ? (
+                <span className="text-sm font-mono text-white">{shortenAddress(address)}</span>
+              ) : (
+                <span className="text-sm text-slate-300">连接钱包</span>
+              )}
+            </motion.button>
+          </div>
+        </div>
 
         {/* 副标题 */}
         <motion.p
