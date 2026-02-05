@@ -60,6 +60,7 @@ export function ChainGame() {
   const [nextDrawTime, setNextDrawTime] = useState(getDefaultEndTime());
   const [isEnded, setIsEnded] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
+  const [isSettling, setIsSettling] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
    const [isLoading, setIsLoading] = useState(true);
    const { isConnected, address } = useWallet();
@@ -366,6 +367,55 @@ export function ChainGame() {
      }
   };
 
+   // 结算当前轮次
+   const handleSettleRound = async () => {
+     if (!IS_CONTRACT_DEPLOYED) {
+       toast.info('🎮 演示模式：合约尚未部署');
+       // 演示模式模拟结算
+       setRoundData(prev => ({
+         ...prev,
+         roundId: prev.roundId + 1,
+         currentHolder: '',
+         currentBid: BigInt(0),
+         participantCount: 0,
+         minBid: ethers.parseEther('10000'),
+         settled: false,
+       }));
+       setIsEnded(false);
+       setBidHistory([]);
+       setNextDrawTime(getDefaultEndTime());
+       toast.success('新一轮已开始！');
+       return;
+     }
+     
+     const ethereum = getEthereumProvider();
+     if (!ethereum) {
+       toast.error('请安装钱包');
+       return;
+     }
+     
+     setIsSettling(true);
+     
+     try {
+       const provider = new ethers.BrowserProvider(ethereum);
+       const signer = await provider.getSigner();
+       const gameContract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, signer);
+       
+       toast.loading('正在结算并开启新一轮...');
+       const tx = await gameContract.settleRound();
+       await tx.wait();
+       
+       toast.success('🎉 结算成功！新一轮已开始');
+       setBidHistory([]);
+       fetchContractData();
+     } catch (error: any) {
+       console.error('Settlement failed:', error);
+       toast.error(error.reason || '结算失败，请稍后重试');
+     } finally {
+       setIsSettling(false);
+     }
+   };
+
    // 演示模式初始化数据
    useEffect(() => {
      if (!IS_CONTRACT_DEPLOYED) {
@@ -563,8 +613,27 @@ export function ChainGame() {
                     <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-4 animate-bounce" />
                     <div className="text-3xl font-bold text-white mb-2">🎉 本轮结束！</div>
                      <div className="text-slate-400 mb-2">恭喜 {shortenAddress(roundData.currentHolder || '0x0')} 获胜</div>
-                    <div className="text-yellow-400 text-xl font-bold">+{winnerAmount} BNB</div>
-                    <div className="text-sm text-slate-500 mt-2">下一轮即将开始...</div>
+                    <div className="text-yellow-400 text-xl font-bold mb-4">+{winnerAmount} BNB</div>
+                    <Button
+                      onClick={handleSettleRound}
+                      disabled={isSettling}
+                      className="px-8 py-3 text-lg font-bold rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black shadow-lg shadow-yellow-500/25 transition-all"
+                    >
+                      {isSettling ? (
+                        <span className="flex items-center gap-2">
+                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                            <Zap className="w-5 h-5" />
+                          </motion.div>
+                          结算中...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <Trophy className="w-5 h-5" />
+                          结算并开启下一轮
+                        </span>
+                      )}
+                    </Button>
+                    <div className="text-xs text-cyan-400 mt-2">💰 结算者可获得结算奖励 (BNB)</div>
                   </motion.div>
                 )}
               </AnimatePresence>
