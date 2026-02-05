@@ -17,7 +17,7 @@ export const CYBER_HILO_ADDRESS = {
 
  // CyberChainGame 击鼓传花合约地址（部署后更新）
  export const CYBER_CHAIN_GAME_ADDRESS = {
-   mainnet: '0x0000000000000000000000000000000000000000', // 待部署
+   mainnet: '0x806Dff8bd821f648669962F3eb8e7eF5Ce6492Db',
    testnet: '0x0000000000000000000000000000000000000000',
  };
  
