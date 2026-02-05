@@ -26,7 +26,7 @@
      using SafeERC20 for IERC20;
  
      // ============ 常量 ============
-    uint256 public constant ROUND_DURATION = 30 minutes;
+    uint256 public roundDuration = 30 minutes; // 可调整，默认30分钟
      uint256 public constant BID_INCREMENT = 10; // 10% 加价
      uint256 public constant PLATFORM_RATE = 5; // 5% 平台费
      uint256 public constant MIN_FIRST_BID = 10000 * 1e18; // 首次最低 10000 代币
@@ -131,6 +131,7 @@
     event SettlementBonusPoolFunded(uint256 amount);
    event TokenReceiverChanged(uint8 indexed index, address indexed oldReceiver, address indexed newReceiver);
    event TokenReceived(address indexed receiver, uint256 amount);
+   event RoundDurationChanged(uint256 oldDuration, uint256 newDuration);
  
      // ============ 构造函数 ============
    constructor(
@@ -273,13 +274,13 @@
      function _startNewRound() internal {
          totalRounds++;
          
-         uint64 currentHour = uint64(block.timestamp / ROUND_DURATION);
-         uint64 startTime = currentHour * uint64(ROUND_DURATION);
-         uint64 endTime = startTime + uint64(ROUND_DURATION);
+       uint64 currentPeriod = uint64(block.timestamp / roundDuration);
+       uint64 startTime = currentPeriod * uint64(roundDuration);
+       uint64 endTime = startTime + uint64(roundDuration);
          
          if (block.timestamp >= endTime) {
              startTime = endTime;
-             endTime = startTime + uint64(ROUND_DURATION);
+           endTime = startTime + uint64(roundDuration);
          }
  
          uint128 inheritedPool = currentRound.prizePool;
@@ -551,4 +552,15 @@
          
          emit EmergencyWithdraw(owner(), balance);
      }
+
+    /**
+     * @dev 设置轮次时长（5分钟 - 24小时）
+     */
+    function setRoundDuration(uint256 _duration) external onlyOwner {
+        require(_duration >= 5 minutes, "Min 5 minutes");
+        require(_duration <= 24 hours, "Max 24 hours");
+        uint256 oldDuration = roundDuration;
+        roundDuration = _duration;
+        emit RoundDurationChanged(oldDuration, _duration);
+    }
  }
