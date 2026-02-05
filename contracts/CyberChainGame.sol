@@ -6,6 +6,12 @@
  import "@openzeppelin/contracts/access/Ownable.sol";
  import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  import "@openzeppelin/contracts/security/Pausable.sol";
+
+// Chainlink Automation 接口
+interface AutomationCompatibleInterface {
+    function checkUpkeep(bytes calldata checkData) external returns (bool upkeepNeeded, bytes memory performData);
+    function performUpkeep(bytes calldata performData) external;
+}
  
 /// @title VaultBase
 /// @notice Abstract base contract for Flap Tax Vault compatibility
@@ -45,13 +51,14 @@ abstract contract VaultBase {
   * - Gas 消耗降低 60-80%
   * - 支持 10000+ 玩家
  * - 兼容 Flap Tax Vault 规范
+ * - 集成 Chainlink Automation 自动开奖
   * 
   * 安全特性：
   * - 紧急暂停机制
   * - 溢出保护
   * - 重入保护
   */
-contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable {
+contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, AutomationCompatibleInterface {
      using SafeERC20 for IERC20;
  
      // ============ 常量 ============
@@ -132,6 +139,10 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable {
      uint256 public settlementBonus = 0.001 ether;
     uint256 public settlementBonusPool; // 独立的结算补贴池
  
+    // Chainlink Automation 配置
+    address public automationForwarder; // Chainlink Forwarder 地址
+    bool public automationEnabled = true; // 是否启用自动化
+
      // ============ 事件 ============
      event RoundStarted(uint256 indexed roundId, uint64 startTime, uint64 endTime);
      event BidPlaced(
@@ -161,6 +172,9 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable {
    event TokenReceiverChanged(uint8 indexed index, address indexed oldReceiver, address indexed newReceiver);
    event TokenReceived(address indexed receiver, uint256 amount);
    event RoundDurationChanged(uint256 oldDuration, uint256 newDuration);
+   event AutomationForwarderSet(address indexed oldForwarder, address indexed newForwarder);
+   event AutomationToggled(bool enabled);
+   event AutomationSettlement(uint256 indexed roundId, uint64 timestamp);
  
      // ============ 构造函数 ============
    constructor(
@@ -272,6 +286,75 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable {
          }
      }
  
+    // ============ Chainlink Automation ============
+
+    /**
+     * @dev Chainlink Automation 检查函数
+     * 由 Chainlink 节点调用，检查是否需要执行 upkeep
+     */
+    function checkUpkeep(bytes calldata /* checkData */)
+        external
+        view
+        override
+        returns (bool upkeepNeeded, bytes memory performData)
+    {
+        // 检查条件：轮次已结束 + 未结算 + 未暂停 + 自动化已启用
+        upkeepNeeded = automationEnabled &&
+                       !paused() &&
+                       block.timestamp >= currentRound.endTime &&
+                       !currentRound.settled;
+        
+        // performData 可以传递额外信息，这里传递当前轮次ID
+        performData = abi.encode(currentRound.roundId);
+        
+        return (upkeepNeeded, performData);
+    }
+
+    /**
+     * @dev Chainlink Automation 执行函数
+     * 由 Chainlink 节点调用执行实际的结算逻辑
+     */
+    function performUpkeep(bytes calldata performData) external override nonReentrant {
+        // 验证调用者（可选：限制为 Chainlink Forwarder）
+        if (automationForwarder != address(0)) {
+            require(msg.sender == automationForwarder, "Only automation forwarder");
+        }
+        
+        // 解码并验证轮次ID
+        uint64 expectedRoundId = abi.decode(performData, (uint64));
+        require(expectedRoundId == currentRound.roundId, "Round ID mismatch");
+        
+        // 再次检查条件（防止重入和竞态）
+        require(automationEnabled, "Automation disabled");
+        require(!paused(), "Contract paused");
+        require(block.timestamp >= currentRound.endTime, "Round not ended");
+        require(!currentRound.settled, "Already settled");
+        
+        // 执行结算
+        _settleRound();
+        _startNewRound();
+        
+        emit AutomationSettlement(expectedRoundId, uint64(block.timestamp));
+    }
+
+    /**
+     * @dev 设置 Chainlink Automation Forwarder 地址
+     * 设置后只有该地址可以调用 performUpkeep
+     */
+    function setAutomationForwarder(address _forwarder) external onlyOwner {
+        address oldForwarder = automationForwarder;
+        automationForwarder = _forwarder;
+        emit AutomationForwarderSet(oldForwarder, _forwarder);
+    }
+
+    /**
+     * @dev 启用/禁用自动化
+     */
+    function setAutomationEnabled(bool _enabled) external onlyOwner {
+        automationEnabled = _enabled;
+        emit AutomationToggled(_enabled);
+    }
+
      /**
       * @dev 结算当前轮次
       */
