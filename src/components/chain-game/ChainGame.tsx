@@ -18,9 +18,9 @@ import { useWallet } from '@/contexts/WalletContext';
 // 游戏配置
 const GAME_CONFIG = {
   roundDurationMinutes: 60,   // 每轮60分钟
-  priceIncrement: 10,         // 每次接盘价格递增10%
-  startPrice: 10000,          // 每轮起始价格（最小接盘金额）
-  minPrice: 10000,            // 最小接盘金额
+  priceIncrement: 10,         // 每次出价价格递增10%
+  startPrice: 10000,          // 每轮起始价格（最小出价金额）
+  minPrice: 10000,            // 最小出价金额
    platformFee: 5,            // 5% 平台费
 };
 
@@ -286,7 +286,7 @@ export function ChainGame() {
      
      if (!IS_CONTRACT_DEPLOYED) {
        toast.info('🎮 演示模式：合约尚未部署');
-       // 演示模式下模拟接盘
+       // 演示模式下模拟出价
        setRoundData(prev => ({
          ...prev,
          currentHolder: address || '',
@@ -693,17 +693,17 @@ export function ChainGame() {
           </div>
         </motion.div>
 
-         {/* 接盘记录 */}
-         {bidHistory.length > 0 && (
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.2 }}
-             className="rounded-2xl bg-slate-900/60 backdrop-blur border border-slate-700/50 p-5"
-           >
-             <div className="flex items-center gap-2 text-white font-semibold mb-4">
-               <Users className="w-5 h-5 text-cyan-400" />
-               接盘记录
+          {/* 出价记录 */}
+          {bidHistory.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="rounded-2xl bg-slate-900/60 backdrop-blur border border-slate-700/50 p-5"
+            >
+              <div className="flex items-center gap-2 text-white font-semibold mb-4">
+                <Users className="w-5 h-5 text-cyan-400" />
+                出价记录
              </div>
              <div className="space-y-2 max-h-[200px] overflow-y-auto">
                {bidHistory.map((record, index) => (
@@ -772,8 +772,8 @@ export function ChainGame() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: '🔥', text: '接盘消耗的代币将被永久销毁' },
-              { icon: '📈', text: `每次接盘价格递增${GAME_CONFIG.priceIncrement}%` },
+              { icon: '🔥', text: '出价消耗的代币将被永久销毁' },
+              { icon: '📈', text: `每次出价价格递增${GAME_CONFIG.priceIncrement}%` },
               { icon: '⏰', text: '每小时自动开奖，开启新一轮' },
               { icon: '🏆', text: '开奖时最后持有者赢得BNB奖池' },
             ].map((rule, index) => (
