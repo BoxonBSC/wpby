@@ -701,31 +701,81 @@ export function ChainGame() {
               transition={{ delay: 0.2 }}
               className="rounded-2xl bg-slate-900/60 backdrop-blur border border-slate-700/50 p-5"
             >
-              <div className="flex items-center gap-2 text-white font-semibold mb-4">
-                <Users className="w-5 h-5 text-cyan-400" />
-                出价记录
-             </div>
-             <div className="space-y-2 max-h-[200px] overflow-y-auto">
-               {bidHistory.map((record, index) => (
-                 <div
-                   key={index}
-                   className={`flex items-center justify-between p-3 rounded-xl ${
-                     index === 0 ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-slate-800/30'
-                   }`}
-                 >
-                   <div className="flex flex-col">
-                     <span className="font-mono text-sm text-slate-300">{shortenAddress(record.address)}</span>
-                     <span className="text-xs text-slate-500">{record.time}</span>
-                   </div>
-                   <div className="flex flex-col items-end">
-                     <span className={`font-medium ${index === 0 ? 'text-orange-400' : 'text-slate-400'}`}>
-                       {Number(record.bid).toLocaleString(undefined, { maximumFractionDigits: 0 })} 代币
-                     </span>
-                   </div>
-                 </div>
-               ))}
-             </div>
-           </motion.div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <Users className="w-5 h-5 text-cyan-400" />
+                  出价记录
+                </div>
+                <span className="text-xs text-slate-500">{bidHistory.length} 条记录</span>
+              </div>
+              <div className="relative max-h-[280px] overflow-y-auto pr-1">
+                {/* 时间线竖线 */}
+                <div className="absolute left-[18px] top-2 bottom-2 w-px bg-gradient-to-b from-cyan-500/60 via-purple-500/40 to-transparent" />
+                
+                <div className="space-y-1">
+                  {bidHistory.map((record, index) => {
+                    const isLatest = index === 0;
+                    const orderNum = bidHistory.length - index;
+                    return (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.03 }}
+                        className={`relative flex items-center gap-3 p-3 pl-10 rounded-xl transition-colors ${
+                          isLatest
+                            ? 'bg-cyan-500/10 border border-cyan-500/30'
+                            : 'hover:bg-slate-800/40'
+                        }`}
+                      >
+                        {/* 时间线节点 */}
+                        <div className="absolute left-2.5 flex items-center justify-center">
+                          {isLatest ? (
+                            <motion.div
+                              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                              className="w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                            />
+                          ) : (
+                            <div className="w-2.5 h-2.5 rounded-full bg-slate-600 border-2 border-slate-800" />
+                          )}
+                        </div>
+
+                        {/* 序号 */}
+                        <div className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                          isLatest
+                            ? 'bg-cyan-500/20 text-cyan-400'
+                            : 'bg-slate-800/60 text-slate-500'
+                        }`}>
+                          #{orderNum}
+                        </div>
+
+                        {/* 地址和时间 */}
+                        <div className="flex-1 min-w-0">
+                          <span className={`font-mono text-sm ${isLatest ? 'text-white' : 'text-slate-400'}`}>
+                            {shortenAddress(record.address)}
+                          </span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Timer className="w-3 h-3 text-slate-600" />
+                            <span className="text-xs text-slate-600">{record.time}</span>
+                          </div>
+                        </div>
+
+                        {/* 金额 */}
+                        <div className="flex-shrink-0 text-right">
+                          <span className={`font-bold text-sm ${
+                            isLatest ? 'text-orange-400' : 'text-slate-500'
+                          }`}>
+                            {Number(record.bid).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          </span>
+                          <div className="text-xs text-slate-600">代币</div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
           )}
 
         {/* 中奖记录 */}
