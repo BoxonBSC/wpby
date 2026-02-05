@@ -996,14 +996,15 @@ export function ChainGame() {
             ))}
           </div>
 
-          {/* 结算奖励机制 */}
+          {/* 结算与奖金机制 */}
           <div className="mb-5 p-4 rounded-xl bg-gradient-to-r from-emerald-500/5 to-teal-500/5 border border-emerald-500/20">
             <div className="text-sm font-medium text-emerald-400 mb-2 flex items-center gap-2">
-              💰 结算奖励机制
+              💰 结算与奖金机制
             </div>
             <div className="text-xs text-slate-400 leading-relaxed space-y-1.5">
-              <p>• 每轮结算由任意玩家触发，触发者将获得 <span className="text-emerald-400 font-medium">0.001 BNB</span> 的结算奖励，用于补偿 Gas 消耗</p>
+              <p>• 每轮倒计时结束后，由 <span className="text-emerald-400 font-medium">Chainlink Automation</span> 自动触发结算，无需人工干预</p>
               <p>• 赢家奖金从奖池中按动态比例发放，<span className="text-yellow-400 font-medium">5% 平台手续费</span>从赢家奖金中扣除</p>
+              <p>• 奖金自动转入赢家钱包；若自动转账失败，赢家可通过「领取奖励」手动提取</p>
               <p>• 剩余奖池自动滚入下一轮，确保奖池持续增长、永不清零</p>
             </div>
           </div>
