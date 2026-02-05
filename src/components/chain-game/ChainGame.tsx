@@ -19,10 +19,9 @@ import { useWallet } from '@/contexts/WalletContext';
 // 游戏配置
 const GAME_CONFIG = {
   roundDurationMinutes: 60,
-  priceIncrement: 10,
   startPrice: 10000,
   minPrice: 10000,
-   platformFee: 5,
+  platformFee: 5,
 };
 
 const getCurrentTier = (participants: number) => {
@@ -282,13 +281,13 @@ export function ChainGame() {
      
      if (!IS_CONTRACT_DEPLOYED) {
        toast.info('🎮 演示模式：合约尚未部署');
-       setRoundData(prev => ({
-         ...prev,
-         currentHolder: address || '',
-         currentBid: bidValue,
-         minBid: bidValue * BigInt(110) / BigInt(100),
-         participantCount: prev.participantCount + 1,
-       }));
+        setRoundData(prev => ({
+          ...prev,
+          currentHolder: address || '',
+          currentBid: bidValue,
+          minBid: ethers.parseEther(GAME_CONFIG.minPrice.toString()),
+          participantCount: prev.participantCount + 1,
+        }));
        setBidHistory(prev => [{
          address: address || '',
          bid: ethers.formatEther(bidValue),
@@ -982,7 +981,7 @@ export function ChainGame() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
             {[
               { icon: '🔥', title: '代币销毁', text: '出价代币先转入回购基金钱包，由基金统一执行销毁，确保流程透明可追溯' },
-              { icon: '📈', title: '自由出价', text: '每次出价需≥当前最高出价，最低10,000代币起，上不封顶，出价越高胜率越大' },
+              { icon: '📈', title: '自由出价', text: '每次出价最低10,000代币起，无金额上限；当前最高出价者不能连续出价，需等其他人出价后才能再次参与' },
               { icon: '⏰', title: '自动开奖', text: '每轮默认持续1小时，倒计时归零后自动结算，开启全新一轮竞拍' },
               { icon: '🏆', title: '赢家通吃', text: '结算时最高出价者赢得BNB奖池，奖金自动转入赢家钱包；若转账失败可手动领取' },
             ].map((rule, index) => (
