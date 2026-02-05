@@ -1,4 +1,4 @@
-// CyberChainGame 击鼓传花合约地址
+// CyberChainGame 巅峰竞拍合约地址
 export const CYBER_CHAIN_GAME_ADDRESS = {
   mainnet: '0x1E4E8B7C07e6EA738576D3C21a4a4D954c8db66D',
   testnet: '0x0000000000000000000000000000000000000000',
@@ -19,7 +19,7 @@ export const CYBER_TOKEN_ABI = [
   "function name() external view returns (string)",
 ] as const;
 
-// CyberChainGame 击鼓传花 ABI（优化版 - 支持大规模应用）
+// CyberChainGame 巅峰竞拍 ABI（优化版 - 支持大规模应用）
 export const CYBER_CHAIN_GAME_ABI = [
   // 核心游戏函数
   "function placeBid(uint256 tokenAmount) external",
