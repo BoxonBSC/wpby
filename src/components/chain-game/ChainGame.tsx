@@ -327,15 +327,15 @@ export function ChainGame() {
        }
        
        // 出价
-       toast.loading('正在接盘...');
+        toast.loading('正在出价...');
        const tx = await gameContract.placeBid(minBid);
        await tx.wait();
        
-       toast.success('接盘成功！🔥');
+        toast.success('出价成功！🔥');
        fetchContractData();
      } catch (error: any) {
        console.error('Takeover failed:', error);
-       toast.error(error.reason || '接盘失败');
+        toast.error(error.reason || '出价失败');
      } finally {
        setIsTaking(false);
      }
@@ -627,14 +627,14 @@ export function ChainGame() {
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
                       <Zap className="w-6 h-6" />
                     </motion.div>
-                    接盘中...
+                    出价中...
                   </span>
                 ) : isEnded ? (
                   '本轮已结束'
                 ) : (
                   <span className="flex items-center gap-2">
                     <Flame className="w-6 h-6" />
-                     我要接盘 ({minBidFormatted} 代币)
+                     我要出价 ({minBidFormatted} 代币)
                   </span>
                 )}
               </Button>
