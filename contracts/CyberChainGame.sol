@@ -219,6 +219,7 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
 
         require(block.timestamp < currentRound.endTime, "Round ended");
         require(tokenAmount >= MIN_FIRST_BID, "Bid too low, minimum 10000 tokens");
+        require(currentRound.currentBid == 0 || tokenAmount > currentRound.currentBid, "Bid must be higher than current bid");
         require(msg.sender != currentRound.currentHolder, "Cannot bid consecutively");
 
         // 轮转选择接收地址
@@ -455,8 +456,11 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
         return currentRound.endTime - block.timestamp;
     }
 
-    function getMinBid() external pure returns (uint256) {
-        return MIN_FIRST_BID;
+    function getMinBid() external view returns (uint256) {
+        if (currentRound.currentBid == 0) {
+            return MIN_FIRST_BID;
+        }
+        return uint256(currentRound.currentBid) + 1;
     }
 
     function getPlayerStats(address player) external view returns (

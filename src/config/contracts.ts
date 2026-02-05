@@ -29,7 +29,7 @@ export const CYBER_CHAIN_GAME_ABI = [
   // 查询函数
   "function getCurrentRound() external view returns (uint256 roundId, uint256 startTime, uint256 endTime, uint256 prizePool, uint256 currentBid, address currentHolder, uint256 participantCount, bool settled)",
   "function getTimeRemaining() external view returns (uint256)",
-  "function getMinBid() external view returns (uint256)",
+  "function getMinBid() external view returns (uint256)",  // 动态返回: max(MIN_FIRST_BID, currentBid + 1)
   "function getPlayerStats(address player) external view returns (uint256 wins, uint256 earnings, uint256 burned, uint256 pending)",
   "function getCurrentWinnerRate() external view returns (uint8)",
   "function pendingRewards(address player) external view returns (uint256)",
