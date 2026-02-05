@@ -673,7 +673,7 @@ export function ChainGame() {
                 <Users className="w-3.5 h-3.5" />
                 <span>参与人数越多，赢家奖金越高</span>
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="grid grid-cols-5 gap-2">
                 {CHAIN_GAME_DYNAMIC_TIERS.map((tier) => {
                   const isActive = roundData.participantCount >= tier.minPlayers && 
                     roundData.participantCount <= (tier.maxPlayers === Infinity ? 9999 : tier.maxPlayers);
@@ -682,7 +682,7 @@ export function ChainGame() {
                   return (
                     <div
                       key={tier.minPlayers}
-                      className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-center transition-all ${
+                      className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-lg text-center transition-all ${
                         isActive
                           ? 'bg-yellow-500/15 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.15)]'
                           : 'bg-slate-800/40 border border-slate-700/30'
