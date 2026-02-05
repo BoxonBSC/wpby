@@ -15,11 +15,11 @@ const GAME_CONFIG = {
 
 // 动态比例配置
 const DYNAMIC_TIERS = [
-  { minPlayers: 1, maxPlayers: 3, winnerRate: 40, label: '🥶 冷启动' },
-  { minPlayers: 4, maxPlayers: 8, winnerRate: 55, label: '🌱 萌芽期' },
-  { minPlayers: 9, maxPlayers: 15, winnerRate: 70, label: '🔥 活跃期' },
-  { minPlayers: 16, maxPlayers: 25, winnerRate: 80, label: '🚀 热门期' },
-  { minPlayers: 26, maxPlayers: Infinity, winnerRate: 88, label: '💎 爆发期' },
+  { minPlayers: 1, maxPlayers: 10, winnerRate: 35, label: '🥶 冷启动' },
+  { minPlayers: 11, maxPlayers: 20, winnerRate: 42, label: '🌱 萌芽期' },
+  { minPlayers: 21, maxPlayers: 30, winnerRate: 48, label: '🔥 活跃期' },
+  { minPlayers: 31, maxPlayers: 40, winnerRate: 54, label: '🚀 热门期' },
+  { minPlayers: 41, maxPlayers: Infinity, winnerRate: 60, label: '💎 爆发期' },
 ];
 
 // 资金分配比例
