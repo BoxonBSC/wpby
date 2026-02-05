@@ -630,7 +630,7 @@ export function ChainGame() {
             </div>
 
             {/* 数据卡片 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className={`grid grid-cols-2 ${Number(playerStats.pending) > 0 ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-8`}>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
                   <Coins className="w-4 h-4 text-orange-400" />
@@ -655,14 +655,26 @@ export function ChainGame() {
                  <div className="text-xl font-bold text-yellow-400">{prizePoolBNB.toFixed(4)}</div>
                 <div className="text-xs text-slate-500">BNB</div>
               </div>
-              <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-                <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
-                  <Flame className="w-4 h-4 text-red-400" />
-                   我的待领取
-                </div>
-                 <div className="text-xl font-bold text-cyan-400">{Number(playerStats.pending).toFixed(4)}</div>
-                 <div className="text-xs text-slate-500">BNB</div>
-              </div>
+              {/* 待领取 - 仅在有待领取奖励时显示 */}
+              {Number(playerStats.pending) > 0 && (
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="p-4 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.15)]"
+                >
+                  <div className="flex items-center gap-2 text-cyan-400 text-sm mb-1">
+                    <Flame className="w-4 h-4 text-cyan-400 animate-pulse" />
+                    待领取奖励
+                  </div>
+                  <div className="text-xl font-bold text-cyan-400">{Number(playerStats.pending).toFixed(4)}</div>
+                  <button
+                    onClick={handleClaimRewards}
+                    className="mt-1 text-xs font-medium text-cyan-300 hover:text-white underline underline-offset-2 transition-colors"
+                  >
+                    立即领取 →
+                  </button>
+                </motion.div>
+              )}
             </div>
 
              {/* 出价输入区 */}
