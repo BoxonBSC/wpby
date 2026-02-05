@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, History, ChevronDown, ChevronUp, CheckCircle, Clock, ExternalLink } from 'lucide-react';
 import { ethers } from 'ethers';
@@ -9,7 +9,7 @@ import {
 } from '@/config/contracts';
 
 const GAME_CONTRACT = CYBER_CHAIN_GAME_ADDRESS.mainnet;
-const IS_CONTRACT_DEPLOYED = GAME_CONTRACT !== '0x0000000000000000000000000000000000000000';
+
 const BSCSCAN_URL = 'https://bscscan.com/address/';
 
 interface RoundResult {
@@ -33,32 +33,19 @@ const getEthereumProvider = () => {
 
 const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
-// Demo data
-const DEMO_HISTORY: RoundResult[] = [
-  { roundId: 5, winner: '0x1234567890abcdef1234567890abcdef12345678', prize: '0.8750', prizePool: '2.5000', participantCount: 18, endTime: '14:00', winnerRate: 42, paymentStatus: 'paid', pendingAmount: '0' },
-  { roundId: 4, winner: '0xabcdef1234567890abcdef1234567890abcdef12', prize: '0.3325', prizePool: '1.0000', participantCount: 8, endTime: '13:30', winnerRate: 35, paymentStatus: 'paid', pendingAmount: '0' },
-  { roundId: 3, winner: '0x9876543210fedcba9876543210fedcba98765432', prize: '1.3680', prizePool: '3.0000', participantCount: 25, endTime: '13:00', winnerRate: 48, paymentStatus: 'pending', pendingAmount: '1.3680' },
-  { roundId: 2, winner: '0xfedcba9876543210fedcba9876543210fedcba98', prize: '0.4988', prizePool: '1.5000', participantCount: 12, endTime: '12:30', winnerRate: 35, paymentStatus: 'paid', pendingAmount: '0' },
-  { roundId: 1, winner: '0x1111222233334444555566667777888899990000', prize: '0.1663', prizePool: '0.5000', participantCount: 5, endTime: '12:00', winnerRate: 35, paymentStatus: 'paid', pendingAmount: '0' },
-];
+ 
 
 interface RoundHistoryProps {
   currentRoundId: number;
 }
 
-export function RoundHistory({ currentRoundId }: RoundHistoryProps) {
+export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(function RoundHistory({ currentRoundId }, ref) {
   const [history, setHistory] = useState<RoundResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!IS_CONTRACT_DEPLOYED) {
-        setHistory(DEMO_HISTORY);
-        setIsLoading(false);
-        return;
-      }
-
       const ethereum = getEthereumProvider();
       if (!ethereum) {
         setIsLoading(false);
@@ -149,9 +136,7 @@ export function RoundHistory({ currentRoundId }: RoundHistoryProps) {
           中奖记录
         </div>
         <div className="flex items-center gap-3">
-          {!IS_CONTRACT_DEPLOYED && (
-            <span className="text-xs text-yellow-400/60">演示数据</span>
-          )}
+ 
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3 text-green-400" /> 已发放</span>
             <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-orange-400" /> 待领取</span>
@@ -241,7 +226,7 @@ export function RoundHistory({ currentRoundId }: RoundHistoryProps) {
       )}
 
       {/* BSCScan verification hint */}
-      {IS_CONTRACT_DEPLOYED && (
+      {(
         <div className="mt-3 pt-3 border-t border-slate-700/30 flex items-center justify-center">
           <a
             href={`${BSCSCAN_URL}${GAME_CONTRACT}#internaltx`}
@@ -256,4 +241,4 @@ export function RoundHistory({ currentRoundId }: RoundHistoryProps) {
       )}
     </motion.div>
   );
-}
+});
