@@ -16,11 +16,7 @@
   * - 每轮1小时，整点结算
   * - 每次加价10%
   * - 动态奖励比例（35%-60%按人数）
-  * 
-  * 资金分配：
-  * - 85% 奖池（赢家）
-  * - 10% 前一手玩家
-  * - 5% 平台运营
+  * - 100%奖池给最终赢家，剩余滚存下一轮
   */
  contract CyberChainGame is Ownable, ReentrancyGuard {
      using SafeERC20 for IERC20;
@@ -28,9 +24,6 @@
      // ============ 常量 ============
      uint256 public constant ROUND_DURATION = 1 hours;
      uint256 public constant BID_INCREMENT = 10; // 10% 加价
-     uint256 public constant PRIZE_POOL_RATE = 85; // 85% 进奖池
-     uint256 public constant PREV_HOLDER_RATE = 10; // 10% 给前一手
-     uint256 public constant PLATFORM_RATE = 5; // 5% 平台
      uint256 public constant MIN_FIRST_BID = 10000 * 1e18; // 首次最低出价 10000 代币
  
      // 动态奖励比例（按参与人数）
@@ -80,9 +73,7 @@
          uint256 indexed roundId,
          address indexed player,
          uint256 tokensBurned,
-         uint256 newBid,
-         address prevHolder,
-         uint256 prevHolderReward
+         uint256 newBid
      );
      event RoundSettled(
          uint256 indexed roundId,
@@ -150,27 +141,6 @@
          totalBurned += tokenAmount;
          playerBurned[msg.sender] += tokenAmount;
  
-         // 记录前一手持有人
-         address prevHolder = currentRound.currentHolder;
-         uint256 prevHolderReward = 0;
- 
-         // 如果有前一手，给予10%奖励（从奖池中）
-         if (prevHolder != address(0) && currentRound.prizePool > 0) {
-             // 计算前一手奖励（基于当前奖池的一定比例）
-             prevHolderReward = currentRound.prizePool * PREV_HOLDER_RATE / 100;
-             if (prevHolderReward > 0) {
-                 pendingRewards[prevHolder] += prevHolderReward;
-                 currentRound.prizePool -= prevHolderReward;
-             }
-         }
- 
-         // 平台费用
-         uint256 platformFee = currentRound.prizePool * PLATFORM_RATE / 1000; // 0.5% per bid
-         if (platformFee > 0 && currentRound.prizePool >= platformFee) {
-             pendingRewards[platformWallet] += platformFee;
-             currentRound.prizePool -= platformFee;
-         }
- 
          // 更新当前持有人
          currentRound.currentHolder = msg.sender;
          currentRound.currentBid = tokenAmount;
@@ -191,9 +161,7 @@
              currentRound.roundId,
              msg.sender,
              tokenAmount,
-             currentRound.currentBid,
-             prevHolder,
-             prevHolderReward
+             currentRound.currentBid
          );
      }
  
