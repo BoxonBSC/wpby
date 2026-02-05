@@ -84,7 +84,10 @@
          uint256 participants,
          uint8 winnerRate
      );
-     event RewardClaimed(address indexed player, uint256 amount);
+     event PrizeSent(address indexed winner, uint256 amount);
+     event PrizeSendFailed(address indexed winner, uint256 amount);
+     event PlatformFeeSent(address indexed platform, uint256 amount);
+     event FallbackRewardClaimed(address indexed player, uint256 amount);
      event PrizePoolFunded(address indexed funder, uint256 amount);
      event EmergencyWithdraw(address indexed to, uint256 amount);
  
@@ -179,7 +182,7 @@
      }
  
      /**
-      * @dev 领取奖励
+      * @dev 领取奖励（仅当自动发放失败时使用）
       */
      function claimRewards() external nonReentrant {
          uint256 amount = pendingRewards[msg.sender];
@@ -190,10 +193,7 @@
          (bool success, ) = payable(msg.sender).call{value: amount}("");
          require(success, "Transfer failed");
          
-         playerEarnings[msg.sender] += amount;
-         totalPaidOut += amount;
-         
-         emit RewardClaimed(msg.sender, amount);
+         emit FallbackRewardClaimed(msg.sender, amount);
      }
  
      // ============ 内部函数 ============
@@ -248,13 +248,29 @@
              uint256 winnerPrize = grossPrize - platformFee;
              uint256 rollover = currentRound.prizePool - grossPrize;
  
-             // 发放赢家奖励
-             pendingRewards[currentRound.currentHolder] += winnerPrize;
+             // 自动发放赢家奖励
+             (bool winnerSuccess, ) = payable(currentRound.currentHolder).call{value: winnerPrize}("");
+             if (winnerSuccess) {
+                 emit PrizeSent(currentRound.currentHolder, winnerPrize);
+             } else {
+                 // 转账失败，存入待领取（fallback）
+                 pendingRewards[currentRound.currentHolder] += winnerPrize;
+                 emit PrizeSendFailed(currentRound.currentHolder, winnerPrize);
+             }
              playerWins[currentRound.currentHolder]++;
+             playerEarnings[currentRound.currentHolder] += winnerPrize;
+             totalPaidOut += winnerPrize;
  
-             // 平台费
+             // 自动发放平台费
              if (platformFee > 0) {
-                 pendingRewards[platformWallet] += platformFee;
+                 (bool platformSuccess, ) = payable(platformWallet).call{value: platformFee}("");
+                 if (platformSuccess) {
+                     emit PlatformFeeSent(platformWallet, platformFee);
+                 } else {
+                     // 转账失败，存入待领取（fallback）
+                     pendingRewards[platformWallet] += platformFee;
+                 }
+                 totalPaidOut += platformFee;
              }
  
              // 滚存到下一轮
