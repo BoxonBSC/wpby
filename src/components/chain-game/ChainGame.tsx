@@ -978,18 +978,46 @@ export function ChainGame() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 核心规则 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
             {[
-              { icon: '🔥', text: '出价代币先转入回购基金钱包，统一销毁' },
-              { icon: '📈', text: '自由出价，最低10,000代币，上不封顶' },
-              { icon: '⏰', text: '每小时自动开奖，开启新一轮' },
-              { icon: '🏆', text: '开奖时最高出价者赢得BNB奖池' },
+              { icon: '🔥', title: '代币销毁', text: '出价代币先转入回购基金钱包，由基金统一执行销毁，确保流程透明可追溯' },
+              { icon: '📈', title: '自由出价', text: '每次出价需≥当前最高出价，最低10,000代币起，上不封顶，出价越高胜率越大' },
+              { icon: '⏰', title: '自动开奖', text: '每轮默认持续1小时，倒计时归零后自动结算，开启全新一轮竞拍' },
+              { icon: '🏆', title: '赢家通吃', text: '结算时最高出价者赢得BNB奖池，奖金自动转入赢家钱包；若转账失败可手动领取' },
             ].map((rule, index) => (
               <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-slate-800/30">
-                <span className="text-2xl">{rule.icon}</span>
-                <span className="text-sm text-slate-300">{rule.text}</span>
+                <span className="text-2xl mt-0.5">{rule.icon}</span>
+                <div>
+                  <div className="text-sm font-medium text-white mb-1">{rule.title}</div>
+                  <span className="text-xs text-slate-400 leading-relaxed">{rule.text}</span>
+                </div>
               </div>
             ))}
+          </div>
+
+          {/* 结算奖励机制 */}
+          <div className="mb-5 p-4 rounded-xl bg-gradient-to-r from-emerald-500/5 to-teal-500/5 border border-emerald-500/20">
+            <div className="text-sm font-medium text-emerald-400 mb-2 flex items-center gap-2">
+              💰 结算奖励机制
+            </div>
+            <div className="text-xs text-slate-400 leading-relaxed space-y-1.5">
+              <p>• 每轮结算由任意玩家触发，触发者将获得 <span className="text-emerald-400 font-medium">0.001 BNB</span> 的结算奖励，用于补偿 Gas 消耗</p>
+              <p>• 赢家奖金从奖池中按动态比例发放，<span className="text-yellow-400 font-medium">5% 平台手续费</span>从赢家奖金中扣除</p>
+              <p>• 剩余奖池自动滚入下一轮，确保奖池持续增长、永不清零</p>
+            </div>
+          </div>
+
+          {/* 动态比例详细说明 */}
+          <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-purple-500/5 to-indigo-500/5 border border-purple-500/20">
+            <div className="text-sm font-medium text-purple-400 mb-2 flex items-center gap-2">
+              📊 动态比例说明
+            </div>
+            <div className="text-xs text-slate-400 leading-relaxed space-y-1.5">
+              <p>• 赢家可提取的奖池比例随参与人数动态增长，人越多比例越高，最高 <span className="text-purple-400 font-medium">60%</span></p>
+              <p>• 每轮至少保留 <span className="text-yellow-400 font-medium">40%</span> 奖池作为下一轮启动资金，防止奖池被抽干</p>
+              <p>• 当前轮次适用的比例取决于该轮实际参与人数，结算时锁定最终比例</p>
+            </div>
           </div>
         </motion.div>
       </div>
