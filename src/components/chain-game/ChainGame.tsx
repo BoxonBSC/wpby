@@ -684,6 +684,28 @@ export function ChainGame() {
                       代币
                     </span>
                   </div>
+                  {/* 滑块选择 */}
+                  {isConnected && tokenBalanceNum > 0 && tokenBalanceNum >= minBidNum && (
+                    <div className="space-y-1.5 px-1">
+                      <input
+                        type="range"
+                        min={minBidNum}
+                        max={tokenBalanceNum}
+                        step={Math.max(1, Math.floor((tokenBalanceNum - minBidNum) / 100))}
+                        value={Number(bidAmount) || minBidNum}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        disabled={isEnded || isTaking}
+                        className="w-full h-2 rounded-full appearance-none cursor-pointer bg-slate-700 accent-cyan-500 disabled:opacity-50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(34,211,238,0.6)] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-cyan-300 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-cyan-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-cyan-300 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                        style={{
+                          background: `linear-gradient(to right, rgb(34 211 238) 0%, rgb(34 211 238) ${((Number(bidAmount || minBidNum) - minBidNum) / (tokenBalanceNum - minBidNum)) * 100}%, rgb(51 65 85) ${((Number(bidAmount || minBidNum) - minBidNum) / (tokenBalanceNum - minBidNum)) * 100}%, rgb(51 65 85) 100%)`,
+                        }}
+                      />
+                      <div className="flex justify-between text-[10px] text-slate-600">
+                        <span>{minBidNum.toLocaleString()}</span>
+                        <span>{tokenBalanceNum.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )}
                   {/* 快捷金额按钮 */}
                   <div className="flex gap-2">
                     {[
