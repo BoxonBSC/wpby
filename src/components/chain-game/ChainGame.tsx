@@ -18,28 +18,24 @@ import { useWallet } from '@/contexts/WalletContext';
 
 // 游戏配置
 const GAME_CONFIG = {
-  roundDurationMinutes: 60,   // 每轮60分钟
-  priceIncrement: 10,         // 每次出价价格递增10%
-  startPrice: 10000,          // 每轮起始价格（最小出价金额）
-  minPrice: 10000,            // 最小出价金额
-   platformFee: 5,            // 5% 平台费
+  roundDurationMinutes: 60,
+  priceIncrement: 10,
+  startPrice: 10000,
+  minPrice: 10000,
+   platformFee: 5,
 };
 
-// 获取当前动态比例
 const getCurrentTier = (participants: number) => {
    return CHAIN_GAME_DYNAMIC_TIERS.find(tier => 
     participants >= tier.minPlayers && participants <= tier.maxPlayers
    ) || CHAIN_GAME_DYNAMIC_TIERS[0];
 };
 
-// 合约地址（使用mainnet）
 const GAME_CONTRACT = CYBER_CHAIN_GAME_ADDRESS.mainnet;
 const TOKEN_CONTRACT = CYBER_TOKEN_ADDRESS.mainnet;
  
- // 检查合约是否已部署
  const IS_CONTRACT_DEPLOYED = GAME_CONTRACT !== '0x0000000000000000000000000000000000000000';
  
- // 获取以太坊Provider
  const getEthereumProvider = () => {
    if (typeof window !== 'undefined' && window.ethereum) {
      return window.ethereum as unknown as { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> };
@@ -47,12 +43,10 @@ const TOKEN_CONTRACT = CYBER_TOKEN_ADDRESS.mainnet;
    return null;
  };
 
-// 计算默认结束时间（60分钟后）
 const getDefaultEndTime = () => {
   return new Date(Date.now() + 60 * 60 * 1000);
 };
 
-// 格式化时间为 HH:MM
 const formatHourMinute = (date: Date) => {
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 };
@@ -68,7 +62,6 @@ export function ChainGame() {
    const [isLoading, setIsLoading] = useState(true);
    const { isConnected, address } = useWallet();
  
-   // 合约数据状态
    const [roundData, setRoundData] = useState({
      roundId: 0,
      currentHolder: '',
@@ -84,7 +77,6 @@ export function ChainGame() {
   const [tokenBalance, setTokenBalance] = useState<string>('0');
   const [tokenSymbol, setTokenSymbol] = useState<string>('CYBER');
 
-  // 当前动态比例
    const currentTier = useMemo(() => getCurrentTier(roundData.participantCount), [roundData.participantCount]);
    const prizePoolBNB = Number(ethers.formatEther(roundData.prizePool));
    const grossWinnerAmount = prizePoolBNB * currentTier.winnerRate / 100;
@@ -92,7 +84,6 @@ export function ChainGame() {
    const winnerAmount = (grossWinnerAmount - platformFee).toFixed(4);
    const rolloverAmount = (prizePoolBNB * (100 - currentTier.winnerRate) / 100).toFixed(4);
  
-   // 格式化代币数量
    const currentBidFormatted = Number(ethers.formatEther(roundData.currentBid)).toLocaleString(undefined, { maximumFractionDigits: 0 });
    const minBidFormatted = Number(ethers.formatEther(roundData.minBid)).toLocaleString(undefined, { maximumFractionDigits: 0 });
    const tokenBalanceNum = Number(tokenBalance.replace(/,/g, ''));
@@ -100,7 +91,6 @@ export function ChainGame() {
  
    // 获取合约数据
    const fetchContractData = async () => {
-     // 如果合约未部署，使用演示数据
      if (!IS_CONTRACT_DEPLOYED) {
        setIsLoading(false);
        return;
@@ -116,7 +106,6 @@ export function ChainGame() {
        const provider = new ethers.BrowserProvider(ethereum);
        const contract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, provider);
        
-       // 获取当前轮次信息
        const [roundId, startTime, endTime, prizePool, currentBid, currentHolder, participantCount, settled] = 
          await contract.getCurrentRound();
        
@@ -132,11 +121,9 @@ export function ChainGame() {
         settled: settled,
        });
        
-       // 更新结束时间
        const endDate = new Date(Number(endTime) * 1000);
        setNextDrawTime(endDate);
       
-      // 根据合约状态更新isEnded
       const now = Date.now();
       if (now >= endDate.getTime() && !settled && Number(participantCount) > 0) {
         setIsEnded(true);
@@ -144,7 +131,6 @@ export function ChainGame() {
         setIsEnded(false);
       }
        
-      // 获取最近出价记录
       try {
         const recentBidsData = await contract.getRecentBids();
         const formattedBids = recentBidsData
@@ -163,7 +149,6 @@ export function ChainGame() {
         console.warn('Failed to fetch recent bids:', e);
       }
       
-       // 获取玩家统计（如果已连接）
        if (address) {
          const [wins, earnings, burned, pending] = await contract.getPlayerStats(address);
          setPlayerStats({
@@ -173,7 +158,6 @@ export function ChainGame() {
            pending: ethers.formatEther(pending),
          });
         
-        // 检查是否已参与当前轮次
         try {
           const participated = await contract.hasPlayerParticipated(address);
           setHasParticipated(participated);
@@ -181,7 +165,6 @@ export function ChainGame() {
           console.warn('Failed to check participation:', e);
         }
         
-        // 获取代币余额和符号
         try {
           const tokenContract = new ethers.Contract(TOKEN_CONTRACT, CYBER_TOKEN_ABI, provider);
           const balance = await tokenContract.balanceOf(address);
@@ -200,7 +183,6 @@ export function ChainGame() {
      }
    };
  
-   // 监听合约事件
    useEffect(() => {
      if (!IS_CONTRACT_DEPLOYED) return;
      
@@ -223,7 +205,7 @@ export function ChainGame() {
     const handleRoundSettled = (roundId: bigint, winner: string, prize: bigint) => {
        toast.success('本轮已结算！');
        fetchContractData();
-      setBidHistory([]); // 清空出价记录
+      setBidHistory([]);
      };
     
     const handleSettlementBonus = (settler: string, amount: bigint) => {
@@ -243,10 +225,9 @@ export function ChainGame() {
      };
   }, [address]);
  
-   // 初始加载 - 结束后加速轮询以快速检测新一轮
    useEffect(() => {
      fetchContractData();
-     const pollInterval = isEnded ? 5000 : 30000; // 结束后每5秒轮询，否则30秒
+     const pollInterval = isEnded ? 5000 : 30000;
      const interval = setInterval(fetchContractData, pollInterval);
      return () => clearInterval(interval);
    }, [address, isEnded]);
@@ -256,7 +237,6 @@ export function ChainGame() {
       const now = new Date();
       const diff = Math.max(0, Math.floor((nextDrawTime.getTime() - now.getTime()) / 1000));
       
-     // 只有倒计时结束且有参与者且未结算时才显示结束状态
      if (diff <= 0 && roundData.participantCount > 0 && !roundData.settled) {
        setIsEnded(true);
      } else if (diff > 0) {
@@ -280,7 +260,6 @@ export function ChainGame() {
   const formatNumber = (num: number) => num.toLocaleString();
   const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
-  // 是否在最后5分钟
   const isLastFiveMinutes = timeLeft <= 300 && timeLeft > 0;
 
   const handleTakeover = async () => {
@@ -289,7 +268,6 @@ export function ChainGame() {
       return;
     }
     
-    // 解析用户输入金额，默认用最低出价
     const inputAmount = bidAmount ? Number(bidAmount) : 0;
     if (inputAmount < minBidNum) {
       toast.error(`最低出价 ${minBidFormatted} 代币`);
@@ -304,7 +282,6 @@ export function ChainGame() {
      
      if (!IS_CONTRACT_DEPLOYED) {
        toast.info('🎮 演示模式：合约尚未部署');
-       // 演示模式下模拟出价
        setRoundData(prev => ({
          ...prev,
          currentHolder: address || '',
@@ -337,7 +314,6 @@ export function ChainGame() {
        const tokenContract = new ethers.Contract(TOKEN_CONTRACT, CYBER_TOKEN_ABI, signer);
        const gameContract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, signer);
        
-       // 检查授权
        const allowance = await tokenContract.allowance(address, GAME_CONTRACT);
        if (allowance < bidValue) {
          toast.loading('正在授权代币...');
@@ -346,7 +322,6 @@ export function ChainGame() {
          toast.success('授权成功！');
        }
        
-       // 出价
         toast.loading('正在出价...');
        const tx = await gameContract.placeBid(bidValue);
        await tx.wait();
@@ -363,7 +338,6 @@ export function ChainGame() {
      }
    };
  
-   // 领取奖励
    const handleClaimRewards = async () => {
      if (!IS_CONTRACT_DEPLOYED) {
        toast.info('🎮 演示模式：合约尚未部署');
@@ -388,16 +362,15 @@ export function ChainGame() {
      }
   };
 
-   // 演示模式初始化数据
    useEffect(() => {
      if (!IS_CONTRACT_DEPLOYED) {
        setRoundData({
          roundId: 1,
          currentHolder: '',
          currentBid: BigInt(0),
-         prizePool: ethers.parseEther('2.5'), // 演示：2.5 BNB
+         prizePool: ethers.parseEther('2.5'),
          participantCount: 0,
-         minBid: ethers.parseEther('10000'), // 10000 代币
+         minBid: ethers.parseEther('10000'),
         settled: false,
        });
        setIsLoading(false);
@@ -406,20 +379,17 @@ export function ChainGame() {
  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 p-3 sm:p-4 md:p-8">
-       {/* 演示模式提示 */}
        {!IS_CONTRACT_DEPLOYED && (
          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-sm font-medium">
            🎮 演示模式 - 合约尚未部署
          </div>
        )}
        
-      {/* 背景动效 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      {/* 钱包弹窗 */}
       <AnimatePresence>
         {showWallet && (
           <motion.div
@@ -442,7 +412,6 @@ export function ChainGame() {
         )}
        </AnimatePresence>
 
-      {/* 出价成功粒子爆发动画 */}
       <BidSuccessParticles trigger={bidSuccessTrigger} />
 
       <div className="relative max-w-5xl mx-auto space-y-6 md:space-y-8">
@@ -475,7 +444,6 @@ export function ChainGame() {
           </motion.button>
         </div>
 
-        {/* 副标题 */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -490,7 +458,6 @@ export function ChainGame() {
           animate={{ opacity: 1, scale: 1 }}
           className="relative rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 overflow-hidden"
         >
-          {/* 顶部光效 */}
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
           
           <div className="p-4 sm:p-6 md:p-8">
@@ -511,7 +478,6 @@ export function ChainGame() {
                   </div>
                 )}
               </div>
-              {/* 动态比例指示 */}
               <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30">
                 <span className="text-base sm:text-lg">{currentTier.label}</span>
                 <span className="text-yellow-400 font-bold text-sm sm:text-base">{currentTier.winnerRate}%</span>
@@ -519,7 +485,7 @@ export function ChainGame() {
               </div>
             </div>
 
-            {/* 开奖时间和倒计时 */}
+            {/* 倒计时 */}
             <div className="text-center mb-6 md:mb-8">
               <AnimatePresence mode="wait">
                 {!isEnded ? (
@@ -529,14 +495,12 @@ export function ChainGame() {
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
                   >
-                    {/* 开奖时间 */}
                     <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
                       <CalendarClock className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
                       <span className="text-slate-400 text-sm">开奖时间</span>
                       <span className="text-xl sm:text-2xl font-bold text-cyan-400">{formatHourMinute(nextDrawTime)}</span>
                     </div>
                     
-                    {/* 倒计时 */}
                     <div className="flex items-center justify-center gap-2 text-slate-500 mb-2">
                       <Timer className="w-4 h-4" />
                       <span className="text-sm uppercase tracking-wider">
@@ -555,7 +519,6 @@ export function ChainGame() {
                       {formatTime(timeLeft)}
                     </div>
                     
-                    {/* 进度条 */}
                     <div className="mt-4 mx-auto max-w-md h-2 bg-slate-800 rounded-full overflow-hidden">
                       <motion.div
                         className={`h-full ${isLastFiveMinutes ? 'bg-gradient-to-r from-orange-400 to-red-400' : 'bg-gradient-to-r from-cyan-400 to-purple-400'}`}
@@ -564,7 +527,6 @@ export function ChainGame() {
                       />
                     </div>
                     
-                    {/* 奖金预览 */}
                     <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-xs sm:text-sm">
                       <div className="flex items-center gap-2">
                         <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
@@ -590,7 +552,6 @@ export function ChainGame() {
                     <div className="text-slate-400 mb-2 text-sm sm:text-base">恭喜 {shortenAddress(roundData.currentHolder || '0x0')} 获胜</div>
                     <div className="text-yellow-400 text-lg sm:text-xl font-bold mb-4">+{winnerAmount} BNB</div>
                     
-                    {/* 自动结算等待动画 */}
                     <div className="flex flex-col items-center gap-3 mt-4">
                       <div className="flex items-center gap-3">
                         <motion.div
@@ -608,7 +569,6 @@ export function ChainGame() {
                         </motion.div>
                       </div>
                       
-                      {/* 进度点动画 */}
                       <div className="flex gap-2">
                         {[0, 1, 2].map(i => (
                           <motion.div
@@ -708,7 +668,7 @@ export function ChainGame() {
               </div>
             </div>
 
-            {/* 待领取 - 仅在有待领取奖励时显示 */}
+            {/* 待领取 */}
             {Number(playerStats.pending) > 0 && (
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -729,11 +689,11 @@ export function ChainGame() {
               </motion.div>
             )}
 
-             {/* 出价输入区 */}
-             <div className="max-w-md mx-auto space-y-3">
-              {/* 金额输入框 */}
+            {/* 出价输入区 - 滑块 + 输入 + 快捷按钮 */}
+            <div className="max-w-md mx-auto space-y-3">
               {!isEnded && (
-                <div className="space-y-2">
+                <div className="space-y-3">
+                  {/* 输入框 */}
                   <div className="relative">
                     <input
                       type="number"
@@ -748,46 +708,96 @@ export function ChainGame() {
                       代币
                     </span>
                   </div>
-                  {/* 滑块选择 */}
-                  {isConnected && tokenBalanceNum > 0 && tokenBalanceNum >= minBidNum && (
-                    <div className="space-y-1.5 px-1">
-                      <input
-                        type="range"
-                        min={minBidNum}
-                        max={tokenBalanceNum}
-                        step={Math.max(1, Math.floor((tokenBalanceNum - minBidNum) / 100))}
-                        value={Number(bidAmount) || minBidNum}
-                        onChange={(e) => setBidAmount(e.target.value)}
-                        disabled={isEnded || isTaking}
-                        className="w-full h-2 rounded-full appearance-none cursor-pointer bg-slate-700 accent-cyan-500 disabled:opacity-50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(34,211,238,0.6)] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-cyan-300 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-cyan-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-cyan-300 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-[0_0_8px_rgba(34,211,238,0.6)]"
-                        style={{
-                          background: `linear-gradient(to right, rgb(34 211 238) 0%, rgb(34 211 238) ${((Number(bidAmount || minBidNum) - minBidNum) / (tokenBalanceNum - minBidNum)) * 100}%, rgb(51 65 85) ${((Number(bidAmount || minBidNum) - minBidNum) / (tokenBalanceNum - minBidNum)) * 100}%, rgb(51 65 85) 100%)`,
-                        }}
-                      />
-                      <div className="flex justify-between text-[10px] text-slate-600">
-                        <span>{minBidNum.toLocaleString()}</span>
-                        <span>{tokenBalanceNum.toLocaleString()}</span>
+
+                  {/* 滑块选择器（连接钱包且有余额时显示） */}
+                  {isConnected && tokenBalanceNum > 0 && tokenBalanceNum >= minBidNum && (() => {
+                    const currentVal = Math.max(minBidNum, Math.min(Number(bidAmount) || minBidNum, tokenBalanceNum));
+                    const percent = tokenBalanceNum > minBidNum 
+                      ? Math.round(((currentVal - minBidNum) / (tokenBalanceNum - minBidNum)) * 100) 
+                      : 0;
+                    const fillPct = tokenBalanceNum > minBidNum
+                      ? ((currentVal - minBidNum) / (tokenBalanceNum - minBidNum)) * 100
+                      : 0;
+                    return (
+                      <div className="space-y-2 px-1">
+                        {/* 百分比指示 */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-slate-500">拖动选择金额</span>
+                          <span className="text-xs font-bold text-cyan-400">{percent}%</span>
+                        </div>
+                        {/* 滑块轨道 */}
+                        <div className="relative h-6 flex items-center">
+                          <input
+                            type="range"
+                            min={minBidNum}
+                            max={tokenBalanceNum}
+                            step={Math.max(1, Math.floor((tokenBalanceNum - minBidNum) / 200))}
+                            value={currentVal}
+                            onChange={(e) => setBidAmount(e.target.value)}
+                            disabled={isEnded || isTaking}
+                            className="w-full h-2 rounded-full appearance-none cursor-pointer bg-transparent relative z-10 disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(34,211,238,0.7)] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/30 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-shadow [&::-webkit-slider-thumb]:hover:shadow-[0_0_20px_rgba(34,211,238,0.9)] [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-cyan-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/30 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-[0_0_12px_rgba(34,211,238,0.7)] [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent"
+                          />
+                          {/* 自定义轨道背景 */}
+                          <div className="absolute left-0 right-0 h-2 rounded-full bg-slate-700/80 pointer-events-none" />
+                          <div 
+                            className="absolute left-0 h-2 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 pointer-events-none transition-all duration-75"
+                            style={{ width: `${fillPct}%` }}
+                          />
+                        </div>
+                        {/* 刻度标签 */}
+                        <div className="flex justify-between text-[10px] text-slate-600">
+                          <span>{minBidNum.toLocaleString()}</span>
+                          <span>{Math.round((minBidNum + tokenBalanceNum) / 2).toLocaleString()}</span>
+                          <span>{tokenBalanceNum.toLocaleString()}</span>
+                        </div>
+                        {/* 快捷百分比按钮 */}
+                        <div className="flex gap-1.5">
+                          {[
+                            { label: '最低', value: minBidNum },
+                            { label: '25%', value: Math.round(minBidNum + (tokenBalanceNum - minBidNum) * 0.25) },
+                            { label: '50%', value: Math.round(minBidNum + (tokenBalanceNum - minBidNum) * 0.5) },
+                            { label: '75%', value: Math.round(minBidNum + (tokenBalanceNum - minBidNum) * 0.75) },
+                            { label: '全部', value: tokenBalanceNum },
+                          ].filter(q => q.value >= minBidNum && q.value <= tokenBalanceNum).map((quick) => {
+                            const isActive = Number(bidAmount) === quick.value;
+                            return (
+                              <button
+                                key={quick.label}
+                                onClick={() => setBidAmount(quick.value.toString())}
+                                disabled={isEnded || isTaking}
+                                className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all disabled:opacity-50 ${
+                                  isActive
+                                    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.2)]'
+                                    : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:border-cyan-500/40 hover:text-cyan-400'
+                                }`}
+                              >
+                                {quick.label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
+                    );
+                  })()}
+                  {/* 固定快捷按钮（未连接钱包或余额不足时） */}
+                  {(!isConnected || tokenBalanceNum <= 0 || tokenBalanceNum < minBidNum) && (
+                    <div className="flex gap-2">
+                      {[
+                        { label: '最低', value: minBidNum },
+                        { label: '5万', value: 50000 },
+                        { label: '10万', value: 100000 },
+                      ].filter(q => q.value >= minBidNum).map((quick) => (
+                        <button
+                          key={quick.label}
+                          onClick={() => setBidAmount(quick.value.toString())}
+                          disabled={isEnded || isTaking}
+                          className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-slate-800/60 border border-slate-700 text-slate-400 hover:border-cyan-500/50 hover:text-cyan-400 transition-colors disabled:opacity-50"
+                        >
+                          {quick.label}
+                        </button>
+                      ))}
                     </div>
                   )}
-                  {/* 快捷金额按钮 */}
-                  <div className="flex gap-2">
-                    {[
-                      { label: '最低', value: minBidNum },
-                      { label: '5万', value: 50000 },
-                      { label: '10万', value: 100000 },
-                      { label: '全部', value: tokenBalanceNum },
-                    ].filter(q => q.value >= minBidNum).map((quick) => (
-                      <button
-                        key={quick.label}
-                        onClick={() => setBidAmount(quick.value.toString())}
-                        disabled={isEnded || isTaking}
-                        className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-slate-800/60 border border-slate-700 text-slate-400 hover:border-cyan-500/50 hover:text-cyan-400 transition-colors disabled:opacity-50"
-                      >
-                        {quick.label}
-                      </button>
-                    ))}
-                  </div>
                   {/* 余额提示 */}
                   {isConnected && (
                     <div className="flex items-center justify-between text-xs text-slate-500 px-1">
@@ -827,7 +837,6 @@ export function ChainGame() {
                 )}
               </Button>
                
-               {/* 领取奖励按钮 */}
                {Number(playerStats.pending) > 0 && (
                  <Button
                    onClick={handleClaimRewards}
@@ -863,7 +872,6 @@ export function ChainGame() {
                 <span className="text-xs text-slate-500">{bidHistory.length} 条记录</span>
               </div>
               <div className="relative max-h-[280px] overflow-y-auto pr-1">
-                {/* 时间线竖线 */}
                 <div className="absolute left-[18px] top-2 bottom-2 w-px bg-gradient-to-b from-cyan-500/60 via-purple-500/40 to-transparent" />
                 
                 <div className="space-y-1">
@@ -882,7 +890,6 @@ export function ChainGame() {
                             : 'hover:bg-slate-800/40'
                         }`}
                       >
-                        {/* 时间线节点 */}
                         <div className="absolute left-2.5 flex items-center justify-center">
                           {isLatest ? (
                             <motion.div
@@ -895,7 +902,6 @@ export function ChainGame() {
                           )}
                         </div>
 
-                        {/* 序号 */}
                         <div className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
                           isLatest
                             ? 'bg-cyan-500/20 text-cyan-400'
@@ -904,7 +910,6 @@ export function ChainGame() {
                           #{orderNum}
                         </div>
 
-                        {/* 地址和时间 */}
                         <div className="flex-1 min-w-0">
                           <span className={`font-mono text-sm ${isLatest ? 'text-white' : 'text-slate-400'}`}>
                             {shortenAddress(record.address)}
@@ -915,7 +920,6 @@ export function ChainGame() {
                           </div>
                         </div>
 
-                        {/* 金额 */}
                         <div className="flex-shrink-0 text-right">
                           <span className={`font-bold text-sm ${
                             isLatest ? 'text-orange-400' : 'text-slate-500'
@@ -932,7 +936,6 @@ export function ChainGame() {
             </motion.div>
           )}
 
-        {/* 中奖记录 */}
         <RoundHistory currentRoundId={roundData.roundId} />
 
         {/* 经济模型说明 */}
@@ -947,7 +950,6 @@ export function ChainGame() {
             游戏规则 · 销毁代币，赢取BNB
           </div>
           
-          {/* 动态比例说明 */}
            <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-yellow-500/5 to-orange-500/5 border border-yellow-500/20">
              <div className="text-sm text-slate-400 mb-3">
                🎯 动态赢家比例（参与人数越多，奖励越高，5%平台费从赢家奖励中扣除）：
