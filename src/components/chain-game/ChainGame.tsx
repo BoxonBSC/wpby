@@ -980,7 +980,7 @@ export function ChainGame() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: '🔥', text: '出价消耗的代币将被永久销毁' },
+              { icon: '🔥', text: '出价代币先转入回购基金钱包，统一销毁' },
               { icon: '📈', text: '自由出价，最低10,000代币，上不封顶' },
               { icon: '⏰', text: '每小时自动开奖，开启新一轮' },
               { icon: '🏆', text: '开奖时最高出价者赢得BNB奖池' },
