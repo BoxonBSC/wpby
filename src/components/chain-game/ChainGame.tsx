@@ -1,9 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Clock, Trophy, Users, Zap, Crown, Gift, ArrowUp, Wallet, Coins, Percent, Timer, CalendarClock } from 'lucide-react';
+ import { Flame, Trophy, Users, Zap, Crown, ArrowUp, Wallet, Coins, Percent, Timer, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useWallet } from '@/contexts/WalletContext';
+ import { ethers } from 'ethers';
+ import { 
+   CYBER_CHAIN_GAME_ADDRESS, 
+   CYBER_CHAIN_GAME_ABI, 
+   CYBER_TOKEN_ADDRESS, 
+   CYBER_TOKEN_ABI,
+   CHAIN_GAME_DYNAMIC_TIERS 
+ } from '@/config/contracts';
+ import { toast } from 'sonner';
 
 // 游戏配置
 const GAME_CONFIG = {
@@ -11,55 +20,27 @@ const GAME_CONFIG = {
   priceIncrement: 10,         // 每次接盘价格递增10%
   startPrice: 10000,          // 每轮起始价格（最小接盘金额）
   minPrice: 10000,            // 最小接盘金额
-};
-
-// 动态比例配置
-const DYNAMIC_TIERS = [
-  { minPlayers: 1, maxPlayers: 10, winnerRate: 35, label: '🥶 冷启动' },
-  { minPlayers: 11, maxPlayers: 20, winnerRate: 42, label: '🌱 萌芽期' },
-  { minPlayers: 21, maxPlayers: 30, winnerRate: 48, label: '🔥 活跃期' },
-  { minPlayers: 31, maxPlayers: 40, winnerRate: 54, label: '🚀 热门期' },
-  { minPlayers: 41, maxPlayers: Infinity, winnerRate: 60, label: '💎 爆发期' },
-];
-
-// 资金分配比例
-const FUND_DISTRIBUTION = {
-  prizePoolRate: 70,      // 70% 进入奖池
-  earlyBirdRate: 15,      // 15% 早期玩家分红
-  previousHolderRate: 10, // 10% 上一任持有者
-  taxRate: 5,             // 5% VRF费用
+   platformFee: 5,            // 5% 平台费
 };
 
 // 获取当前动态比例
 const getCurrentTier = (participants: number) => {
-  return DYNAMIC_TIERS.find(tier => 
+   return CHAIN_GAME_DYNAMIC_TIERS.find(tier => 
     participants >= tier.minPlayers && participants <= tier.maxPlayers
-  ) || DYNAMIC_TIERS[0];
+   ) || CHAIN_GAME_DYNAMIC_TIERS[0];
 };
 
-// 模拟数据
-const mockRoundData = {
-  roundId: 42,
-  currentHolder: '0x1234...5678',
-  previousHolder: '0x9ABC...DEF0',
-  currentPrice: 50000,
-  nextPrice: 55000,
-  prizePoolBNB: 2.847,
-  totalBurned: 1250000,
-  totalParticipants: 15,
-  earlyBirds: [
-    { address: '0xABC...DEF', rank: 1, earnedBNB: 0.142 },
-    { address: '0xDEF...GHI', rank: 2, earnedBNB: 0.098 },
-    { address: '0xGHI...JKL', rank: 3, earnedBNB: 0.067 },
-  ],
-  history: [
-    { address: '0x111...222', price: 50000, bnbAdded: 0.035, time: '14:35' },
-    { address: '0x333...444', price: 55000, bnbAdded: 0.039, time: '14:42' },
-    { address: '0x555...666', price: 60500, bnbAdded: 0.042, time: '14:48' },
-    { address: '0x777...888', price: 66550, bnbAdded: 0.047, time: '14:53' },
-    { address: '0x1234...5678', price: 73205, bnbAdded: 0.051, time: '14:57' },
-  ],
-};
+// 合约地址（使用mainnet）
+const GAME_CONTRACT = CYBER_CHAIN_GAME_ADDRESS.mainnet;
+const TOKEN_CONTRACT = CYBER_TOKEN_ADDRESS.mainnet;
+ 
+ // 获取以太坊Provider
+ const getEthereumProvider = () => {
+   if (typeof window !== 'undefined' && window.ethereum) {
+     return window.ethereum as unknown as { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> };
+   }
+   return null;
+ };
 
 // 计算下一个整点时间
 const getNextHourTime = () => {
@@ -80,12 +61,120 @@ export function ChainGame() {
   const [isEnded, setIsEnded] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
-  const { isConnected, address } = useWallet();
+   const [isLoading, setIsLoading] = useState(true);
+   const { isConnected, address } = useWallet();
+ 
+   // 合约数据状态
+   const [roundData, setRoundData] = useState({
+     roundId: 0,
+     currentHolder: '',
+     currentBid: BigInt(0),
+     prizePool: BigInt(0),
+     participantCount: 0,
+     minBid: BigInt(0),
+   });
+   const [bidHistory, setBidHistory] = useState<Array<{ address: string; bid: string; time: string }>>([]);
+   const [playerStats, setPlayerStats] = useState({ wins: 0, earnings: '0', burned: '0', pending: '0' });
 
   // 当前动态比例
-  const currentTier = useMemo(() => getCurrentTier(mockRoundData.totalParticipants), []);
-  const winnerAmount = (mockRoundData.prizePoolBNB * currentTier.winnerRate / 100).toFixed(3);
-  const rolloverAmount = (mockRoundData.prizePoolBNB * (100 - currentTier.winnerRate) / 100).toFixed(3);
+   const currentTier = useMemo(() => getCurrentTier(roundData.participantCount), [roundData.participantCount]);
+   const prizePoolBNB = Number(ethers.formatEther(roundData.prizePool));
+   const grossWinnerAmount = prizePoolBNB * currentTier.winnerRate / 100;
+   const platformFee = grossWinnerAmount * GAME_CONFIG.platformFee / 100;
+   const winnerAmount = (grossWinnerAmount - platformFee).toFixed(4);
+   const rolloverAmount = (prizePoolBNB * (100 - currentTier.winnerRate) / 100).toFixed(4);
+ 
+   // 格式化代币数量
+   const currentBidFormatted = Number(ethers.formatEther(roundData.currentBid)).toLocaleString(undefined, { maximumFractionDigits: 0 });
+   const minBidFormatted = Number(ethers.formatEther(roundData.minBid)).toLocaleString(undefined, { maximumFractionDigits: 0 });
+ 
+   // 获取合约数据
+   const fetchContractData = async () => {
+     const ethereum = getEthereumProvider();
+     if (!ethereum) {
+       setIsLoading(false);
+       return;
+     }
+     
+     try {
+       const provider = new ethers.BrowserProvider(ethereum);
+       const contract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, provider);
+       
+       // 获取当前轮次信息
+       const [roundId, startTime, endTime, prizePool, currentBid, currentHolder, participantCount, settled] = 
+         await contract.getCurrentRound();
+       
+       const minBid = await contract.getMinBid();
+       
+       setRoundData({
+         roundId: Number(roundId),
+         currentHolder: currentHolder === ethers.ZeroAddress ? '' : currentHolder,
+         currentBid: currentBid,
+         prizePool: prizePool,
+         participantCount: Number(participantCount),
+         minBid: minBid,
+       });
+       
+       // 更新结束时间
+       const endDate = new Date(Number(endTime) * 1000);
+       setNextDrawTime(endDate);
+       
+       // 获取玩家统计（如果已连接）
+       if (address) {
+         const [wins, earnings, burned, pending] = await contract.getPlayerStats(address);
+         setPlayerStats({
+           wins: Number(wins),
+           earnings: ethers.formatEther(earnings),
+           burned: ethers.formatEther(burned),
+           pending: ethers.formatEther(pending),
+         });
+       }
+       
+       setIsLoading(false);
+     } catch (error) {
+       console.error('Failed to fetch contract data:', error);
+       setIsLoading(false);
+     }
+   };
+ 
+   // 监听合约事件
+   useEffect(() => {
+     const ethereum = getEthereumProvider();
+     if (!ethereum || GAME_CONTRACT === ethers.ZeroAddress) return;
+     
+     const provider = new ethers.BrowserProvider(ethereum);
+     const contract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, provider);
+     
+     const handleBidPlaced = (roundId: bigint, player: string, tokensBurned: bigint, newBid: bigint) => {
+       setBidHistory(prev => [{
+         address: player,
+         bid: ethers.formatEther(tokensBurned),
+         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+       }, ...prev].slice(0, 10));
+       
+       fetchContractData();
+     };
+     
+     const handleRoundSettled = () => {
+       toast.success('本轮已结算！');
+       fetchContractData();
+     };
+     
+     contract.on('BidPlaced', handleBidPlaced);
+     contract.on('RoundSettled', handleRoundSettled);
+     
+     return () => {
+       contract.off('BidPlaced', handleBidPlaced);
+       contract.off('RoundSettled', handleRoundSettled);
+     };
+   }, []);
+ 
+   // 初始加载
+   useEffect(() => {
+     fetchContractData();
+     const interval = setInterval(fetchContractData, 30000); // 每30秒刷新
+     return () => clearInterval(interval);
+   }, [address]);
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -126,9 +215,66 @@ export function ChainGame() {
       setShowWallet(true);
       return;
     }
+     
+     const ethereum = getEthereumProvider();
+     if (!ethereum) {
+       toast.error('请安装钱包');
+       return;
+     }
+     
     setIsTaking(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsTaking(false);
+     
+     try {
+       const provider = new ethers.BrowserProvider(ethereum);
+       const signer = await provider.getSigner();
+       
+       const tokenContract = new ethers.Contract(TOKEN_CONTRACT, CYBER_TOKEN_ABI, signer);
+       const gameContract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, signer);
+       
+       const minBid = roundData.minBid;
+       
+       // 检查授权
+       const allowance = await tokenContract.allowance(address, GAME_CONTRACT);
+       if (allowance < minBid) {
+         toast.loading('正在授权代币...');
+         const approveTx = await tokenContract.approve(GAME_CONTRACT, ethers.MaxUint256);
+         await approveTx.wait();
+         toast.success('授权成功！');
+       }
+       
+       // 出价
+       toast.loading('正在接盘...');
+       const tx = await gameContract.placeBid(minBid);
+       await tx.wait();
+       
+       toast.success('接盘成功！🔥');
+       fetchContractData();
+     } catch (error: any) {
+       console.error('Takeover failed:', error);
+       toast.error(error.reason || '接盘失败');
+     } finally {
+       setIsTaking(false);
+     }
+   };
+ 
+   // 领取奖励
+   const handleClaimRewards = async () => {
+     const ethereum = getEthereumProvider();
+     if (!ethereum || Number(playerStats.pending) <= 0) return;
+     
+     try {
+       const provider = new ethers.BrowserProvider(ethereum);
+       const signer = await provider.getSigner();
+       const gameContract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, signer);
+       toast.loading('正在领取奖励...');
+       const tx = await gameContract.claimRewards();
+       await tx.wait();
+       toast.success('奖励已领取！');
+       fetchContractData();
+     } catch (error: any) {
+       console.error('Claim failed:', error);
+       toast.error(error.reason || '领取失败');
+     }
   };
 
   return (
@@ -212,11 +358,11 @@ export function ChainGame() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30">
                   <Flame className="w-4 h-4 text-cyan-400" />
-                  <span className="text-cyan-400 font-medium">第 #{mockRoundData.roundId} 轮</span>
+                   <span className="text-cyan-400 font-medium">第 #{roundData.roundId} 轮</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-400">
                   <Users className="w-4 h-4" />
-                  <span>{mockRoundData.totalParticipants} 人</span>
+                   <span>{roundData.participantCount} 人</span>
                 </div>
               </div>
               {/* 动态比例指示 */}
@@ -295,7 +441,7 @@ export function ChainGame() {
                   >
                     <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-4 animate-bounce" />
                     <div className="text-3xl font-bold text-white mb-2">🎉 本轮结束！</div>
-                    <div className="text-slate-400 mb-2">恭喜 {mockRoundData.currentHolder} 获胜</div>
+                     <div className="text-slate-400 mb-2">恭喜 {shortenAddress(roundData.currentHolder || '0x0')} 获胜</div>
                     <div className="text-yellow-400 text-xl font-bold">+{winnerAmount} BNB</div>
                     <div className="text-sm text-slate-500 mt-2">下一轮即将开始...</div>
                   </motion.div>
@@ -307,7 +453,9 @@ export function ChainGame() {
             <div className="flex items-center justify-center gap-3 mb-8 py-4 px-6 mx-auto max-w-md rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30">
               <Crown className="w-5 h-5 text-yellow-400" />
               <span className="text-slate-400">当前持有者</span>
-              <span className="font-mono text-white">{mockRoundData.currentHolder}</span>
+               <span className="font-mono text-white">
+                 {roundData.currentHolder ? shortenAddress(roundData.currentHolder) : '暂无'}
+               </span>
             </div>
 
             {/* 数据卡片 */}
@@ -315,17 +463,17 @@ export function ChainGame() {
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
                   <Coins className="w-4 h-4 text-orange-400" />
-                  接盘价格
+                   当前出价
                 </div>
-                <div className="text-xl font-bold text-orange-400">{formatNumber(mockRoundData.currentPrice)}</div>
+                 <div className="text-xl font-bold text-orange-400">{currentBidFormatted}</div>
                 <div className="text-xs text-slate-500">代币 (销毁)</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
                   <ArrowUp className="w-4 h-4 text-green-400" />
-                  下次价格
+                   最低出价
                 </div>
-                <div className="text-xl font-bold text-green-400">{formatNumber(mockRoundData.nextPrice)}</div>
+                 <div className="text-xl font-bold text-green-400">{minBidFormatted}</div>
                 <div className="text-xs text-slate-500">+{GAME_CONFIG.priceIncrement}%</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
@@ -333,21 +481,21 @@ export function ChainGame() {
                   <Trophy className="w-4 h-4 text-yellow-400" />
                   BNB 奖池
                 </div>
-                <div className="text-xl font-bold text-yellow-400">{mockRoundData.prizePoolBNB.toFixed(3)}</div>
+                 <div className="text-xl font-bold text-yellow-400">{prizePoolBNB.toFixed(4)}</div>
                 <div className="text-xs text-slate-500">BNB</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
                   <Flame className="w-4 h-4 text-red-400" />
-                  已销毁代币
+                   我的待领取
                 </div>
-                <div className="text-xl font-bold text-red-400">{formatNumber(mockRoundData.totalBurned)}</div>
-                <div className="text-xs text-slate-500">永久销毁</div>
+                 <div className="text-xl font-bold text-cyan-400">{Number(playerStats.pending).toFixed(4)}</div>
+                 <div className="text-xs text-slate-500">BNB</div>
               </div>
             </div>
 
-            {/* 接盘按钮 */}
-            <div className="max-w-md mx-auto">
+             {/* 操作按钮 */}
+             <div className="max-w-md mx-auto space-y-3">
               <Button
                 onClick={handleTakeover}
                 disabled={isEnded || isTaking}
@@ -365,94 +513,71 @@ export function ChainGame() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <Flame className="w-6 h-6" />
-                    我要接盘
+                     我要接盘 ({minBidFormatted} 代币)
                   </span>
                 )}
               </Button>
+               
+               {/* 领取奖励按钮 */}
+               {Number(playerStats.pending) > 0 && (
+                 <Button
+                   onClick={handleClaimRewards}
+                   variant="outline"
+                   className="w-full h-12 text-lg font-bold rounded-xl border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
+                 >
+                   领取奖励 ({Number(playerStats.pending).toFixed(4)} BNB)
+                 </Button>
+               )}
+               
               {!isEnded && (
                 <p className="text-center text-sm text-slate-500 mt-3">
-                  🔥 接盘消耗 {formatNumber(mockRoundData.nextPrice)} 代币（永久销毁）· 赢取 {mockRoundData.prizePoolBNB.toFixed(3)} BNB
+                   🔥 接盘消耗代币（永久销毁）· 赢取 {prizePoolBNB.toFixed(4)} BNB 奖池
                 </p>
               )}
             </div>
           </div>
         </motion.div>
 
-        {/* 底部信息卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* 早期玩家分红 */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="rounded-2xl bg-slate-900/60 backdrop-blur border border-slate-700/50 p-5"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-white font-semibold">
-                <Crown className="w-5 h-5 text-yellow-400" />
-                早期玩家分红
-              </div>
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/30">
-                <Percent className="w-3 h-3 text-yellow-400" />
-                <span className="text-xs text-yellow-400">{FUND_DISTRIBUTION.earlyBirdRate}%</span>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {mockRoundData.earlyBirds.map((bird) => (
-                <div
-                  key={bird.address}
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{bird.rank === 1 ? '🥇' : bird.rank === 2 ? '🥈' : '🥉'}</span>
-                    <span className="font-mono text-sm text-slate-300">{bird.address}</span>
-                  </div>
-                  <span className="text-yellow-400 font-medium">+{bird.earnedBNB.toFixed(3)} BNB</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* 接盘记录 */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="rounded-2xl bg-slate-900/60 backdrop-blur border border-slate-700/50 p-5"
-          >
-            <div className="flex items-center gap-2 text-white font-semibold mb-4">
-              <Users className="w-5 h-5 text-cyan-400" />
-              接盘记录
-            </div>
-            <div className="space-y-2 max-h-[200px] overflow-y-auto">
-              {mockRoundData.history.slice().reverse().map((record, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center justify-between p-3 rounded-xl ${
-                    index === 0 ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-slate-800/30'
-                  }`}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-mono text-sm text-slate-300">{record.address}</span>
-                    <span className="text-xs text-slate-500">{record.time}</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className={`font-medium ${index === 0 ? 'text-orange-400' : 'text-slate-400'}`}>
-                      {formatNumber(record.price)} 代币
-                    </span>
-                    <span className="text-xs text-yellow-400">+{record.bnbAdded} BNB</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
+         {/* 接盘记录 */}
+         {bidHistory.length > 0 && (
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.2 }}
+             className="rounded-2xl bg-slate-900/60 backdrop-blur border border-slate-700/50 p-5"
+           >
+             <div className="flex items-center gap-2 text-white font-semibold mb-4">
+               <Users className="w-5 h-5 text-cyan-400" />
+               接盘记录
+             </div>
+             <div className="space-y-2 max-h-[200px] overflow-y-auto">
+               {bidHistory.map((record, index) => (
+                 <div
+                   key={index}
+                   className={`flex items-center justify-between p-3 rounded-xl ${
+                     index === 0 ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-slate-800/30'
+                   }`}
+                 >
+                   <div className="flex flex-col">
+                     <span className="font-mono text-sm text-slate-300">{shortenAddress(record.address)}</span>
+                     <span className="text-xs text-slate-500">{record.time}</span>
+                   </div>
+                   <div className="flex flex-col items-end">
+                     <span className={`font-medium ${index === 0 ? 'text-orange-400' : 'text-slate-400'}`}>
+                       {Number(record.bid).toLocaleString(undefined, { maximumFractionDigits: 0 })} 代币
+                     </span>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           </motion.div>
+         )}
 
         {/* 经济模型说明 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+           transition={{ delay: 0.3 }}
           className="rounded-2xl bg-slate-900/40 border border-slate-700/50 p-5"
         >
           <div className="flex items-center gap-2 text-white font-semibold mb-4">
@@ -460,34 +585,13 @@ export function ChainGame() {
             游戏规则 · 销毁代币，赢取BNB
           </div>
           
-          {/* 资金分配图示 */}
-          <div className="mb-6 p-4 rounded-xl bg-slate-800/30">
-            <div className="text-sm text-slate-400 mb-3">每次接盘的资金分配：</div>
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-                <Trophy className="w-4 h-4 text-yellow-400" />
-                <span className="text-yellow-400 text-sm font-medium">{FUND_DISTRIBUTION.prizePoolRate}% 奖池</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
-                <Crown className="w-4 h-4 text-cyan-400" />
-                <span className="text-cyan-400 text-sm font-medium">{FUND_DISTRIBUTION.earlyBirdRate}% 早鸟分红</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
-                <Gift className="w-4 h-4 text-green-400" />
-                <span className="text-green-400 text-sm font-medium">{FUND_DISTRIBUTION.previousHolderRate}% 上任持有者</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
-                <Percent className="w-4 h-4 text-purple-400" />
-                <span className="text-purple-400 text-sm font-medium">{FUND_DISTRIBUTION.taxRate}% VRF费用</span>
-              </div>
-            </div>
-          </div>
-
           {/* 动态比例说明 */}
-          <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-yellow-500/5 to-orange-500/5 border border-yellow-500/20">
-            <div className="text-sm text-slate-400 mb-3">🎯 动态赢家比例（参与人数越多，奖励越高）：</div>
+           <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-yellow-500/5 to-orange-500/5 border border-yellow-500/20">
+             <div className="text-sm text-slate-400 mb-3">
+               🎯 动态赢家比例（参与人数越多，奖励越高，5%平台费从赢家奖励中扣除）：
+             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-              {DYNAMIC_TIERS.map((tier, index) => (
+               {CHAIN_GAME_DYNAMIC_TIERS.map((tier, index) => (
                 <div 
                   key={index}
                   className={`p-2 rounded-lg text-center ${
