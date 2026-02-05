@@ -19,7 +19,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.rules': '游戏指南',
     
     // 导航栏
-    'navbar.brandName': '王牌博弈',
+    'navbar.brandName': '巅峰竞拍',
     'navbar.tagline': 'GAMEFI · 燃烧通缩协议',
     'navbar.unclaimed': '待领取',
     'navbar.unclaimedReward': '待领取奖励',
@@ -295,13 +295,13 @@ const translations: Record<Language, Record<string, string>> = {
     
     // 规则页面
     'rules.pageTitle': '游戏完整指南',
-    'rules.pageSubtitle': '三分钟看懂王牌博弈，轻松上手赢取 BNB 奖励',
+    'rules.pageSubtitle': '三分钟看懂巅峰竞拍，轻松上手赢取 BNB 奖励',
     'rules.coreTitle': '🎯 游戏核心：猜下一张牌比当前牌「更大」还是「更小」',
     'rules.coreSubtitle': '猜对连胜越多 → 奖励越高 → 最高可赢取整个奖池！',
     'rules.flowTitle': '游戏流程详解',
     'rules.step1Title': '准备凭证',
     'rules.step1What': '什么是凭证？',
-    'rules.step1Desc': '凭证是游戏内的虚拟货币，用王牌博弈代币兑换获得。',
+    'rules.step1Desc': '凭证是游戏内的虚拟货币，用巅峰竞拍代币兑换获得。',
     'rules.step1Action': '点击顶部「兑换凭证」按钮，用代币兑换凭证',
     'rules.step1Burn': '兑换后代币会被<strong>永久燃烧</strong>，凭证只能用于游戏',
     'rules.step2Title': '开始游戏',
@@ -412,7 +412,7 @@ const translations: Record<Language, Record<string, string>> = {
     'hilo.selectTier': '选择门槛等级',
     'hilo.maxPool': '最高 {n}% 奖池',
     'hilo.needMore': '还差 {n}',
-    'hilo.gameIntro': '王牌博弈 · 500K 单一门槛',
+    'hilo.gameIntro': '巅峰竞拍 · 500K 单一门槛',
     'hilo.gameIntroLine1': '每局消耗 500K 凭证，猜对累积连胜',
     'hilo.gameIntroLine2': '最高 12 连胜可清空 100% 奖池',
     'hilo.gameIntroLine3': '随时收手兑现，猜错归零重来',

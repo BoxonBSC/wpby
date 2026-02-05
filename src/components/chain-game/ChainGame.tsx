@@ -422,7 +422,7 @@ export function ChainGame() {
             animate={{ opacity: 1, x: 0 }}
             className="text-xl sm:text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 flex-shrink-0"
           >
-            ⚡ 击鼓传花
+            ⚡ 巅峰竞拍
           </motion.h1>
           
           <motion.button
@@ -449,7 +449,7 @@ export function ChainGame() {
           animate={{ opacity: 1 }}
           className="text-center text-xs sm:text-sm text-slate-400 -mt-2 md:-mt-4 px-2"
         >
-          每小时开奖 · 销毁代币，赢取BNB · 动态奖励比例
+          每小时开奖 · 销毁代币竞拍，赢取BNB · 动态奖励比例
         </motion.p>
 
         {/* 主卡片 */}
