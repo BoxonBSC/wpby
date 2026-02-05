@@ -78,6 +78,7 @@ export function ChainGame() {
    });
    const [bidHistory, setBidHistory] = useState<Array<{ address: string; bid: string; time: string }>>([]);
    const [playerStats, setPlayerStats] = useState({ wins: 0, earnings: '0', burned: '0', pending: '0' });
+  const [hasParticipated, setHasParticipated] = useState(false);
 
   // 当前动态比例
    const currentTier = useMemo(() => getCurrentTier(roundData.participantCount), [roundData.participantCount]);
@@ -128,6 +129,25 @@ export function ChainGame() {
        const endDate = new Date(Number(endTime) * 1000);
        setNextDrawTime(endDate);
        
+      // 获取最近出价记录
+      try {
+        const recentBidsData = await contract.getRecentBids();
+        const formattedBids = recentBidsData
+          .filter((bid: { bidder: string; amount: bigint; timestamp: bigint }) => 
+            bid.bidder !== ethers.ZeroAddress && bid.amount > 0
+          )
+          .map((bid: { bidder: string; amount: bigint; timestamp: bigint }) => ({
+            address: bid.bidder,
+            bid: ethers.formatEther(bid.amount),
+            time: new Date(Number(bid.timestamp) * 1000).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+          }))
+          .sort((a: { time: string }, b: { time: string }) => b.time.localeCompare(a.time))
+          .slice(0, 10);
+        setBidHistory(formattedBids);
+      } catch (e) {
+        console.warn('Failed to fetch recent bids:', e);
+      }
+      
        // 获取玩家统计（如果已连接）
        if (address) {
          const [wins, earnings, burned, pending] = await contract.getPlayerStats(address);
@@ -137,6 +157,14 @@ export function ChainGame() {
            burned: ethers.formatEther(burned),
            pending: ethers.formatEther(pending),
          });
+        
+        // 检查是否已参与当前轮次
+        try {
+          const participated = await contract.hasPlayerParticipated(address);
+          setHasParticipated(participated);
+        } catch (e) {
+          console.warn('Failed to check participation:', e);
+        }
        }
        
        setIsLoading(false);
@@ -166,19 +194,28 @@ export function ChainGame() {
        fetchContractData();
      };
      
-     const handleRoundSettled = () => {
+    const handleRoundSettled = (roundId: bigint, winner: string, prize: bigint) => {
        toast.success('本轮已结算！');
        fetchContractData();
+      setBidHistory([]); // 清空出价记录
      };
+    
+    const handleSettlementBonus = (settler: string, amount: bigint) => {
+      if (settler.toLowerCase() === address?.toLowerCase()) {
+        toast.success(`🎁 获得结算奖励: ${ethers.formatEther(amount)} BNB`);
+      }
+    };
      
      contract.on('BidPlaced', handleBidPlaced);
      contract.on('RoundSettled', handleRoundSettled);
+    contract.on('SettlementBonusPaid', handleSettlementBonus);
      
      return () => {
        contract.off('BidPlaced', handleBidPlaced);
        contract.off('RoundSettled', handleRoundSettled);
+      contract.off('SettlementBonusPaid', handleSettlementBonus);
      };
-   }, []);
+  }, [address]);
  
    // 初始加载
    useEffect(() => {
@@ -420,6 +457,11 @@ export function ChainGame() {
                   <Users className="w-4 h-4" />
                    <span>{roundData.participantCount} 人</span>
                 </div>
+                {hasParticipated && isConnected && (
+                  <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs">
+                    ✓ 已参与
+                  </div>
+                )}
               </div>
               {/* 动态比例指示 */}
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30">
