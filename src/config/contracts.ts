@@ -120,7 +120,7 @@ export const CYBER_TOKEN_ABI = [
   "function name() external view returns (string)",
 ] as const;
 
- // CyberChainGame 击鼓传花 ABI
+ // CyberChainGame 击鼓传花 ABI（优化版 - 支持大规模应用）
  export const CYBER_CHAIN_GAME_ABI = [
    // 核心游戏函数
    "function placeBid(uint256 tokenAmount) external",
@@ -128,7 +128,6 @@ export const CYBER_TOKEN_ABI = [
    "function claimRewards() external",
    // 查询函数
    "function getCurrentRound() external view returns (uint256 roundId, uint256 startTime, uint256 endTime, uint256 prizePool, uint256 currentBid, address currentHolder, uint256 participantCount, bool settled)",
-   "function getParticipants() external view returns (address[])",
    "function getTimeRemaining() external view returns (uint256)",
    "function getMinBid() external view returns (uint256)",
    "function getPlayerStats(address player) external view returns (uint256 wins, uint256 earnings, uint256 burned, uint256 pending)",
@@ -137,19 +136,31 @@ export const CYBER_TOKEN_ABI = [
    "function totalRounds() external view returns (uint256)",
    "function totalBurned() external view returns (uint256)",
    "function totalPaidOut() external view returns (uint256)",
+   // 优化版新增查询函数
+   "function getRecentBids() external view returns (tuple(address bidder, uint128 amount, uint64 timestamp)[20])",
+   "function hasPlayerParticipated(address player) external view returns (bool)",
+   "function getRoundResult(uint256 roundId) external view returns (tuple(address winner, uint128 prize, uint128 prizePool, uint32 participantCount, uint64 endTime, uint8 winnerRate))",
+   "function hasParticipated(uint256 roundId, address player) external view returns (bool)",
+   "function settlementBonus() external view returns (uint256)",
    // 常量
    "function ROUND_DURATION() external pure returns (uint256)",
    "function BID_INCREMENT() external pure returns (uint256)",
    "function PLATFORM_RATE() external pure returns (uint256)",
    "function MIN_FIRST_BID() external pure returns (uint256)",
+   "function MAX_RECENT_BIDS() external pure returns (uint8)",
    // 动态比例
    "function dynamicTiers(uint256 index) external view returns (uint16 minPlayers, uint16 maxPlayers, uint8 winnerRate)",
-   // 事件
-   "event RoundStarted(uint256 indexed roundId, uint256 startTime, uint256 endTime)",
-   "event BidPlaced(uint256 indexed roundId, address indexed player, uint256 tokensBurned, uint256 newBid)",
-   "event RoundSettled(uint256 indexed roundId, address indexed winner, uint256 prize, uint256 platformFee, uint256 participants, uint8 winnerRate)",
-   "event RewardClaimed(address indexed player, uint256 amount)",
+   // 事件（优化版）
+   "event RoundStarted(uint256 indexed roundId, uint64 startTime, uint64 endTime)",
+   "event BidPlaced(uint256 indexed roundId, address indexed player, uint256 tokensBurned, uint256 newBid, uint32 participantCount)",
+   "event RoundSettled(uint256 indexed roundId, address indexed winner, uint256 prize, uint256 platformFee, uint32 participants, uint8 winnerRate)",
+   "event PrizeSent(address indexed winner, uint256 amount)",
+   "event PrizeSendFailed(address indexed winner, uint256 amount)",
+   "event PlatformFeeSent(address indexed platform, uint256 amount)",
+   "event FallbackRewardClaimed(address indexed player, uint256 amount)",
    "event PrizePoolFunded(address indexed funder, uint256 amount)",
+   "event EmergencyWithdraw(address indexed to, uint256 amount)",
+   "event SettlementBonusPaid(address indexed settler, uint256 amount)",
  ] as const;
  
 export const SYMBOL_MAP: Record<number, string> = {
