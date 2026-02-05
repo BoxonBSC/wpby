@@ -550,7 +550,7 @@ export function ChainGame() {
             {/* 当前持有者 */}
             <div className="flex items-center justify-center gap-3 mb-8 py-4 px-6 mx-auto max-w-md rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30">
               <Crown className="w-5 h-5 text-yellow-400" />
-              <span className="text-slate-400">当前持有者</span>
+             <span className="text-slate-400">当前最高出价者</span>
                <span className="font-mono text-white">
                  {roundData.currentHolder ? shortenAddress(roundData.currentHolder) : '暂无'}
                </span>
