@@ -143,11 +143,6 @@ export const CYBER_TOKEN_ABI = [
    "function hasParticipated(uint256 roundId, address player) external view returns (bool)",
    "function settlementBonus() external view returns (uint256)",
   "function settlementBonusPool() external view returns (uint256)",
-  "function pendingPlatformWallet() external view returns (address)",
-  "function platformWalletChangeTime() external view returns (uint256)",
-  "function emergencyWithdrawRequested() external view returns (bool)",
-  "function emergencyWithdrawRequestTime() external view returns (uint256)",
-  "function TIMELOCK_DURATION() external pure returns (uint256)",
    // 常量
    "function ROUND_DURATION() external pure returns (uint256)",
    "function BID_INCREMENT() external pure returns (uint256)",
@@ -167,10 +162,7 @@ export const CYBER_TOKEN_ABI = [
    "event PrizePoolFunded(address indexed funder, uint256 amount)",
    "event EmergencyWithdraw(address indexed to, uint256 amount)",
    "event SettlementBonusPaid(address indexed settler, uint256 amount)",
-  "event PlatformWalletChangeRequested(address indexed newWallet, uint256 executeTime)",
   "event PlatformWalletChanged(address indexed oldWallet, address indexed newWallet)",
-  "event EmergencyWithdrawRequested(uint256 executeTime)",
-  "event EmergencyWithdrawCancelled()",
   "event SettlementBonusPoolFunded(uint256 amount)",
  ] as const;
  
