@@ -830,9 +830,11 @@ export function ChainGame() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <Flame className="w-6 h-6" />
-                    {bidAmount && Number(bidAmount) >= minBidNum
-                      ? `出价 ${Number(bidAmount).toLocaleString()} 代币`
-                      : '我要出价'}
+                    {!isConnected
+                      ? '连接钱包后出价'
+                      : bidAmount && Number(bidAmount) >= minBidNum
+                        ? `出价 ${Number(bidAmount).toLocaleString()} 代币`
+                        : '我要出价'}
                   </span>
                 )}
               </Button>
