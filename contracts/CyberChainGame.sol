@@ -24,6 +24,7 @@
      // ============ 常量 ============
      uint256 public constant ROUND_DURATION = 1 hours;
      uint256 public constant BID_INCREMENT = 10; // 10% 加价
+     uint256 public constant PLATFORM_RATE = 5; // 5% 平台费（结算时扣除）
      uint256 public constant MIN_FIRST_BID = 10000 * 1e18; // 首次最低出价 10000 代币
  
      // 动态奖励比例（按参与人数）
@@ -79,6 +80,7 @@
          uint256 indexed roundId,
          address indexed winner,
          uint256 prize,
+         uint256 platformFee,
          uint256 participants,
          uint8 winnerRate
      );
@@ -238,13 +240,22 @@
              // 计算动态奖励比例
              uint8 winnerRate = _getWinnerRate(uint16(currentRound.participants.length));
              
-             // 计算赢家奖励
-             uint256 winnerPrize = currentRound.prizePool * winnerRate / 100;
-             uint256 rollover = currentRound.prizePool - winnerPrize;
+             // 计算赢家奖励（按动态比例）
+             uint256 grossPrize = currentRound.prizePool * winnerRate / 100;
+             
+             // 扣除5%平台费
+             uint256 platformFee = grossPrize * PLATFORM_RATE / 100;
+             uint256 winnerPrize = grossPrize - platformFee;
+             uint256 rollover = currentRound.prizePool - grossPrize;
  
              // 发放赢家奖励
              pendingRewards[currentRound.currentHolder] += winnerPrize;
              playerWins[currentRound.currentHolder]++;
+ 
+             // 平台费
+             if (platformFee > 0) {
+                 pendingRewards[platformWallet] += platformFee;
+             }
  
              // 滚存到下一轮
              currentRound.prizePool = rollover;
@@ -253,12 +264,13 @@
                  currentRound.roundId,
                  currentRound.currentHolder,
                  winnerPrize,
+                 platformFee,
                  currentRound.participants.length,
                  winnerRate
              );
          } else {
              // 无人参与，奖池全部滚存
-             emit RoundSettled(currentRound.roundId, address(0), 0, 0, 0);
+             emit RoundSettled(currentRound.roundId, address(0), 0, 0, 0, 0);
          }
      }
  
