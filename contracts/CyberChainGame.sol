@@ -26,7 +26,7 @@
      using SafeERC20 for IERC20;
  
      // ============ 常量 ============
-     uint256 public constant ROUND_DURATION = 1 hours;
+    uint256 public constant ROUND_DURATION = 30 minutes;
      uint256 public constant BID_INCREMENT = 10; // 10% 加价
      uint256 public constant PLATFORM_RATE = 5; // 5% 平台费
      uint256 public constant MIN_FIRST_BID = 10000 * 1e18; // 首次最低 10000 代币
