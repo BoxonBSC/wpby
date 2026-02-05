@@ -146,8 +146,8 @@ export const CYBER_TOKEN_ABI = [
    "function tokenReceivers(uint8 index) external view returns (address)",
    "function currentReceiverIndex() external view returns (uint8)",
    "function getAllTokenReceivers() external view returns (address[3])",
+   "function roundDuration() external view returns (uint256)",
    // 常量
-   "function ROUND_DURATION() external pure returns (uint256)",
    "function BID_INCREMENT() external pure returns (uint256)",
    "function PLATFORM_RATE() external pure returns (uint256)",
    "function MIN_FIRST_BID() external pure returns (uint256)",
@@ -169,6 +169,7 @@ export const CYBER_TOKEN_ABI = [
   "event SettlementBonusPoolFunded(uint256 amount)",
    "event TokenReceiverChanged(uint8 indexed index, address indexed oldReceiver, address indexed newReceiver)",
    "event TokenReceived(address indexed receiver, uint256 amount)",
+   "event RoundDurationChanged(uint256 oldDuration, uint256 newDuration)",
  ] as const;
  
 export const SYMBOL_MAP: Record<number, string> = {
