@@ -564,7 +564,7 @@ export function ChainGame() {
                    当前出价
                 </div>
                  <div className="text-xl font-bold text-orange-400">{currentBidFormatted}</div>
-                <div className="text-xs text-slate-500">代币 (销毁)</div>
+               <div className="text-xs text-slate-500">代币</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
@@ -629,7 +629,7 @@ export function ChainGame() {
                
               {!isEnded && (
                 <p className="text-center text-sm text-slate-500 mt-3">
-                   🔥 接盘消耗代币（永久销毁）· 赢取 {prizePoolBNB.toFixed(4)} BNB 奖池
+                  🔥 代币进入【回购销毁基金】· 赢取 {prizePoolBNB.toFixed(4)} BNB 奖池
                 </p>
               )}
             </div>
