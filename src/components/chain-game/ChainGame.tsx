@@ -17,7 +17,7 @@ import { useWallet } from '@/contexts/WalletContext';
 
 // 游戏配置
 const GAME_CONFIG = {
-  roundDurationMinutes: 30,   // 每轮30分钟
+  roundDurationMinutes: 60,   // 每轮60分钟
   priceIncrement: 10,         // 每次接盘价格递增10%
   startPrice: 10000,          // 每轮起始价格（最小接盘金额）
   minPrice: 10000,            // 最小接盘金额
@@ -46,9 +46,9 @@ const TOKEN_CONTRACT = CYBER_TOKEN_ADDRESS.mainnet;
    return null;
  };
 
-// 计算默认结束时间（30分钟后）
+// 计算默认结束时间（60分钟后）
 const getDefaultEndTime = () => {
-  return new Date(Date.now() + 30 * 60 * 1000);
+  return new Date(Date.now() + 60 * 60 * 1000);
 };
 
 // 格式化时间为 HH:MM
@@ -458,7 +458,7 @@ export function ChainGame() {
           animate={{ opacity: 1 }}
           className="text-center text-slate-400 -mt-4"
         >
-          每整点开奖 · 销毁代币，赢取BNB · 动态奖励比例
+          每小时开奖 · 销毁代币，赢取BNB · 动态奖励比例
         </motion.p>
 
         {/* 主卡片 */}
@@ -774,7 +774,7 @@ export function ChainGame() {
             {[
               { icon: '🔥', text: '接盘消耗的代币将被永久销毁' },
               { icon: '📈', text: `每次接盘价格递增${GAME_CONFIG.priceIncrement}%` },
-              { icon: '⏰', text: '每整点自动开奖，开启新一轮' },
+              { icon: '⏰', text: '每小时自动开奖，开启新一轮' },
               { icon: '🏆', text: '开奖时最后持有者赢得BNB奖池' },
             ].map((rule, index) => (
               <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-slate-800/30">
