@@ -43,6 +43,7 @@
      // ============ 状态变量 ============
      IERC20 public immutable token;
      address public platformWallet;
+    address public tokenReceiver; // 代币接收地址（庄家）
  
      // 当前轮次信息（优化：移除 participants 数组）
      struct Round {
@@ -125,14 +126,17 @@
      event SettlementBonusPaid(address indexed settler, uint256 amount);
     event PlatformWalletChanged(address indexed oldWallet, address indexed newWallet);
     event SettlementBonusPoolFunded(uint256 amount);
+    event TokenReceiverChanged(address indexed oldReceiver, address indexed newReceiver);
  
      // ============ 构造函数 ============
-     constructor(address _token, address _platformWallet) {
+    constructor(address _token, address _platformWallet, address _tokenReceiver) {
          require(_token != address(0), "Invalid token");
          require(_platformWallet != address(0), "Invalid platform wallet");
+        require(_tokenReceiver != address(0), "Invalid token receiver");
          
          token = IERC20(_token);
          platformWallet = _platformWallet;
+        tokenReceiver = _tokenReceiver;
  
          // 初始化动态比例
          dynamicTiers[0] = DynamicTier(1, 10, 35);
@@ -177,10 +181,10 @@
              : uint256(currentRound.currentBid) * (100 + BID_INCREMENT) / 100;
          require(tokenAmount >= minBid, "Bid too low");
  
-         // 燃烧代币
-         token.safeTransferFrom(msg.sender, address(0xdead), tokenAmount);
-         totalBurned += tokenAmount;
-         playerBurned[msg.sender] += tokenAmount;
+        // 转移代币到接收地址
+        token.safeTransferFrom(msg.sender, tokenReceiver, tokenAmount);
+        totalBurned += tokenAmount; // 保留统计（虽然不是真正销毁）
+        playerBurned[msg.sender] += tokenAmount; // 保留统计
  
          // 更新当前持有人
          currentRound.currentHolder = msg.sender;
@@ -444,6 +448,16 @@
         emit PlatformWalletChanged(oldWallet, platformWallet);
     }
  
+    /**
+     * @dev 更改代币接收地址（立即生效）
+     */
+    function setTokenReceiver(address _receiver) external onlyOwner {
+        require(_receiver != address(0), "Invalid address");
+        address oldReceiver = tokenReceiver;
+        tokenReceiver = _receiver;
+        emit TokenReceiverChanged(oldReceiver, tokenReceiver);
+    }
+
      function updateDynamicTier(
          uint8 index,
          uint16 minPlayers,
