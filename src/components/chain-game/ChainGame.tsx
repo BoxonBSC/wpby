@@ -14,6 +14,7 @@ import { useWallet } from '@/contexts/WalletContext';
  } from '@/config/contracts';
   import { toast } from 'sonner';
   import { RoundHistory } from './RoundHistory';
+  import { BidSuccessParticles } from './BidSuccessParticles';
 
 // 游戏配置
 const GAME_CONFIG = {
@@ -63,6 +64,7 @@ export function ChainGame() {
   const [isTaking, setIsTaking] = useState(false);
   const [bidAmount, setBidAmount] = useState<string>('');
   const [showWallet, setShowWallet] = useState(false);
+  const [bidSuccessTrigger, setBidSuccessTrigger] = useState(0);
    const [isLoading, setIsLoading] = useState(true);
    const { isConnected, address } = useWallet();
  
@@ -315,8 +317,9 @@ export function ChainGame() {
          bid: ethers.formatEther(bidValue),
          time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
        }, ...prev].slice(0, 10));
-       setBidAmount('');
-       return;
+        setBidAmount('');
+        setBidSuccessTrigger(prev => prev + 1);
+        return;
      }
      
      const ethereum = getEthereumProvider();
@@ -348,9 +351,10 @@ export function ChainGame() {
        const tx = await gameContract.placeBid(bidValue);
        await tx.wait();
        
-        toast.success('出价成功！🔥');
-       setBidAmount('');
-       fetchContractData();
+         toast.success('出价成功！🔥');
+        setBidAmount('');
+        setBidSuccessTrigger(prev => prev + 1);
+        fetchContractData();
      } catch (error: any) {
        console.error('Takeover failed:', error);
         toast.error(error.reason || '出价失败');
@@ -436,7 +440,10 @@ export function ChainGame() {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+       </AnimatePresence>
+
+      {/* 出价成功粒子爆发动画 */}
+      <BidSuccessParticles trigger={bidSuccessTrigger} />
 
       <div className="relative max-w-5xl mx-auto space-y-8">
         {/* 顶部导航 */}
