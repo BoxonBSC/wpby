@@ -12,7 +12,8 @@ import { useWallet } from '@/contexts/WalletContext';
    CYBER_TOKEN_ABI,
    CHAIN_GAME_DYNAMIC_TIERS 
  } from '@/config/contracts';
- import { toast } from 'sonner';
+  import { toast } from 'sonner';
+  import { RoundHistory } from './RoundHistory';
 
 // 游戏配置
 const GAME_CONFIG = {
@@ -725,7 +726,10 @@ export function ChainGame() {
                ))}
              </div>
            </motion.div>
-         )}
+          )}
+
+        {/* 中奖记录 */}
+        <RoundHistory currentRoundId={roundData.roundId} />
 
         {/* 经济模型说明 */}
         <motion.div
