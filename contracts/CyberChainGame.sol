@@ -97,6 +97,16 @@
  
      // 结算补贴（补偿首个出价者的结算 Gas）
      uint256 public settlementBonus = 0.001 ether;
+    uint256 public settlementBonusPool; // 独立的结算补贴池
+ 
+    // 时间锁机制
+    uint256 public constant TIMELOCK_DURATION = 2 days;
+    address public pendingPlatformWallet;
+    uint256 public platformWalletChangeTime;
+ 
+    // 紧急提款冷却
+    uint256 public emergencyWithdrawRequestTime;
+    bool public emergencyWithdrawRequested;
  
      // ============ 事件 ============
      event RoundStarted(uint256 indexed roundId, uint64 startTime, uint64 endTime);
@@ -122,6 +132,11 @@
      event PrizePoolFunded(address indexed funder, uint256 amount);
      event EmergencyWithdraw(address indexed to, uint256 amount);
      event SettlementBonusPaid(address indexed settler, uint256 amount);
+    event PlatformWalletChangeRequested(address indexed newWallet, uint256 executeTime);
+    event PlatformWalletChanged(address indexed oldWallet, address indexed newWallet);
+    event EmergencyWithdrawRequested(uint256 executeTime);
+    event EmergencyWithdrawCancelled();
+    event SettlementBonusPoolFunded(uint256 amount);
  
      // ============ 构造函数 ============
      constructor(address _token, address _platformWallet) {
@@ -206,10 +221,14 @@
          );
          
          // 补偿结算 Gas
-         if (didSettle && settlementBonus > 0 && address(this).balance >= settlementBonus) {
-             (bool bonusSuccess, ) = payable(msg.sender).call{value: settlementBonus}("");
+        if (didSettle && settlementBonus > 0 && settlementBonusPool >= settlementBonus) {
+            settlementBonusPool -= settlementBonus;
+            (bool bonusSuccess, ) = payable(msg.sender).call{value: settlementBonus}("");
              if (bonusSuccess) {
                  emit SettlementBonusPaid(msg.sender, settlementBonus);
+            } else {
+                // 退回到补贴池
+                settlementBonusPool += settlementBonus;
              }
          }
      }
@@ -427,9 +446,36 @@
  
      // ============ 管理函数 ============
  
-     function setPlatformWallet(address _wallet) external onlyOwner {
-         require(_wallet != address(0), "Invalid address");
-         platformWallet = _wallet;
+    /**
+     * @dev 请求更改平台钱包（时间锁）
+     */
+    function requestPlatformWalletChange(address _wallet) external onlyOwner {
+        require(_wallet != address(0), "Invalid address");
+        pendingPlatformWallet = _wallet;
+        platformWalletChangeTime = block.timestamp + TIMELOCK_DURATION;
+        emit PlatformWalletChangeRequested(_wallet, platformWalletChangeTime);
+    }
+ 
+    /**
+     * @dev 执行平台钱包变更（时间锁后）
+     */
+    function executePlatformWalletChange() external onlyOwner {
+        require(pendingPlatformWallet != address(0), "No pending change");
+        require(block.timestamp >= platformWalletChangeTime, "Timelock not expired");
+        
+        address oldWallet = platformWallet;
+        platformWallet = pendingPlatformWallet;
+        pendingPlatformWallet = address(0);
+        
+        emit PlatformWalletChanged(oldWallet, platformWallet);
+    }
+ 
+    /**
+     * @dev 取消平台钱包变更
+     */
+    function cancelPlatformWalletChange() external onlyOwner {
+        pendingPlatformWallet = address(0);
+        platformWalletChangeTime = 0;
      }
  
      function updateDynamicTier(
@@ -451,6 +497,15 @@
          settlementBonus = _bonus;
      }
  
+    /**
+     * @dev 为结算补贴池注资
+     */
+    function fundSettlementBonusPool() external payable onlyOwner {
+        require(msg.value > 0, "No value");
+        settlementBonusPool += msg.value;
+        emit SettlementBonusPoolFunded(msg.value);
+    }
+ 
      /**
       * @dev 暂停合约
       */
@@ -465,10 +520,39 @@
          _unpause();
      }
  
-     function emergencyWithdraw() external onlyOwner {
+    /**
+     * @dev 请求紧急提款（需等待时间锁）
+     */
+    function requestEmergencyWithdraw() external onlyOwner {
+        require(!emergencyWithdrawRequested, "Already requested");
+        emergencyWithdrawRequested = true;
+        emergencyWithdrawRequestTime = block.timestamp + TIMELOCK_DURATION;
+        _pause(); // 自动暂停合约
+        emit EmergencyWithdrawRequested(emergencyWithdrawRequestTime);
+    }
+ 
+    /**
+     * @dev 取消紧急提款请求
+     */
+    function cancelEmergencyWithdraw() external onlyOwner {
+        require(emergencyWithdrawRequested, "No request");
+        emergencyWithdrawRequested = false;
+        emergencyWithdrawRequestTime = 0;
+        emit EmergencyWithdrawCancelled();
+    }
+ 
+    /**
+     * @dev 执行紧急提款（时间锁后）
+     */
+    function executeEmergencyWithdraw() external onlyOwner {
+        require(emergencyWithdrawRequested, "Not requested");
+        require(block.timestamp >= emergencyWithdrawRequestTime, "Timelock not expired");
+        
          uint256 balance = address(this).balance;
          require(balance > 0, "No balance");
          
+        emergencyWithdrawRequested = false;
+        
          (bool success, ) = payable(owner()).call{value: balance}("");
          require(success, "Transfer failed");
          
