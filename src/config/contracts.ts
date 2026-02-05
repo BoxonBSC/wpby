@@ -15,6 +15,12 @@ export const CYBER_HILO_ADDRESS = {
   testnet: '0x0000000000000000000000000000000000000000',
 };
 
+ // CyberChainGame 击鼓传花合约地址（部署后更新）
+ export const CYBER_CHAIN_GAME_ADDRESS = {
+   mainnet: '0x0000000000000000000000000000000000000000', // 待部署
+   testnet: '0x0000000000000000000000000000000000000000',
+ };
+ 
 // CYBER 代币合约地址（待部署后更新）
 export const CYBER_TOKEN_ADDRESS = {
   mainnet: '0x23064e69e049eb1ee040c7068ce0b5fc4b107777',
@@ -114,6 +120,38 @@ export const CYBER_TOKEN_ABI = [
   "function name() external view returns (string)",
 ] as const;
 
+ // CyberChainGame 击鼓传花 ABI
+ export const CYBER_CHAIN_GAME_ABI = [
+   // 核心游戏函数
+   "function placeBid(uint256 tokenAmount) external",
+   "function settleRound() external",
+   "function claimRewards() external",
+   // 查询函数
+   "function getCurrentRound() external view returns (uint256 roundId, uint256 startTime, uint256 endTime, uint256 prizePool, uint256 currentBid, address currentHolder, uint256 participantCount, bool settled)",
+   "function getParticipants() external view returns (address[])",
+   "function getTimeRemaining() external view returns (uint256)",
+   "function getMinBid() external view returns (uint256)",
+   "function getPlayerStats(address player) external view returns (uint256 wins, uint256 earnings, uint256 burned, uint256 pending)",
+   "function getCurrentWinnerRate() external view returns (uint8)",
+   "function pendingRewards(address player) external view returns (uint256)",
+   "function totalRounds() external view returns (uint256)",
+   "function totalBurned() external view returns (uint256)",
+   "function totalPaidOut() external view returns (uint256)",
+   // 常量
+   "function ROUND_DURATION() external pure returns (uint256)",
+   "function BID_INCREMENT() external pure returns (uint256)",
+   "function PLATFORM_RATE() external pure returns (uint256)",
+   "function MIN_FIRST_BID() external pure returns (uint256)",
+   // 动态比例
+   "function dynamicTiers(uint256 index) external view returns (uint16 minPlayers, uint16 maxPlayers, uint8 winnerRate)",
+   // 事件
+   "event RoundStarted(uint256 indexed roundId, uint256 startTime, uint256 endTime)",
+   "event BidPlaced(uint256 indexed roundId, address indexed player, uint256 tokensBurned, uint256 newBid)",
+   "event RoundSettled(uint256 indexed roundId, address indexed winner, uint256 prize, uint256 platformFee, uint256 participants, uint8 winnerRate)",
+   "event RewardClaimed(address indexed player, uint256 amount)",
+   "event PrizePoolFunded(address indexed funder, uint256 amount)",
+ ] as const;
+ 
 export const SYMBOL_MAP: Record<number, string> = {
   0: '7️⃣',
   1: '💎',
@@ -157,3 +195,12 @@ export const HILO_REWARD_PERCENTAGES = [
   20, 40, 80, 150, 300, 500,     // 1-6连胜
   1000, 1800, 3000, 5000, 7000, 10000, // 7-12连胜
 ];
+ 
+ // Chain Game 动态比例配置
+ export const CHAIN_GAME_DYNAMIC_TIERS = [
+   { minPlayers: 1, maxPlayers: 10, winnerRate: 35, label: '🥶 冷启动' },
+   { minPlayers: 11, maxPlayers: 20, winnerRate: 42, label: '🌱 萌芽期' },
+   { minPlayers: 21, maxPlayers: 30, winnerRate: 48, label: '🔥 活跃期' },
+   { minPlayers: 31, maxPlayers: 40, winnerRate: 54, label: '🚀 热门期' },
+   { minPlayers: 41, maxPlayers: Infinity, winnerRate: 60, label: '💎 爆发期' },
+ ];
