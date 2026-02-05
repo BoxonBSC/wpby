@@ -630,7 +630,7 @@ export function ChainGame() {
             </div>
 
             {/* 数据卡片 */}
-            <div className={`grid grid-cols-2 ${Number(playerStats.pending) > 0 ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-8`}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
                   <Coins className="w-4 h-4 text-orange-400" />
@@ -650,32 +650,77 @@ export function ChainGame() {
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                 <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
                   <Trophy className="w-4 h-4 text-yellow-400" />
-                  BNB 奖池
+                  BNB 总奖池
                 </div>
                  <div className="text-xl font-bold text-yellow-400">{prizePoolBNB.toFixed(4)}</div>
                 <div className="text-xs text-slate-500">BNB</div>
               </div>
-              {/* 待领取 - 仅在有待领取奖励时显示 */}
-              {Number(playerStats.pending) > 0 && (
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="p-4 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.15)]"
-                >
-                  <div className="flex items-center gap-2 text-cyan-400 text-sm mb-1">
-                    <Flame className="w-4 h-4 text-cyan-400 animate-pulse" />
-                    待领取奖励
-                  </div>
-                  <div className="text-xl font-bold text-cyan-400">{Number(playerStats.pending).toFixed(4)}</div>
-                  <button
-                    onClick={handleClaimRewards}
-                    className="mt-1 text-xs font-medium text-cyan-300 hover:text-white underline underline-offset-2 transition-colors"
-                  >
-                    立即领取 →
-                  </button>
-                </motion.div>
-              )}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/40">
+                <div className="flex items-center gap-2 text-yellow-400 text-sm mb-1">
+                  <Zap className="w-4 h-4 text-yellow-400" />
+                  本轮可得奖金
+                </div>
+                <div className="text-xl font-bold text-yellow-300">{winnerAmount}</div>
+                <div className="text-xs text-slate-500">
+                  {currentTier.label} · {currentTier.winnerRate}% · {roundData.participantCount}人
+                </div>
+              </div>
             </div>
+
+            {/* 奖金阶梯预览 */}
+            <div className="mb-8 p-3 rounded-xl bg-slate-800/30 border border-slate-700/30">
+              <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                <Users className="w-3.5 h-3.5" />
+                <span>参与人数越多，赢家奖金越高</span>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {CHAIN_GAME_DYNAMIC_TIERS.map((tier) => {
+                  const isActive = roundData.participantCount >= tier.minPlayers && 
+                    roundData.participantCount <= (tier.maxPlayers === Infinity ? 9999 : tier.maxPlayers);
+                  const tierGross = prizePoolBNB * tier.winnerRate / 100;
+                  const tierNet = (tierGross - tierGross * GAME_CONFIG.platformFee / 100).toFixed(4);
+                  return (
+                    <div
+                      key={tier.minPlayers}
+                      className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-center transition-all ${
+                        isActive
+                          ? 'bg-yellow-500/15 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.15)]'
+                          : 'bg-slate-800/40 border border-slate-700/30'
+                      }`}
+                    >
+                      <span className="text-xs">{tier.label}</span>
+                      <span className={`text-sm font-bold ${isActive ? 'text-yellow-300' : 'text-slate-400'}`}>
+                        {tierNet} BNB
+                      </span>
+                      <span className="text-[10px] text-slate-600">
+                        {tier.minPlayers}-{tier.maxPlayers === Infinity ? '∞' : tier.maxPlayers}人 · {tier.winnerRate}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 待领取 - 仅在有待领取奖励时显示 */}
+            {Number(playerStats.pending) > 0 && (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="mb-8 p-4 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.15)] max-w-md mx-auto text-center"
+              >
+                <div className="flex items-center justify-center gap-2 text-cyan-400 text-sm mb-1">
+                  <Flame className="w-4 h-4 text-cyan-400 animate-pulse" />
+                  待领取奖励
+                </div>
+                <div className="text-xl font-bold text-cyan-400">{Number(playerStats.pending).toFixed(4)} BNB</div>
+                <button
+                  onClick={handleClaimRewards}
+                  className="mt-2 px-4 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 hover:text-white border border-cyan-500/40 transition-colors"
+                >
+                  立即领取 →
+                </button>
+              </motion.div>
+            )}
 
              {/* 出价输入区 */}
              <div className="max-w-md mx-auto space-y-3">
