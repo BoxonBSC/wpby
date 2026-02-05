@@ -45,12 +45,9 @@ const TOKEN_CONTRACT = CYBER_TOKEN_ADDRESS.mainnet;
    return null;
  };
 
-// 计算下一个整点时间
-const getNextHourTime = () => {
-  const now = new Date();
-  const next = new Date(now);
-  next.setHours(next.getHours() + 1, 0, 0, 0);
-  return next;
+// 计算默认结束时间（30分钟后）
+const getDefaultEndTime = () => {
+  return new Date(Date.now() + 30 * 60 * 1000);
 };
 
 // 格式化时间为 HH:MM
@@ -60,7 +57,7 @@ const formatHourMinute = (date: Date) => {
 
 export function ChainGame() {
   const [timeLeft, setTimeLeft] = useState(0);
-  const [nextDrawTime, setNextDrawTime] = useState(getNextHourTime());
+  const [nextDrawTime, setNextDrawTime] = useState(getDefaultEndTime());
   const [isEnded, setIsEnded] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
@@ -75,6 +72,7 @@ export function ChainGame() {
      prizePool: BigInt(0),
      participantCount: 0,
      minBid: BigInt(0),
+    settled: false,
    });
    const [bidHistory, setBidHistory] = useState<Array<{ address: string; bid: string; time: string }>>([]);
    const [playerStats, setPlayerStats] = useState({ wins: 0, earnings: '0', burned: '0', pending: '0' });
@@ -123,11 +121,20 @@ export function ChainGame() {
          prizePool: prizePool,
          participantCount: Number(participantCount),
          minBid: minBid,
+        settled: settled,
        });
        
        // 更新结束时间
        const endDate = new Date(Number(endTime) * 1000);
        setNextDrawTime(endDate);
+      
+      // 根据合约状态更新isEnded
+      const now = Date.now();
+      if (now >= endDate.getTime() && !settled && Number(participantCount) > 0) {
+        setIsEnded(true);
+      } else {
+        setIsEnded(false);
+      }
        
       // 获取最近出价记录
       try {
@@ -229,13 +236,11 @@ export function ChainGame() {
       const now = new Date();
       const diff = Math.max(0, Math.floor((nextDrawTime.getTime() - now.getTime()) / 1000));
       
-      if (diff <= 0) {
-        setIsEnded(true);
-        // 自动开启下一轮
-        setTimeout(() => {
-          setNextDrawTime(getNextHourTime());
-          setIsEnded(false);
-        }, 5000);
+     // 只有倒计时结束且有参与者且未结算时才显示结束状态
+     if (diff <= 0 && roundData.participantCount > 0 && !roundData.settled) {
+       setIsEnded(true);
+     } else if (diff > 0) {
+       setIsEnded(false);
       }
       
       setTimeLeft(diff);
@@ -244,7 +249,7 @@ export function ChainGame() {
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, [nextDrawTime]);
+  }, [nextDrawTime, roundData.participantCount, roundData.settled]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -358,6 +363,7 @@ export function ChainGame() {
          prizePool: ethers.parseEther('2.5'), // 演示：2.5 BNB
          participantCount: 0,
          minBid: ethers.parseEther('10000'), // 10000 代币
+        settled: false,
        });
        setIsLoading(false);
      }
