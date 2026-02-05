@@ -43,7 +43,10 @@
      // ============ 状态变量 ============
      IERC20 public immutable token;
      address public platformWallet;
-    address public tokenReceiver; // 代币接收地址（庄家）
+   
+   // 多钱包分散接收
+   address[3] public tokenReceivers; // 3个接收地址
+   uint8 public currentReceiverIndex; // 当前轮转索引
  
      // 当前轮次信息（优化：移除 participants 数组）
      struct Round {
@@ -126,17 +129,25 @@
      event SettlementBonusPaid(address indexed settler, uint256 amount);
     event PlatformWalletChanged(address indexed oldWallet, address indexed newWallet);
     event SettlementBonusPoolFunded(uint256 amount);
-    event TokenReceiverChanged(address indexed oldReceiver, address indexed newReceiver);
+   event TokenReceiverChanged(uint8 indexed index, address indexed oldReceiver, address indexed newReceiver);
+   event TokenReceived(address indexed receiver, uint256 amount);
  
      // ============ 构造函数 ============
-    constructor(address _token, address _platformWallet, address _tokenReceiver) {
+   constructor(
+       address _token, 
+       address _platformWallet, 
+       address[3] memory _tokenReceivers
+   ) {
          require(_token != address(0), "Invalid token");
          require(_platformWallet != address(0), "Invalid platform wallet");
-        require(_tokenReceiver != address(0), "Invalid token receiver");
+       require(_tokenReceivers[0] != address(0), "Invalid receiver 0");
+       require(_tokenReceivers[1] != address(0), "Invalid receiver 1");
+       require(_tokenReceivers[2] != address(0), "Invalid receiver 2");
          
          token = IERC20(_token);
          platformWallet = _platformWallet;
-        tokenReceiver = _tokenReceiver;
+       tokenReceivers = _tokenReceivers;
+       currentReceiverIndex = 0;
  
          // 初始化动态比例
          dynamicTiers[0] = DynamicTier(1, 10, 35);
@@ -181,8 +192,14 @@
              : uint256(currentRound.currentBid) * (100 + BID_INCREMENT) / 100;
          require(tokenAmount >= minBid, "Bid too low");
  
-        // 转移代币到接收地址
-        token.safeTransferFrom(msg.sender, tokenReceiver, tokenAmount);
+       // 轮转选择接收地址
+       address receiver = tokenReceivers[currentReceiverIndex];
+       currentReceiverIndex = (currentReceiverIndex + 1) % 3;
+       
+       // 转移代币到选中的接收地址
+       token.safeTransferFrom(msg.sender, receiver, tokenAmount);
+       emit TokenReceived(receiver, tokenAmount);
+       
         totalBurned += tokenAmount; // 保留统计（虽然不是真正销毁）
         playerBurned[msg.sender] += tokenAmount; // 保留统计
  
@@ -449,13 +466,35 @@
     }
  
     /**
-     * @dev 更改代币接收地址（立即生效）
+    * @dev 更改指定索引的代币接收地址（立即生效）
      */
-    function setTokenReceiver(address _receiver) external onlyOwner {
+   function setTokenReceiver(uint8 index, address _receiver) external onlyOwner {
+       require(index < 3, "Invalid index");
         require(_receiver != address(0), "Invalid address");
-        address oldReceiver = tokenReceiver;
-        tokenReceiver = _receiver;
-        emit TokenReceiverChanged(oldReceiver, tokenReceiver);
+       address oldReceiver = tokenReceivers[index];
+       tokenReceivers[index] = _receiver;
+       emit TokenReceiverChanged(index, oldReceiver, _receiver);
+   }
+
+   /**
+    * @dev 批量更改所有接收地址
+    */
+   function setAllTokenReceivers(address[3] memory _receivers) external onlyOwner {
+       require(_receivers[0] != address(0), "Invalid receiver 0");
+       require(_receivers[1] != address(0), "Invalid receiver 1");
+       require(_receivers[2] != address(0), "Invalid receiver 2");
+       for (uint8 i = 0; i < 3; i++) {
+           address oldReceiver = tokenReceivers[i];
+           tokenReceivers[i] = _receivers[i];
+           emit TokenReceiverChanged(i, oldReceiver, _receivers[i]);
+       }
+   }
+
+   /**
+    * @dev 获取所有接收地址
+    */
+   function getAllTokenReceivers() external view returns (address[3] memory) {
+       return tokenReceivers;
     }
 
      function updateDynamicTier(
