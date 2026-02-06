@@ -238,10 +238,17 @@ export function ChainGame() {
 
   useEffect(() => {
     const updateCountdown = () => {
+      // 无人参与时，始终显示满轮时间（30分钟）
+      if (roundData.participantCount === 0) {
+        setTimeLeft(GAME_CONFIG.roundDurationMinutes * 60);
+        setIsEnded(false);
+        return;
+      }
+
       const now = new Date();
       const diff = Math.max(0, Math.floor((nextDrawTime.getTime() - now.getTime()) / 1000));
       
-      if (diff <= 0 && roundData.participantCount > 0 && !roundData.settled) {
+      if (diff <= 0 && !roundData.settled) {
         setIsEnded(true);
       } else if (diff > 0) {
         setIsEnded(false);
@@ -542,7 +549,7 @@ export function ChainGame() {
                     transition={isLastFiveMinutes ? { duration: timeLeft <= 60 ? 0.5 : 1.5, repeat: Infinity } : {}}
                   >
                     <Flame className="w-3 h-3 inline mr-1" />
-                    {timeLeft <= 60 ? '🔥 最后一分钟' : isLastFiveMinutes ? '⚡ 最后冲刺' : '竞拍进行中'}
+                    {roundData.participantCount === 0 ? '⏳ 等待首位出价' : timeLeft <= 60 ? '🔥 最后一分钟' : isLastFiveMinutes ? '⚡ 最后冲刺' : '竞拍进行中'}
                   </motion.span>
                   <span className="text-[11px] text-neutral-600">{roundData.participantCount} 人参与</span>
                   {hasParticipated && isConnected && (
@@ -583,7 +590,7 @@ export function ChainGame() {
                             <CalendarClock className={`w-3.5 h-3.5 ${isLastFiveMinutes ? (timeLeft <= 60 ? 'text-red-400' : 'text-violet-400') : 'text-neutral-600'}`} />
                           </motion.div>
                           <span className={`text-xs font-medium ${isLastFiveMinutes ? (timeLeft <= 60 ? 'text-red-400' : 'text-violet-300') : 'text-neutral-600'}`}>
-                            {timeLeft <= 60 ? '🔥 最后倒计时！' : isLastFiveMinutes ? '⚡ 最后冲刺' : '距离开奖'}
+                            {roundData.participantCount === 0 ? '首位出价后开始倒计时' : timeLeft <= 60 ? '🔥 最后倒计时！' : isLastFiveMinutes ? '⚡ 最后冲刺' : '距离开奖'}
                           </span>
                           <span className="text-xs text-violet-400/80 font-medium ml-auto">
                             开奖 {formatHourMinute(nextDrawTime)}
