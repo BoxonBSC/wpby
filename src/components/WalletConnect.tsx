@@ -64,12 +64,12 @@ export function WalletConnect() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-sm relative p-5 rounded-2xl bg-stone-900 border border-stone-700"
+            className="w-full max-w-sm relative p-5 rounded-2xl bg-neutral-900 border border-neutral-700"
             onClick={e => e.stopPropagation()}
           >
             <button
               onClick={() => setShowWalletSelector(false)}
-              className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-white/5 transition-colors text-stone-400"
+              className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-white/5 transition-colors text-neutral-400"
             >
               <X className="w-5 h-5" />
             </button>
@@ -87,12 +87,12 @@ export function WalletConnect() {
                   disabled={!wallet.detected && wallet.id !== 'metamask'}
                   whileHover={{ scale: wallet.detected ? 1.02 : 1 }}
                   whileTap={{ scale: wallet.detected ? 0.98 : 1 }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl transition-all bg-stone-800/50 border border-stone-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl transition-all bg-neutral-800/50 border border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <WalletIcon wallet={wallet} />
                   <div className="flex-1 text-left">
                     <div className="text-white">{wallet.name}</div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-neutral-500">
                        {wallet.detected ? '已检测到' : '未安装'}
                     </div>
                   </div>
@@ -104,7 +104,7 @@ export function WalletConnect() {
             </div>
             
             {/* WalletConnect */}
-            <div className="mt-4 pt-4 border-t border-stone-700">
+            <div className="mt-4 pt-4 border-t border-neutral-700">
               <motion.button
                 onClick={handleWalletConnectClick}
                 whileHover={{ scale: 1.02 }}
@@ -117,7 +117,7 @@ export function WalletConnect() {
                     WalletConnect
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20">扫码</span>
                   </div>
-                  <div className="text-xs flex items-center gap-1 text-stone-500">
+                  <div className="text-xs flex items-center gap-1 text-neutral-500">
                     <Smartphone className="w-3 h-3" />
                     手机钱包
                   </div>
@@ -155,14 +155,14 @@ export function WalletConnect() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl p-4 bg-stone-900/80 border border-stone-700"
+        className="rounded-xl p-4 bg-neutral-900/80 border border-neutral-700"
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full animate-pulse bg-green-400" />
             <span className="text-sm text-green-400">已连接</span>
             {walletInfo && (
-              <span className="text-sm flex items-center gap-1 text-stone-400">
+              <span className="text-sm flex items-center gap-1 text-neutral-400">
                 <WalletIcon wallet={walletInfo} size="sm" />
                 {walletInfo.name.split(' ')[0]}
               </span>
@@ -171,7 +171,7 @@ export function WalletConnect() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => { disconnect(); setTimeout(() => setShowWalletSelector(true), 100); }}
-              className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors bg-stone-800 text-stone-300 hover:bg-stone-700"
+              className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
             >
               <Wallet className="w-3 h-3" />
               切换
@@ -191,16 +191,16 @@ export function WalletConnect() {
             <span className="text-lg font-mono text-white">{shortenAddress(address)}</span>
             <div className="flex gap-2">
               <button onClick={copyAddress} className="p-1.5 rounded hover:bg-white/5 transition-colors">
-                <Copy className="w-4 h-4 text-stone-400" />
+                <Copy className="w-4 h-4 text-neutral-400" />
               </button>
               <button onClick={openBscScan} className="p-1.5 rounded hover:bg-white/5 transition-colors">
-                <ExternalLink className="w-4 h-4 text-stone-400" />
+                <ExternalLink className="w-4 h-4 text-neutral-400" />
               </button>
             </div>
           </div>
 
-          <div className="rounded-xl p-3 bg-stone-800/50 border border-stone-700">
-            <div className="text-xs text-stone-500 mb-1">BNB 余额</div>
+          <div className="rounded-xl p-3 bg-neutral-800/50 border border-neutral-700">
+            <div className="text-xs text-neutral-500 mb-1">BNB 余额</div>
             <div className="text-xl font-bold text-white">{Number(balance).toFixed(4)} BNB</div>
           </div>
         </div>
