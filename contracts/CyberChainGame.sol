@@ -12,42 +12,15 @@ interface AutomationCompatibleInterface {
     function performUpkeep(bytes calldata performData) external;
 }
 
-abstract contract VaultBase {
-    error UnsupportedChain(uint256 chainId);
-
-    function _getPortal() internal view returns (address portal) {
-        uint256 chainId = block.chainid;
-        if (chainId == 56) {
-            return 0xe2cE6ab80874Fa9Fa2aAE65D277Dd6B8e65C9De0;
-        } else if (chainId == 97) {
-            return 0x5bEacaF7ABCbB3aB280e80D007FD31fcE26510e9;
-        }
-        revert UnsupportedChain(chainId);
-    }
-
-    function _getGuardian() internal view returns (address guardian) {
-        uint256 chainId = block.chainid;
-        if (chainId == 56) {
-            return 0x9e27098dcD8844bcc6287a557E0b4D09C86B8a4b;
-        } else if (chainId == 97) {
-            return 0x76Fa8C526f8Bc27ba6958B76DeEf92a0dbE46950;
-        }
-        revert UnsupportedChain(chainId);
-    }
-
-    function description() public view virtual returns (string memory);
-}
-
 /**
  * @title CyberChainGame
- * @dev 巅峰竞拍游戏合约 - Flap Tax Vault 兼容版本
+ * @dev 巅峰竞拍游戏合约
  * 
  * 优化点：
  * - O(1) 参与者去重（mapping 替代数组遍历）
  * - 精简历史存储（只存关键数据）
  * - Gas 消耗降低 60-80%
  * - 支持 10000+ 玩家
- * - 兼容 Flap Tax Vault 规范
  * - 集成 Chainlink Automation 自动开奖
  * 
  * 安全特性：
@@ -55,7 +28,7 @@ abstract contract VaultBase {
  * - 溢出保护
  * - 重入保护
  */
-contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, AutomationCompatibleInterface {
+contract CyberChainGame is Ownable, ReentrancyGuard, Pausable, AutomationCompatibleInterface {
     using SafeERC20 for IERC20;
 
     // ============ 常量 ============
@@ -513,41 +486,4 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
         emit RoundDurationChanged(oldDuration, _duration);
     }
 
-    // ============ Flap Tax Vault ============
-
-    function description() public view override returns (string memory) {
-        uint256 pool = currentRound.prizePool;
-        uint256 bnbWhole = pool / 1e18;
-        uint256 bnbDecimals = (pool % 1e18) / 1e14;
-        return string(
-            abi.encodePacked(
-                "CyberChainGame - Hot Potato Game Vault. ",
-                "Tax revenue automatically flows into the prize pool. ",
-                "Current prize pool: ",
-                _toString(bnbWhole), ".", _padZeros(_toString(bnbDecimals), 4),
-                " BNB. Total rounds: ", _toString(totalRounds),
-                ". Total paid out: ", _toString(totalPaidOut / 1e18), " BNB."
-            )
-        );
-    }
-
-    function _toString(uint256 value) internal pure returns (string memory) {
-        if (value == 0) return "0";
-        uint256 temp = value;
-        uint256 digits;
-        while (temp != 0) { digits++; temp /= 10; }
-        bytes memory buffer = new bytes(digits);
-        while (value != 0) { digits -= 1; buffer[digits] = bytes1(uint8(48 + uint256(value % 10))); value /= 10; }
-        return string(buffer);
-    }
-
-    function _padZeros(string memory str, uint256 targetLength) internal pure returns (string memory) {
-        bytes memory strBytes = bytes(str);
-        if (strBytes.length >= targetLength) return str;
-        bytes memory padded = new bytes(targetLength);
-        uint256 padding = targetLength - strBytes.length;
-        for (uint256 i = 0; i < padding; i++) { padded[i] = "0"; }
-        for (uint256 i = 0; i < strBytes.length; i++) { padded[padding + i] = strBytes[i]; }
-        return string(padded);
-    }
 }
