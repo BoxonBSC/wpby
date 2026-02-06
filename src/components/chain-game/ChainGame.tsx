@@ -23,7 +23,7 @@ import { WinCelebration } from './WinCelebration';
 
 // 游戏配置
 const GAME_CONFIG = {
-  roundDurationMinutes: 60,
+  roundDurationMinutes: 30,
   startPrice: 10000,
   minPrice: 10000,
   platformFee: 5,
@@ -46,7 +46,7 @@ const getEthereumProvider = () => {
 };
 
 const getDefaultEndTime = () => {
-  return new Date(Date.now() + 60 * 60 * 1000);
+  return new Date(Date.now() + 30 * 60 * 1000);
 };
 
 const formatHourMinute = (date: Date) => {
@@ -645,14 +645,14 @@ export function ChainGame() {
                                   ? 'bg-gradient-to-r from-violet-500 to-purple-400'
                                   : 'bg-violet-600/60'
                             }`}
-                            animate={{ width: `${Math.min(100, (timeLeft / 3600) * 100)}%` }}
+                            animate={{ width: `${Math.min(100, (timeLeft / 1800) * 100)}%` }}
                             transition={{ duration: 0.5 }}
                           />
                           {isLastFiveMinutes && (
                             <motion.div
                               className={`absolute top-0 h-full rounded-full ${timeLeft <= 60 ? 'bg-red-400/40' : 'bg-violet-400/30'}`}
                               animate={{
-                                width: [`${Math.min(100, (timeLeft / 3600) * 100)}%`, `${Math.min(100, (timeLeft / 3600) * 100 + 2)}%`],
+                                width: [`${Math.min(100, (timeLeft / 1800) * 100)}%`, `${Math.min(100, (timeLeft / 1800) * 100 + 2)}%`],
                                 opacity: [0.3, 0.8, 0.3],
                               }}
                               transition={{ duration: timeLeft <= 60 ? 0.4 : 1.2, repeat: Infinity, ease: 'easeInOut' }}

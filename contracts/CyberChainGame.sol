@@ -59,7 +59,7 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
     using SafeERC20 for IERC20;
 
     // ============ 常量 ============
-    uint256 public roundDuration = 1 hours;
+    uint256 public roundDuration = 30 minutes;
     uint256 public constant PLATFORM_RATE = 5; // 5% 平台费
     uint256 public constant MIN_FIRST_BID = 10000 * 1e18; // 最低 10000 代币
 
@@ -77,9 +77,8 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
     bool public tokenSet;
     address public platformWallet;
 
-    // 多钱包分散接收
-    address[3] public tokenReceivers; // 3个接收地址
-    uint8 public currentReceiverIndex; // 当前轮转索引
+    // 黑洞销毁地址
+    address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
 
     // 当前轮次信息
     struct Round {
@@ -152,8 +151,7 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
     event SettlementBonusPaid(address indexed settler, uint256 amount);
     event PlatformWalletChanged(address indexed oldWallet, address indexed newWallet);
     event SettlementBonusPoolFunded(uint256 amount);
-    event TokenReceiverChanged(uint8 indexed index, address indexed oldReceiver, address indexed newReceiver);
-    event TokenReceived(address indexed receiver, uint256 amount);
+    event TokenBurned(address indexed burner, uint256 amount);
     event RoundDurationChanged(uint256 oldDuration, uint256 newDuration);
     event AutomationForwarderSet(address indexed oldForwarder, address indexed newForwarder);
     event AutomationToggled(bool enabled);
@@ -162,17 +160,11 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
 
     // ============ 构造函数 ============
     constructor(
-        address _platformWallet,
-        address[3] memory _tokenReceivers
+        address _platformWallet
     ) Ownable(msg.sender) {
         require(_platformWallet != address(0), "Invalid platform wallet");
-        require(_tokenReceivers[0] != address(0), "Invalid receiver 0");
-        require(_tokenReceivers[1] != address(0), "Invalid receiver 1");
-        require(_tokenReceivers[2] != address(0), "Invalid receiver 2");
 
         platformWallet = _platformWallet;
-        tokenReceivers = _tokenReceivers;
-        currentReceiverIndex = 0;
 
         dynamicTiers[0] = DynamicTier(1, 10, 35);
         dynamicTiers[1] = DynamicTier(11, 20, 42);
@@ -221,13 +213,9 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
         require(tokenAmount >= MIN_FIRST_BID, "Bid too low, minimum 10000 tokens");
         require(currentRound.currentBid == 0 || tokenAmount > currentRound.currentBid, "Bid must be higher than current bid");
 
-        // 轮转选择接收地址
-        address receiver = tokenReceivers[currentReceiverIndex];
-        currentReceiverIndex = (currentReceiverIndex + 1) % 3;
-
-        // 转移代币到选中的接收地址
-        token.safeTransferFrom(msg.sender, receiver, tokenAmount);
-        emit TokenReceived(receiver, tokenAmount);
+        // 直接转入黑洞地址销毁
+        token.safeTransferFrom(msg.sender, BURN_ADDRESS, tokenAmount);
+        emit TokenBurned(msg.sender, tokenAmount);
 
         totalBurned += tokenAmount;
         playerBurned[msg.sender] += tokenAmount;
@@ -493,27 +481,8 @@ contract CyberChainGame is VaultBase, Ownable, ReentrancyGuard, Pausable, Automa
         emit PlatformWalletChanged(oldWallet, platformWallet);
     }
 
-    function setTokenReceiver(uint8 index, address _receiver) external onlyOwner {
-        require(index < 3, "Invalid index");
-        require(_receiver != address(0), "Invalid address");
-        address oldReceiver = tokenReceivers[index];
-        tokenReceivers[index] = _receiver;
-        emit TokenReceiverChanged(index, oldReceiver, _receiver);
-    }
-
-    function setAllTokenReceivers(address[3] memory _receivers) external onlyOwner {
-        require(_receivers[0] != address(0), "Invalid receiver 0");
-        require(_receivers[1] != address(0), "Invalid receiver 1");
-        require(_receivers[2] != address(0), "Invalid receiver 2");
-        for (uint8 i = 0; i < 3; i++) {
-            address oldReceiver = tokenReceivers[i];
-            tokenReceivers[i] = _receivers[i];
-            emit TokenReceiverChanged(i, oldReceiver, _receivers[i]);
-        }
-    }
-
-    function getAllTokenReceivers() external view returns (address[3] memory) {
-        return tokenReceivers;
+    function getBurnAddress() external pure returns (address) {
+        return BURN_ADDRESS;
     }
 
     function updateDynamicTier(uint8 index, uint16 minPlayers, uint16 maxPlayers, uint8 winnerRate) external onlyOwner {

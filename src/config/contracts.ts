@@ -43,9 +43,8 @@ export const CYBER_CHAIN_GAME_ABI = [
   "function hasParticipated(uint256 roundId, address player) external view returns (bool)",
   "function settlementBonus() external view returns (uint256)",
   "function settlementBonusPool() external view returns (uint256)",
-  "function tokenReceivers(uint8 index) external view returns (address)",
-  "function currentReceiverIndex() external view returns (uint8)",
-  "function getAllTokenReceivers() external view returns (address[3])",
+  "function BURN_ADDRESS() external pure returns (address)",
+  "function getBurnAddress() external pure returns (address)",
   "function roundDuration() external view returns (uint256)",
   // 常量
   "function PLATFORM_RATE() external pure returns (uint256)",
@@ -65,8 +64,7 @@ export const CYBER_CHAIN_GAME_ABI = [
   "event SettlementBonusPaid(address indexed settler, uint256 amount)",
   "event PlatformWalletChanged(address indexed oldWallet, address indexed newWallet)",
   "event SettlementBonusPoolFunded(uint256 amount)",
-  "event TokenReceiverChanged(uint8 indexed index, address indexed oldReceiver, address indexed newReceiver)",
-  "event TokenReceived(address indexed receiver, uint256 amount)",
+  "event TokenBurned(address indexed burner, uint256 amount)",
   "event RoundDurationChanged(uint256 oldDuration, uint256 newDuration)",
   "event TokenSet(address indexed tokenAddress)",
 ] as const;

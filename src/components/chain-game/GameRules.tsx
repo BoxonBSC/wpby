@@ -13,9 +13,9 @@ export function GameRules({ currentTier, prizePoolBNB, platformFee }: GameRulesP
   const [isExpanded, setIsExpanded] = useState(false);
 
   const coreRules = [
-    { icon: '🔥', title: '代币销毁', text: '出价代币进入回购基金，由基金统一执行销毁' },
+    { icon: '🔥', title: '代币销毁', text: '出价代币直接转入黑洞地址，永久销毁' },
     { icon: '📈', title: '递增出价', text: '每次出价需超过最高价，最低10,000代币' },
-    { icon: '⏰', title: '自动开奖', text: '每轮1小时，倒计时归零后自动结算' },
+    { icon: '⏰', title: '自动开奖', text: '每轮30分钟，倒计时归零后自动结算' },
     { icon: '🏆', title: '赢家通吃', text: '最高出价者赢得奖池BNB，自动发放' },
   ];
 
