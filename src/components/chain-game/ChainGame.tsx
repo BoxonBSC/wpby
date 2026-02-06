@@ -476,20 +476,74 @@ export function ChainGame() {
               animate={{ opacity: 1, scale: 1 }}
               className="relative rounded-2xl overflow-hidden"
             >
-              {/* Gradient border glow */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/25 via-purple-500/10 to-violet-600/20 p-px">
+              {/* Gradient border glow — pulses in last 5 min */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl p-px"
+                animate={
+                  isLastFiveMinutes
+                    ? {
+                        background: timeLeft <= 60
+                          ? [
+                              'linear-gradient(135deg, rgba(248,113,113,0.5), rgba(139,92,246,0.2), rgba(248,113,113,0.4))',
+                              'linear-gradient(135deg, rgba(248,113,113,0.2), rgba(248,113,113,0.5), rgba(139,92,246,0.3))',
+                              'linear-gradient(135deg, rgba(139,92,246,0.3), rgba(248,113,113,0.2), rgba(248,113,113,0.5))',
+                            ]
+                          : [
+                              'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(168,85,247,0.15), rgba(139,92,246,0.35))',
+                              'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(139,92,246,0.4), rgba(168,85,247,0.3))',
+                              'linear-gradient(135deg, rgba(139,92,246,0.35), rgba(168,85,247,0.3), rgba(139,92,246,0.4))',
+                            ],
+                      }
+                    : {
+                        background: 'linear-gradient(135deg, rgba(139,92,246,0.25), rgba(168,85,247,0.1), rgba(139,92,246,0.2))',
+                      }
+                }
+                transition={isLastFiveMinutes ? { duration: timeLeft <= 60 ? 0.8 : 1.5, repeat: Infinity, ease: 'easeInOut' } : {}}
+              >
                 <div className="w-full h-full rounded-2xl bg-gradient-to-br from-[#0e0b18] via-[#0c0a14] to-[#0a0812]" />
-              </div>
+              </motion.div>
+
+              {/* Last-minute outer glow pulse */}
+              {isLastFiveMinutes && (
+                <motion.div
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  animate={{
+                    boxShadow: timeLeft <= 60
+                      ? [
+                          '0 0 20px rgba(248,113,113,0.15), inset 0 0 30px rgba(248,113,113,0.05)',
+                          '0 0 40px rgba(248,113,113,0.3), inset 0 0 50px rgba(248,113,113,0.1)',
+                          '0 0 20px rgba(248,113,113,0.15), inset 0 0 30px rgba(248,113,113,0.05)',
+                        ]
+                      : [
+                          '0 0 15px rgba(139,92,246,0.1), inset 0 0 20px rgba(139,92,246,0.03)',
+                          '0 0 35px rgba(139,92,246,0.25), inset 0 0 40px rgba(139,92,246,0.08)',
+                          '0 0 15px rgba(139,92,246,0.1), inset 0 0 20px rgba(139,92,246,0.03)',
+                        ],
+                  }}
+                  transition={{ duration: timeLeft <= 60 ? 0.6 : 2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              )}
+
               {/* Subtle inner glow */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-violet-400/40 to-transparent" />
 
               <div className="relative p-5 sm:p-7">
                 {/* Status tags */}
                 <div className="flex flex-wrap items-center gap-2 mb-5">
-                  <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-violet-500/10 border border-violet-500/20 text-violet-400">
+                  <motion.span
+                    className={`px-3 py-1 rounded-full text-[11px] font-medium border ${
+                      isLastFiveMinutes
+                        ? timeLeft <= 60
+                          ? 'bg-red-500/15 border-red-500/30 text-red-400'
+                          : 'bg-violet-500/15 border-violet-500/30 text-violet-300'
+                        : 'bg-violet-500/10 border-violet-500/20 text-violet-400'
+                    }`}
+                    animate={isLastFiveMinutes ? { opacity: [1, 0.6, 1] } : {}}
+                    transition={isLastFiveMinutes ? { duration: timeLeft <= 60 ? 0.5 : 1.5, repeat: Infinity } : {}}
+                  >
                     <Flame className="w-3 h-3 inline mr-1" />
-                    竞拍进行中
-                  </span>
+                    {timeLeft <= 60 ? '🔥 最后一分钟' : isLastFiveMinutes ? '⚡ 最后冲刺' : '竞拍进行中'}
+                  </motion.span>
                   <span className="text-[11px] text-neutral-600">{roundData.participantCount} 人参与</span>
                   {hasParticipated && isConnected && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
@@ -522,9 +576,14 @@ export function ChainGame() {
                       {/* Countdown */}
                       <div className="mb-6">
                         <div className="flex items-center gap-2 mb-3">
-                          <CalendarClock className="w-3.5 h-3.5 text-neutral-600" />
-                          <span className="text-xs text-neutral-600">
-                            {isLastFiveMinutes ? '⚡ 最后冲刺' : '距离开奖'}
+                          <motion.div
+                            animate={isLastFiveMinutes ? { scale: [1, 1.2, 1] } : {}}
+                            transition={isLastFiveMinutes ? { duration: 1, repeat: Infinity } : {}}
+                          >
+                            <CalendarClock className={`w-3.5 h-3.5 ${isLastFiveMinutes ? (timeLeft <= 60 ? 'text-red-400' : 'text-violet-400') : 'text-neutral-600'}`} />
+                          </motion.div>
+                          <span className={`text-xs font-medium ${isLastFiveMinutes ? (timeLeft <= 60 ? 'text-red-400' : 'text-violet-300') : 'text-neutral-600'}`}>
+                            {timeLeft <= 60 ? '🔥 最后倒计时！' : isLastFiveMinutes ? '⚡ 最后冲刺' : '距离开奖'}
                           </span>
                           <span className="text-xs text-violet-400/80 font-medium ml-auto">
                             开奖 {formatHourMinute(nextDrawTime)}
@@ -539,31 +598,66 @@ export function ChainGame() {
                             ) : (
                               <motion.div
                                 key={i}
-                                className={`w-12 h-16 sm:w-16 sm:h-20 rounded-xl flex items-center justify-center backdrop-blur-sm ${
+                                animate={
                                   isLastFiveMinutes
-                                    ? 'bg-gradient-to-b from-violet-500/15 to-violet-600/[0.06] border border-violet-500/25 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
-                                    : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.08]'
+                                    ? {
+                                        borderColor: timeLeft <= 60
+                                          ? ['rgba(248,113,113,0.4)', 'rgba(248,113,113,0.7)', 'rgba(248,113,113,0.4)']
+                                          : ['rgba(139,92,246,0.25)', 'rgba(139,92,246,0.5)', 'rgba(139,92,246,0.25)'],
+                                        boxShadow: timeLeft <= 60
+                                          ? ['0 0 8px rgba(248,113,113,0.1)', '0 0 20px rgba(248,113,113,0.25)', '0 0 8px rgba(248,113,113,0.1)']
+                                          : ['0 0 8px rgba(139,92,246,0.05)', '0 0 18px rgba(139,92,246,0.15)', '0 0 8px rgba(139,92,246,0.05)'],
+                                      }
+                                    : {}
+                                }
+                                transition={isLastFiveMinutes ? { duration: timeLeft <= 60 ? 0.6 : 1.8, repeat: Infinity, ease: 'easeInOut' } : {}}
+                                className={`w-12 h-16 sm:w-16 sm:h-20 rounded-xl flex items-center justify-center backdrop-blur-sm border ${
+                                  isLastFiveMinutes
+                                    ? timeLeft <= 60
+                                      ? 'bg-gradient-to-b from-red-500/15 to-red-600/[0.06] border-red-500/40'
+                                      : 'bg-gradient-to-b from-violet-500/15 to-violet-600/[0.06] border-violet-500/25'
+                                    : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-white/[0.08]'
                                 }`}
                               >
-                                <span className={`text-2xl sm:text-4xl font-mono font-bold ${
-                                  isLastFiveMinutes
-                                    ? timeLeft <= 60 ? 'text-red-400 animate-pulse' : 'text-violet-200'
-                                    : 'text-white'
-                                }`}>
+                                <motion.span
+                                  className={`text-2xl sm:text-4xl font-mono font-bold ${
+                                    isLastFiveMinutes
+                                      ? timeLeft <= 60 ? 'text-red-400' : 'text-violet-200'
+                                      : 'text-white'
+                                  }`}
+                                  animate={timeLeft <= 60 ? { opacity: [1, 0.5, 1] } : {}}
+                                  transition={timeLeft <= 60 ? { duration: 0.5, repeat: Infinity } : {}}
+                                >
                                   {char}
-                                </span>
+                                </motion.span>
                               </motion.div>
                             )
                           )}
                         </div>
 
                         {/* Progress bar */}
-                        <div className="mt-4 h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                        <div className="mt-4 h-1.5 bg-white/[0.04] rounded-full overflow-hidden relative">
                           <motion.div
-                            className={`h-full rounded-full ${isLastFiveMinutes ? 'bg-violet-500' : 'bg-violet-600/60'}`}
+                            className={`h-full rounded-full ${
+                              timeLeft <= 60
+                                ? 'bg-gradient-to-r from-red-500 to-red-400'
+                                : isLastFiveMinutes
+                                  ? 'bg-gradient-to-r from-violet-500 to-purple-400'
+                                  : 'bg-violet-600/60'
+                            }`}
                             animate={{ width: `${Math.min(100, (timeLeft / 3600) * 100)}%` }}
                             transition={{ duration: 0.5 }}
                           />
+                          {isLastFiveMinutes && (
+                            <motion.div
+                              className={`absolute top-0 h-full rounded-full ${timeLeft <= 60 ? 'bg-red-400/40' : 'bg-violet-400/30'}`}
+                              animate={{
+                                width: [`${Math.min(100, (timeLeft / 3600) * 100)}%`, `${Math.min(100, (timeLeft / 3600) * 100 + 2)}%`],
+                                opacity: [0.3, 0.8, 0.3],
+                              }}
+                              transition={{ duration: timeLeft <= 60 ? 0.4 : 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                            />
+                          )}
                         </div>
                       </div>
 
