@@ -114,7 +114,20 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
   }, [currentRoundId]);
 
   if (isLoading) return null;
-  if (history.length === 0) return null;
+
+  if (history.length === 0) {
+    return (
+      <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5 flex-1 flex flex-col">
+        <div className="flex items-center gap-2 mb-4">
+          <History className="w-4 h-4 text-violet-400" />
+          <span className="text-sm font-semibold text-white">中奖记录</span>
+        </div>
+        <div className="flex-1 flex items-center justify-center text-neutral-600 text-sm">
+          暂无中奖记录
+        </div>
+      </div>
+    );
+  }
 
   const displayHistory = expanded ? history : history.slice(0, 3);
 
