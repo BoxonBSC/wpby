@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import butterflyLogo from '@/assets/butterfly-logo.png';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Trophy, Users, Zap, Crown, ArrowUp, Wallet, Coins, Percent, Timer, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -426,7 +427,8 @@ export function ChainGame() {
             animate={{ opacity: 1, x: 0 }}
             className="text-xl sm:text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 flex-shrink-0"
           >
-            🦋 蝴蝶竞拍
+            <img src={butterflyLogo} alt="蝴蝶竞拍" className="w-8 h-8 sm:w-10 sm:h-10" />
+            蝴蝶竞拍
           </motion.h1>
           
           <motion.button
