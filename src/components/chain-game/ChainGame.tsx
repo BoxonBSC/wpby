@@ -470,8 +470,8 @@ export function ChainGame() {
                     <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400/50 animate-ping" />
                   </div>
                   <span className="text-xs font-mono text-neutral-300 truncate">{shortenAddress(address)}</span>
-                  <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/15">
-                    <span className="text-[11px] text-violet-400 font-medium">{tokenBalance} {tokenSymbol}</span>
+                  <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                    <span className="text-[11px] text-amber-400 font-bold tracking-wide">{tokenBalance} {tokenSymbol}</span>
                   </div>
                   <ChevronDown className={`w-3 h-3 text-neutral-500 transition-transform ${showWalletDropdown ? 'rotate-180' : ''}`} />
                 </div>
@@ -520,13 +520,13 @@ export function ChainGame() {
 
                     {/* Balance cards */}
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                        <div className="text-[10px] text-neutral-500 mb-0.5">BNB 余额</div>
-                        <div className="text-sm font-bold text-white">{Number(walletBalance).toFixed(4)}</div>
+                      <div className="p-2.5 rounded-xl bg-amber-500/[0.06] border border-amber-500/15">
+                        <div className="text-[10px] text-neutral-400 mb-1">BNB 余额</div>
+                        <div className="text-base font-extrabold text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.3)]">{Number(walletBalance).toFixed(4)}</div>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                        <div className="text-[10px] text-neutral-500 mb-0.5">{tokenSymbol}</div>
-                        <div className="text-sm font-bold text-white">{tokenBalance}</div>
+                      <div className="p-2.5 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/15">
+                        <div className="text-[10px] text-neutral-400 mb-1">{tokenSymbol}</div>
+                        <div className="text-base font-extrabold text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.3)]">{tokenBalance}</div>
                       </div>
                     </div>
 
