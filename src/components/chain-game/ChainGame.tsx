@@ -343,7 +343,7 @@ export function ChainGame() {
 
   if (showMaintenance) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-violet-950/20 to-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-violet-950 via-purple-950/80 to-violet-950 flex items-center justify-center p-4">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -367,17 +367,17 @@ export function ChainGame() {
             系统维护中
           </h1>
 
-          <p className="text-stone-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-violet-300/60 text-sm sm:text-base leading-relaxed">
             蝴蝶竞拍正在进行系统升级与维护，预计很快恢复。<br />
             感谢您的耐心等待！
           </p>
 
-          <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-stone-800/60 border border-stone-700/50 text-stone-300 text-sm">
+          <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-violet-900/40 border border-violet-500/30 text-violet-300 text-sm">
             <Timer className="w-4 h-4 text-violet-400" />
             <span>维护期间所有功能暂停使用</span>
           </div>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-stone-500">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-violet-400/50">
             <span>🦋 蝴蝶竞拍</span>
             <span className="hidden sm:inline">·</span>
             <span>如有疑问请联系管理员</span>
@@ -388,11 +388,12 @@ export function ChainGame() {
   }
 
   return (
-     <div className="min-h-screen bg-gradient-to-br from-black via-violet-950/20 to-black p-3 sm:p-4 md:p-8">
+     <div className="min-h-screen bg-gradient-to-br from-violet-950 via-purple-950/80 to-violet-950 p-3 sm:p-4 md:p-8">
  
        <div className="fixed inset-0 overflow-hidden pointer-events-none">
          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse" />
          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+         <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-fuchsia-500/5 rounded-full blur-3xl animate-pulse delay-500" />
       </div>
 
       <AnimatePresence>
@@ -435,17 +436,17 @@ export function ChainGame() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => setShowWallet(true)}
-            className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-xl bg-stone-800/80 border border-stone-700 hover:border-violet-500/50 transition-colors min-w-0"
+            className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-xl bg-violet-900/40 border border-violet-500/30 hover:border-violet-400/60 transition-colors min-w-0"
           >
             <Wallet className="w-4 h-4 text-violet-400 flex-shrink-0" />
             {isConnected && address ? (
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <span className="text-xs sm:text-sm font-mono text-white truncate">{shortenAddress(address)}</span>
-                <div className="h-4 w-px bg-stone-600 flex-shrink-0 hidden sm:block" />
-                <span className="text-xs sm:text-sm text-violet-400 font-medium truncate hidden sm:block">{tokenBalance} {tokenSymbol}</span>
+                <span className="text-xs sm:text-sm font-mono text-violet-200 truncate">{shortenAddress(address)}</span>
+                <div className="h-4 w-px bg-violet-500/30 flex-shrink-0 hidden sm:block" />
+                <span className="text-xs sm:text-sm text-violet-300 font-medium truncate hidden sm:block">{tokenBalance} {tokenSymbol}</span>
               </div>
             ) : (
-              <span className="text-xs sm:text-sm text-stone-300 whitespace-nowrap">连接钱包</span>
+              <span className="text-xs sm:text-sm text-violet-300 whitespace-nowrap">连接钱包</span>
             )}
           </motion.button>
         </div>
@@ -453,7 +454,7 @@ export function ChainGame() {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center text-xs sm:text-sm text-stone-400 -mt-2 md:-mt-4 px-2"
+          className="text-center text-xs sm:text-sm text-violet-400/60 -mt-2 md:-mt-4 px-2"
         >
           蝴蝶竞拍 · 燃烧代币 · 赢取BNB奖池
         </motion.p>
@@ -465,11 +466,11 @@ export function ChainGame() {
             animate={{ opacity: 1, y: 0 }}
             className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium ${
               tokenSet
-                ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                ? 'bg-violet-500/10 border border-violet-400/30 text-violet-300'
+                : 'bg-fuchsia-500/10 border border-fuchsia-500/30 text-fuchsia-400'
             }`}
           >
-            <span className={`w-2.5 h-2.5 rounded-full ${tokenSet ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+            <span className={`w-2.5 h-2.5 rounded-full ${tokenSet ? 'bg-violet-400 animate-pulse' : 'bg-fuchsia-400'}`} />
             {tokenSet ? (
               <span>✅ 代币已绑定 — 合约 tokenSet = true</span>
             ) : (
@@ -482,7 +483,7 @@ export function ChainGame() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative rounded-3xl bg-stone-900/80 backdrop-blur-xl border border-stone-700/50 overflow-hidden"
+          className="relative rounded-3xl bg-violet-950/60 backdrop-blur-xl border border-violet-500/20 overflow-hidden"
         >
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-400 to-transparent" />
           
@@ -494,20 +495,20 @@ export function ChainGame() {
                    <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-400" />
                    <span className="text-violet-400 font-medium text-sm">竞拍进行中</span>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 text-stone-400 text-sm">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-violet-400/60 text-sm">
                   <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>{roundData.participantCount} 人</span>
                 </div>
                 {hasParticipated && isConnected && (
-                  <div className="px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs">
+                  <div className="px-2.5 py-1 rounded-full bg-violet-500/10 border border-violet-400/30 text-violet-300 text-xs">
                     ✓ 已参与
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-yellow-500/10 to-violet-500/10 border border-yellow-500/30">
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-violet-500/10 border border-purple-400/30">
                 <span className="text-base sm:text-lg">{currentTier.label}</span>
-                <span className="text-yellow-400 font-bold text-sm sm:text-base">{currentTier.winnerRate}%</span>
-                <span className="text-stone-500 text-xs sm:text-sm">赢家比例</span>
+                <span className="text-fuchsia-300 font-bold text-sm sm:text-base">{currentTier.winnerRate}%</span>
+                <span className="text-violet-400/50 text-xs sm:text-sm">赢家比例</span>
               </div>
             </div>
 
@@ -523,11 +524,11 @@ export function ChainGame() {
                   >
                     <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
                        <CalendarClock className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400" />
-                       <span className="text-stone-400 text-sm">开奖时间</span>
-                       <span className="text-xl sm:text-2xl font-bold text-violet-400">{formatHourMinute(nextDrawTime)}</span>
+                       <span className="text-violet-400/60 text-sm">开奖时间</span>
+                       <span className="text-xl sm:text-2xl font-bold text-violet-300">{formatHourMinute(nextDrawTime)}</span>
                     </div>
                     
-                    <div className="flex items-center justify-center gap-2 text-stone-500 mb-2">
+                    <div className="flex items-center justify-center gap-2 text-violet-400/50 mb-2">
                       <Timer className="w-4 h-4" />
                       <span className="text-sm uppercase tracking-wider">
                         {isLastFiveMinutes ? '⚡ 最后冲刺' : '距离开奖'}
@@ -537,17 +538,17 @@ export function ChainGame() {
                       className={`text-5xl sm:text-6xl md:text-8xl font-mono font-bold tracking-tight ${
                         isLastFiveMinutes
                           ? timeLeft <= 60
-                            ? 'text-red-400 animate-pulse'
-                            : 'text-violet-400'
-                          : 'text-white'
+                            ? 'text-fuchsia-400 animate-pulse'
+                            : 'text-violet-300'
+                          : 'text-violet-200'
                       }`}
                     >
                       {formatTime(timeLeft)}
                     </div>
                     
-                    <div className="mt-4 mx-auto max-w-md h-2 bg-stone-800 rounded-full overflow-hidden">
+                    <div className="mt-4 mx-auto max-w-md h-2 bg-violet-900/50 rounded-full overflow-hidden">
                       <motion.div
-                        className={`h-full ${isLastFiveMinutes ? 'bg-gradient-to-r from-violet-400 to-fuchsia-500' : 'bg-gradient-to-r from-violet-500 to-purple-500'}`}
+                        className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
                         animate={{ width: `${(timeLeft / 3600) * 100}%` }}
                         transition={{ duration: 0.5 }}
                       />
@@ -555,14 +556,14 @@ export function ChainGame() {
                     
                     <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-xs sm:text-sm">
                       <div className="flex items-center gap-2">
-                        <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
-                        <span className="text-stone-400">赢家获得</span>
-                        <span className="text-yellow-400 font-bold">{winnerAmount} BNB</span>
+                        <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-fuchsia-300" />
+                        <span className="text-violet-400/60">赢家获得</span>
+                        <span className="text-fuchsia-300 font-bold">{winnerAmount} BNB</span>
                       </div>
                       <div className="flex items-center gap-2">
                          <ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-400" />
-                         <span className="text-stone-400">滚入下轮</span>
-                         <span className="text-violet-400 font-bold">{rolloverAmount} BNB</span>
+                         <span className="text-violet-400/60">滚入下轮</span>
+                         <span className="text-violet-300 font-bold">{rolloverAmount} BNB</span>
                       </div>
                     </div>
                   </motion.div>
@@ -573,10 +574,10 @@ export function ChainGame() {
                     animate={{ scale: 1, opacity: 1 }}
                     className="py-8"
                   >
-                    <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-4 animate-bounce" />
-                    <div className="text-2xl sm:text-3xl font-bold text-white mb-2">🎉 本轮结束！</div>
-                    <div className="text-stone-400 mb-2 text-sm sm:text-base">恭喜 {shortenAddress(roundData.currentHolder || '0x0')} 获胜</div>
-                    <div className="text-yellow-400 text-lg sm:text-xl font-bold mb-4">+{winnerAmount} BNB</div>
+                    <Trophy className="w-20 h-20 text-fuchsia-400 mx-auto mb-4 animate-bounce" />
+                    <div className="text-2xl sm:text-3xl font-bold text-violet-200 mb-2">🎉 本轮结束！</div>
+                    <div className="text-violet-400/60 mb-2 text-sm sm:text-base">恭喜 {shortenAddress(roundData.currentHolder || '0x0')} 获胜</div>
+                    <div className="text-fuchsia-300 text-lg sm:text-xl font-bold mb-4">+{winnerAmount} BNB</div>
                     
                     <div className="flex flex-col items-center gap-3 mt-4">
                       <div className="flex items-center gap-3">
@@ -606,7 +607,7 @@ export function ChainGame() {
                         ))}
                       </div>
                       
-                      <span className="text-xs text-stone-500 mt-1">奖金将自动发放至赢家钱包，新一轮即将开启</span>
+                      <span className="text-xs text-violet-400/50 mt-1">奖金将自动发放至赢家钱包，新一轮即将开启</span>
                     </div>
                   </motion.div>
                 )}
@@ -615,54 +616,54 @@ export function ChainGame() {
 
             {/* 当前最高出价者 */}
             <div className="flex items-center justify-center gap-2 sm:gap-3 mb-6 md:mb-8 py-3 sm:py-4 px-4 sm:px-6 mx-auto max-w-md rounded-2xl bg-gradient-to-r from-violet-500/10 to-purple-500/10 border border-violet-500/30">
-              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 flex-shrink-0" />
-              <span className="text-stone-400 text-xs sm:text-sm">当前最高出价者</span>
-              <span className="font-mono text-white text-sm sm:text-base">
+              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-fuchsia-400 flex-shrink-0" />
+              <span className="text-violet-400/60 text-xs sm:text-sm">当前最高出价者</span>
+              <span className="font-mono text-violet-200 text-sm sm:text-base">
                 {roundData.currentHolder ? shortenAddress(roundData.currentHolder) : '暂无'}
               </span>
             </div>
 
             {/* 数据卡片 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4">
-              <div className="p-3 sm:p-4 rounded-2xl bg-stone-800/50 border border-stone-700/50">
-                <div className="flex items-center gap-1.5 sm:gap-2 text-stone-500 text-xs sm:text-sm mb-1">
+              <div className="p-3 sm:p-4 rounded-2xl bg-violet-900/30 border border-violet-500/20">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-violet-400/50 text-xs sm:text-sm mb-1">
                   <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-400" />
                   当前出价
                 </div>
-                <div className="text-lg sm:text-xl font-bold text-violet-400">{currentBidFormatted}</div>
-                <div className="text-[10px] sm:text-xs text-stone-500">代币</div>
+                <div className="text-lg sm:text-xl font-bold text-violet-300">{currentBidFormatted}</div>
+                <div className="text-[10px] sm:text-xs text-violet-400/40">代币</div>
               </div>
-              <div className="p-3 sm:p-4 rounded-2xl bg-stone-800/50 border border-stone-700/50">
-                <div className="flex items-center gap-1.5 sm:gap-2 text-stone-500 text-xs sm:text-sm mb-1">
-                  <ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
+              <div className="p-3 sm:p-4 rounded-2xl bg-violet-900/30 border border-violet-500/20">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-violet-400/50 text-xs sm:text-sm mb-1">
+                  <ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
                   最低出价
                 </div>
-                <div className="text-lg sm:text-xl font-bold text-green-400">{minBidFormatted}</div>
-                <div className="text-[10px] sm:text-xs text-stone-500">不设上限</div>
+                <div className="text-lg sm:text-xl font-bold text-purple-300">{minBidFormatted}</div>
+                <div className="text-[10px] sm:text-xs text-violet-400/40">不设上限</div>
               </div>
-              <div className="p-3 sm:p-4 rounded-2xl bg-stone-800/50 border border-stone-700/50">
-                <div className="flex items-center gap-1.5 sm:gap-2 text-stone-500 text-xs sm:text-sm mb-1">
-                  <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
+              <div className="p-3 sm:p-4 rounded-2xl bg-violet-900/30 border border-violet-500/20">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-violet-400/50 text-xs sm:text-sm mb-1">
+                  <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-fuchsia-400" />
                   BNB 总奖池
                 </div>
-                <div className="text-lg sm:text-xl font-bold text-yellow-400">{prizePoolBNB.toFixed(4)}</div>
-                <div className="text-[10px] sm:text-xs text-stone-500">BNB</div>
+                <div className="text-lg sm:text-xl font-bold text-fuchsia-300">{prizePoolBNB.toFixed(4)}</div>
+                <div className="text-[10px] sm:text-xs text-violet-400/40">BNB</div>
               </div>
-              <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-yellow-500/10 to-violet-500/10 border border-yellow-500/40">
-                <div className="flex items-center gap-1.5 sm:gap-2 text-yellow-400 text-xs sm:text-sm mb-1">
-                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
+              <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-purple-500/15 to-fuchsia-500/15 border border-fuchsia-500/30">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-fuchsia-300 text-xs sm:text-sm mb-1">
+                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-fuchsia-300" />
                   本轮可得奖金
                 </div>
-                <div className="text-lg sm:text-xl font-bold text-yellow-300">{winnerAmount}</div>
-                <div className="text-[10px] sm:text-xs text-stone-500">
+                <div className="text-lg sm:text-xl font-bold text-fuchsia-200">{winnerAmount}</div>
+                <div className="text-[10px] sm:text-xs text-violet-400/40">
                   {currentTier.label} · {currentTier.winnerRate}% · {roundData.participantCount}人
                 </div>
               </div>
             </div>
 
             {/* 奖金阶梯预览 */}
-            <div className="mb-6 md:mb-8 p-2.5 sm:p-3 rounded-xl bg-stone-800/30 border border-stone-700/30">
-              <div className="flex items-center gap-2 text-xs text-stone-500 mb-2">
+            <div className="mb-6 md:mb-8 p-2.5 sm:p-3 rounded-xl bg-violet-900/20 border border-violet-500/15">
+              <div className="flex items-center gap-2 text-xs text-violet-400/50 mb-2">
                 <Users className="w-3.5 h-3.5" />
                 <span>参与人数越多，赢家奖金越高</span>
               </div>
@@ -677,15 +678,15 @@ export function ChainGame() {
                       key={tier.minPlayers}
                       className={`flex flex-col items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-2 sm:py-2.5 rounded-lg text-center transition-all ${
                         isActive
-                          ? 'bg-yellow-500/15 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.15)]'
-                          : 'bg-stone-800/40 border border-stone-700/30'
+                          ? 'bg-fuchsia-500/15 border border-fuchsia-400/50 shadow-[0_0_10px_rgba(192,132,252,0.15)]'
+                          : 'bg-violet-900/30 border border-violet-500/15'
                       }`}
                     >
                       <span className="text-[11px] sm:text-xs">{tier.label}</span>
-                      <span className={`text-xs sm:text-sm font-bold ${isActive ? 'text-yellow-300' : 'text-stone-400'}`}>
+                      <span className={`text-xs sm:text-sm font-bold ${isActive ? 'text-fuchsia-300' : 'text-violet-400/60'}`}>
                         {tierNet}
                       </span>
-                      <span className="text-[9px] sm:text-[10px] text-stone-600">
+                      <span className="text-[9px] sm:text-[10px] text-violet-400/40">
                         {tier.minPlayers}-{tier.maxPlayers === Infinity ? '∞' : tier.maxPlayers}人·{tier.winnerRate}%
                       </span>
                     </div>
@@ -705,7 +706,7 @@ export function ChainGame() {
                   <Flame className="w-4 h-4 text-violet-400 animate-pulse" />
                   待领取奖励
                 </div>
-                <div className="text-xl font-bold text-violet-400">{Number(playerStats.pending).toFixed(4)} BNB</div>
+                <div className="text-xl font-bold text-fuchsia-300">{Number(playerStats.pending).toFixed(4)} BNB</div>
                 <button
                   onClick={handleClaimRewards}
                   className="mt-2 px-4 py-1.5 rounded-lg text-xs font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 hover:text-white border border-violet-500/40 transition-colors"
@@ -728,9 +729,9 @@ export function ChainGame() {
                       placeholder={`最低 ${minBidFormatted}`}
                       min={minBidNum}
                       disabled={isEnded || isTaking}
-                      className="w-full h-12 sm:h-14 px-4 pr-20 text-base sm:text-lg font-bold rounded-2xl bg-stone-800/80 border border-stone-600 text-white placeholder-stone-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 focus:outline-none transition-colors disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full h-12 sm:h-14 px-4 pr-20 text-base sm:text-lg font-bold rounded-2xl bg-violet-900/40 border border-violet-500/30 text-violet-100 placeholder-violet-400/40 focus:border-violet-400 focus:ring-1 focus:ring-violet-400/50 focus:outline-none transition-colors disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-stone-500 font-medium">
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-violet-400/50 font-medium">
                       代币
                     </span>
                   </div>
@@ -748,8 +749,8 @@ export function ChainGame() {
                       <div className="space-y-2 px-1">
                         {/* 百分比指示 */}
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-stone-500">拖动选择金额</span>
-                          <span className="text-xs font-bold text-violet-400">{percent}%</span>
+                          <span className="text-xs text-violet-400/50">拖动选择金额</span>
+                          <span className="text-xs font-bold text-violet-300">{percent}%</span>
                         </div>
                         {/* 滑块轨道 */}
                         <div className="relative h-6 flex items-center">
@@ -764,14 +765,14 @@ export function ChainGame() {
                             className="w-full h-2 rounded-full appearance-none cursor-pointer bg-transparent relative z-10 disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-400 [&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(139,92,246,0.7)] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/30 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-shadow [&::-webkit-slider-thumb]:hover:shadow-[0_0_20px_rgba(139,92,246,0.9)] [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-violet-400 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/30 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-[0_0_12px_rgba(139,92,246,0.7)] [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent"
                           />
                           {/* 自定义轨道背景 */}
-                          <div className="absolute left-0 right-0 h-2 rounded-full bg-stone-700/80 pointer-events-none" />
+                          <div className="absolute left-0 right-0 h-2 rounded-full bg-violet-900/60 pointer-events-none" />
                           <div 
-                            className="absolute left-0 h-2 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 pointer-events-none transition-all duration-75"
+                            className="absolute left-0 h-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 pointer-events-none transition-all duration-75"
                             style={{ width: `${fillPct}%` }}
                           />
                         </div>
                         {/* 刻度标签 */}
-                        <div className="flex justify-between text-[10px] text-stone-600">
+                        <div className="flex justify-between text-[10px] text-violet-400/40">
                           <span>{minBidNum.toLocaleString()}</span>
                           <span>{Math.round((minBidNum + tokenBalanceNum) / 2).toLocaleString()}</span>
                           <span>{tokenBalanceNum.toLocaleString()}</span>
@@ -794,7 +795,7 @@ export function ChainGame() {
                                 className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all disabled:opacity-50 ${
                                    isActive
                                      ? 'bg-violet-500/20 border-violet-500/50 text-violet-300 shadow-[0_0_8px_rgba(139,92,246,0.2)]'
-                                     : 'bg-stone-800/60 border-stone-700 text-stone-400 hover:border-violet-500/40 hover:text-violet-400'
+                                     : 'bg-violet-900/40 border-violet-500/20 text-violet-400/60 hover:border-violet-500/40 hover:text-violet-300'
                                 }`}
                               >
                                 {quick.label}
@@ -817,7 +818,7 @@ export function ChainGame() {
                           key={quick.label}
                           onClick={() => setBidAmount(quick.value.toString())}
                           disabled={isEnded || isTaking}
-                          className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-stone-800/60 border border-stone-700 text-stone-400 hover:border-violet-500/50 hover:text-violet-400 transition-colors disabled:opacity-50"
+                          className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-violet-900/40 border border-violet-500/20 text-violet-400/60 hover:border-violet-400/50 hover:text-violet-300 transition-colors disabled:opacity-50"
                         >
                           {quick.label}
                         </button>
@@ -826,13 +827,13 @@ export function ChainGame() {
                   )}
                   {/* 余额提示 */}
                   {isConnected && (
-                    <div className="flex items-center justify-between text-xs text-stone-500 px-1">
+                    <div className="flex items-center justify-between text-xs text-violet-400/50 px-1">
                       <span>钱包余额: {tokenBalance} {tokenSymbol}</span>
                       {bidAmount && Number(bidAmount) > tokenBalanceNum && tokenBalanceNum > 0 && (
-                        <span className="text-red-400">余额不足</span>
+                        <span className="text-fuchsia-400">余额不足</span>
                       )}
                       {bidAmount && Number(bidAmount) > 0 && Number(bidAmount) < minBidNum && (
-                        <span className="text-red-400">低于最低出价</span>
+                        <span className="text-fuchsia-400">低于最低出价</span>
                       )}
                     </div>
                   )}
@@ -876,7 +877,7 @@ export function ChainGame() {
               )}
                
               {!isEnded && (
-                <p className="text-center text-sm text-stone-500 mt-3">
+                <p className="text-center text-sm text-violet-400/50 mt-3">
                   🔥 代币进入【回购销毁基金】· 赢取 {prizePoolBNB.toFixed(4)} BNB 奖池
                 </p>
               )}
@@ -890,14 +891,14 @@ export function ChainGame() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="rounded-2xl bg-stone-900/60 backdrop-blur border border-stone-700/50 p-5"
+            className="rounded-2xl bg-violet-950/60 backdrop-blur border border-violet-500/20 p-5"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-white font-semibold">
+              <div className="flex items-center gap-2 text-violet-200 font-semibold">
                 <Users className="w-5 h-5 text-violet-400" />
                 出价记录
               </div>
-              <span className="text-xs text-stone-500">{bidHistory.length} 条记录</span>
+              <span className="text-xs text-violet-400/50">{bidHistory.length} 条记录</span>
             </div>
             <div className="relative max-h-[280px] overflow-y-auto pr-1">
               <div className="absolute left-[18px] top-2 bottom-2 w-px bg-gradient-to-b from-violet-500/60 via-purple-500/40 to-transparent" />
@@ -915,7 +916,7 @@ export function ChainGame() {
                       className={`relative flex items-center gap-3 p-3 pl-10 rounded-xl transition-colors ${
                          isLatest
                            ? 'bg-violet-500/10 border border-violet-500/30'
-                           : 'hover:bg-stone-800/40'
+                           : 'hover:bg-violet-900/30'
                       }`}
                     >
                       <div className="absolute left-2.5 flex items-center justify-center">
@@ -926,35 +927,35 @@ export function ChainGame() {
                             className="w-4 h-4 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.6)]"
                           />
                         ) : (
-                          <div className="w-2.5 h-2.5 rounded-full bg-stone-600 border-2 border-stone-800" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-violet-600 border-2 border-violet-900" />
                         )}
                       </div>
 
                        <div className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
                          isLatest
                            ? 'bg-violet-500/20 text-violet-400'
-                          : 'bg-stone-800/60 text-stone-500'
+                          : 'bg-violet-900/40 text-violet-400/50'
                       }`}>
                         #{orderNum}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <span className={`font-mono text-sm ${isLatest ? 'text-white' : 'text-stone-400'}`}>
+                        <span className={`font-mono text-sm ${isLatest ? 'text-violet-200' : 'text-violet-400/60'}`}>
                           {shortenAddress(record.address)}
                         </span>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <Timer className="w-3 h-3 text-stone-600" />
-                          <span className="text-xs text-stone-600">{record.time}</span>
+                          <Timer className="w-3 h-3 text-violet-500/40" />
+                          <span className="text-xs text-violet-500/40">{record.time}</span>
                         </div>
                       </div>
 
                       <div className="flex-shrink-0 text-right">
                         <span className={`font-bold text-sm ${
-                         isLatest ? 'text-violet-400' : 'text-stone-500'
+                         isLatest ? 'text-violet-300' : 'text-violet-400/50'
                          }`}>
                           {Number(record.bid).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
-                        <div className="text-xs text-stone-600">代币</div>
+                        <div className="text-xs text-violet-500/40">代币</div>
                       </div>
                     </motion.div>
                   );
@@ -971,15 +972,15 @@ export function ChainGame() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="rounded-2xl bg-stone-900/40 border border-stone-700/50 p-5"
+          className="rounded-2xl bg-violet-950/40 border border-violet-500/20 p-5"
         >
-          <div className="flex items-center gap-2 text-white font-semibold mb-4">
-            <Zap className="w-5 h-5 text-yellow-400" />
+          <div className="flex items-center gap-2 text-violet-200 font-semibold mb-4">
+            <Zap className="w-5 h-5 text-violet-400" />
             游戏规则 · 销毁代币，赢取BNB
           </div>
           
           <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-violet-500/5 to-purple-500/5 border border-violet-500/20">
-            <div className="text-sm text-stone-400 mb-3">
+            <div className="text-sm text-violet-400/60 mb-3">
               🎯 动态赢家比例（参与人数越多，奖励越高，5%平台费从赢家奖励中扣除）：
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
@@ -989,14 +990,14 @@ export function ChainGame() {
                    className={`p-2 rounded-lg text-center ${
                      tier.winnerRate === currentTier.winnerRate 
                        ? 'bg-violet-500/20 border border-violet-500/50' 
-                      : 'bg-stone-800/30'
+                      : 'bg-violet-900/20'
                   }`}
                 >
                   <div className="text-lg">{tier.label.split(' ')[0]}</div>
-                  <div className={`text-xs ${tier.winnerRate === currentTier.winnerRate ? 'text-yellow-400' : 'text-stone-500'}`}>
+                  <div className={`text-xs ${tier.winnerRate === currentTier.winnerRate ? 'text-fuchsia-300' : 'text-violet-400/50'}`}>
                     {tier.minPlayers}-{tier.maxPlayers === Infinity ? '∞' : tier.maxPlayers}人
                   </div>
-                  <div className={`font-bold ${tier.winnerRate === currentTier.winnerRate ? 'text-yellow-400' : 'text-stone-400'}`}>
+                  <div className={`font-bold ${tier.winnerRate === currentTier.winnerRate ? 'text-fuchsia-300' : 'text-violet-400/60'}`}>
                     {tier.winnerRate}%
                   </div>
                 </div>
@@ -1012,24 +1013,24 @@ export function ChainGame() {
               { icon: '⏰', title: '自动开奖', text: '每轮默认持续1小时，倒计时归零后自动结算，开启全新一轮竞拍' },
               { icon: '🏆', title: '赢家通吃', text: '结算时最高出价者赢得BNB奖池，奖金自动转入赢家钱包；若转账失败可手动领取' },
             ].map((rule, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-stone-800/30">
+              <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-violet-900/20">
                 <span className="text-2xl mt-0.5">{rule.icon}</span>
                 <div>
-                  <div className="text-sm font-medium text-white mb-1">{rule.title}</div>
-                  <span className="text-xs text-stone-400 leading-relaxed">{rule.text}</span>
+                  <div className="text-sm font-medium text-violet-200 mb-1">{rule.title}</div>
+                  <span className="text-xs text-violet-400/60 leading-relaxed">{rule.text}</span>
                 </div>
               </div>
             ))}
           </div>
 
           {/* 结算与奖金机制 */}
-          <div className="mb-5 p-4 rounded-xl bg-gradient-to-r from-emerald-500/5 to-teal-500/5 border border-emerald-500/20">
-            <div className="text-sm font-medium text-emerald-400 mb-2 flex items-center gap-2">
+          <div className="mb-5 p-4 rounded-xl bg-gradient-to-r from-violet-500/5 to-purple-500/5 border border-violet-500/20">
+            <div className="text-sm font-medium text-violet-300 mb-2 flex items-center gap-2">
               💰 结算与奖金机制
             </div>
-            <div className="text-xs text-stone-400 leading-relaxed space-y-1.5">
-              <p>• 每轮倒计时结束后，由 <span className="text-emerald-400 font-medium">Chainlink Automation</span> 自动触发结算，无需人工干预</p>
-              <p>• 赢家奖金从奖池中按动态比例发放，<span className="text-yellow-400 font-medium">5% 平台手续费</span>从赢家奖金中扣除</p>
+            <div className="text-xs text-violet-400/60 leading-relaxed space-y-1.5">
+              <p>• 每轮倒计时结束后，由 <span className="text-violet-300 font-medium">Chainlink Automation</span> 自动触发结算，无需人工干预</p>
+              <p>• 赢家奖金从奖池中按动态比例发放，<span className="text-fuchsia-300 font-medium">5% 平台手续费</span>从赢家奖金中扣除</p>
               <p>• 奖金自动转入赢家钱包；若自动转账失败，赢家可通过「领取奖励」手动提取</p>
               <p>• 剩余奖池自动滚入下一轮，确保奖池持续增长、永不清零</p>
             </div>
@@ -1037,12 +1038,12 @@ export function ChainGame() {
 
           {/* 动态比例详细说明 */}
            <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-violet-500/5 to-purple-500/5 border border-violet-500/20">
-             <div className="text-sm font-medium text-violet-400 mb-2 flex items-center gap-2">
+             <div className="text-sm font-medium text-violet-300 mb-2 flex items-center gap-2">
                📊 动态比例说明
             </div>
-            <div className="text-xs text-stone-400 leading-relaxed space-y-1.5">
-              <p>• 赢家可提取的奖池比例随参与人数动态增长，人越多比例越高，最高 <span className="text-violet-400 font-medium">60%</span></p>
-              <p>• 每轮至少保留 <span className="text-yellow-400 font-medium">40%</span> 奖池作为下一轮启动资金，防止奖池被抽干</p>
+            <div className="text-xs text-violet-400/60 leading-relaxed space-y-1.5">
+              <p>• 赢家可提取的奖池比例随参与人数动态增长，人越多比例越高，最高 <span className="text-fuchsia-300 font-medium">60%</span></p>
+              <p>• 每轮至少保留 <span className="text-violet-300 font-medium">40%</span> 奖池作为下一轮启动资金，防止奖池被抽干</p>
               <p>• 当前轮次适用的比例取决于该轮实际参与人数，结算时锁定最终比例</p>
             </div>
           </div>
