@@ -10,7 +10,7 @@ interface GameRulesProps {
 }
 
 export function GameRules({ currentTier, prizePoolBNB, platformFee }: GameRulesProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const coreRules = [
     { icon: '🔥', title: '代币销毁', text: '出价代币直接转入黑洞地址（0x...dEaD），永久销毁，不可逆' },
