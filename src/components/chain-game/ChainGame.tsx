@@ -75,6 +75,7 @@ export function ChainGame() {
   const [hasParticipated, setHasParticipated] = useState(false);
   const [tokenBalance, setTokenBalance] = useState<string>('0');
   const [tokenSymbol, setTokenSymbol] = useState<string>('CYBER');
+  const [tokenSet, setTokenSet] = useState<boolean | null>(null);
 
    const currentTier = useMemo(() => getCurrentTier(roundData.participantCount), [roundData.participantCount]);
    const prizePoolBNB = Number(ethers.formatEther(roundData.prizePool));
@@ -97,14 +98,22 @@ export function ChainGame() {
        return;
      }
      
-     try {
-       const provider = new ethers.BrowserProvider(ethereum);
-       const contract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, provider);
-       
-       const [roundId, startTime, endTime, prizePool, currentBid, currentHolder, participantCount, settled] = 
-         await contract.getCurrentRound();
-       
-       const minBid = await contract.getMinBid();
+      try {
+        const provider = new ethers.BrowserProvider(ethereum);
+        const contract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, provider);
+        
+        // 检查 tokenSet 状态
+        try {
+          const isTokenSet = await contract.tokenSet();
+          setTokenSet(isTokenSet);
+        } catch (e) {
+          console.warn('Failed to check tokenSet:', e);
+        }
+        
+        const [roundId, startTime, endTime, prizePool, currentBid, currentHolder, participantCount, settled] = 
+          await contract.getCurrentRound();
+        
+        const minBid = await contract.getMinBid();
        
        setRoundData({
          roundId: Number(roundId),
@@ -406,6 +415,26 @@ export function ChainGame() {
         >
           每小时开奖 · 销毁代币竞拍，赢取BNB · 动态奖励比例
         </motion.p>
+
+        {/* Token Set 状态指示器 */}
+        {tokenSet !== null && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium ${
+              tokenSet
+                ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                : 'bg-red-500/10 border border-red-500/30 text-red-400'
+            }`}
+          >
+            <span className={`w-2.5 h-2.5 rounded-full ${tokenSet ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+            {tokenSet ? (
+              <span>✅ 代币已绑定 — 合约 tokenSet = true</span>
+            ) : (
+              <span>❌ 代币未绑定 — 请调用 setToken() 设置代币地址后方可开始游戏</span>
+            )}
+          </motion.div>
+        )}
 
         {/* 主卡片 */}
         <motion.div
