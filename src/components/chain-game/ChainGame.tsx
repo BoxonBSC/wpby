@@ -367,7 +367,7 @@ export function ChainGame() {
           </h1>
 
           <p className="text-stone-400 text-sm sm:text-base leading-relaxed">
-            BURN BID 正在进行系统升级与维护，预计很快恢复。<br />
+            蝴蝶竞拍正在进行系统升级与维护，预计很快恢复。<br />
             感谢您的耐心等待！
           </p>
 
@@ -377,7 +377,7 @@ export function ChainGame() {
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-stone-500">
-            <span>🔥 BURN BID</span>
+            <span>🦋 蝴蝶竞拍</span>
             <span className="hidden sm:inline">·</span>
             <span>如有疑问请联系管理员</span>
           </div>
@@ -426,7 +426,7 @@ export function ChainGame() {
             animate={{ opacity: 1, x: 0 }}
             className="text-xl sm:text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-yellow-400 flex-shrink-0"
           >
-            🔥 BURN BID
+            🦋 蝴蝶竞拍
           </motion.h1>
           
           <motion.button
@@ -453,7 +453,7 @@ export function ChainGame() {
           animate={{ opacity: 1 }}
           className="text-center text-xs sm:text-sm text-stone-400 -mt-2 md:-mt-4 px-2"
         >
-          Burn to Bid · Bid to Win · 销毁代币竞拍，赢取BNB
+          蝴蝶竞拍 · 燃烧代币 · 赢取BNB奖池
         </motion.p>
 
         {/* Token Set 状态指示器 */}
