@@ -13,10 +13,10 @@ export function GameRules({ currentTier, prizePoolBNB, platformFee }: GameRulesP
   const [isExpanded, setIsExpanded] = useState(false);
 
   const coreRules = [
-    { icon: '🔥', title: '代币销毁', text: '出价代币直接转入黑洞地址，永久销毁' },
-    { icon: '📈', title: '递增出价', text: '每次出价需超过最高价，最低10,000代币' },
-    { icon: '⏰', title: '自动开奖', text: '每轮30分钟，倒计时归零后自动结算' },
-    { icon: '🏆', title: '赢家通吃', text: '最高出价者赢得奖池BNB，自动发放' },
+    { icon: '🔥', title: '代币销毁', text: '出价代币直接转入黑洞地址（0x...dEaD），永久销毁，不可逆' },
+    { icon: '📈', title: '递增出价', text: '最低10,000代币起，每次必须严格高于当前最高出价' },
+    { icon: '⏰', title: '30分钟一轮', text: 'Chainlink Automation 自动结算，零人工干预' },
+    { icon: '🏆', title: '最高出价者赢', text: '倒计时归零时最高出价者赢得奖池BNB，自动到账' },
   ];
 
   return (
@@ -71,20 +71,34 @@ export function GameRules({ currentTier, prizePoolBNB, platformFee }: GameRulesP
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 space-y-4">
+
+              {/* 出价规则 */}
+              <div className="p-4 rounded-xl bg-blue-500/[0.04] border border-blue-500/10">
+                <div className="text-sm font-medium text-blue-400 mb-2">📜 出价规则</div>
+                <div className="text-xs text-neutral-500 leading-relaxed space-y-1.5">
+                  <p>• 最低出价：<span className="text-white font-semibold">10,000 代币</span>起</p>
+                  <p>• 每次出价必须<span className="text-white font-semibold">严格高于</span>当前最高出价</p>
+                  <p>• 同一玩家可多次出价，不断抬高门槛</p>
+                  <p>• 所有出价代币直接转入黑洞地址（0x...dEaD），<span className="text-red-400 font-semibold">永久销毁，不可逆</span></p>
+                  <p>• 倒计时归零时，最后的最高出价者即为本轮赢家</p>
+                </div>
+              </div>
+
               {/* Dynamic tiers */}
               <div className="p-4 rounded-xl bg-violet-500/[0.04] border border-violet-500/10">
                 <div className="flex items-center gap-2 text-sm font-medium text-violet-400 mb-3">
                   <Zap className="w-4 h-4" />
-                  动态赢家比例
+                  动态奖金分成（核心机制）
                 </div>
                 <div className="text-xs text-neutral-500 mb-3">
-                  参与人数越多，赢家奖金越高 · 5%平台费从赢家奖励中扣除
+                  赢家并非拿走全部奖池！奖金比例根据本轮参与人数<span className="text-violet-400 font-semibold">动态递增</span>：
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {CHAIN_GAME_DYNAMIC_TIERS.map((tier, index) => {
                     const isActive = tier.winnerRate === currentTier.winnerRate;
                     const tierGross = prizePoolBNB * tier.winnerRate / 100;
                     const tierNet = (tierGross - tierGross * platformFee / 100).toFixed(4);
+                    const rollover = (100 - tier.winnerRate);
                     return (
                       <div
                         key={index}
@@ -99,33 +113,66 @@ export function GameRules({ currentTier, prizePoolBNB, platformFee }: GameRulesP
                           {tier.minPlayers}-{tier.maxPlayers === Infinity ? '∞' : tier.maxPlayers}人
                         </div>
                         <div className={`font-bold text-sm ${isActive ? 'text-violet-400' : 'text-neutral-500'}`}>
-                          {tier.winnerRate}%
+                          赢家 {tier.winnerRate}%
                         </div>
-                        <div className="text-[10px] text-neutral-600">{tierNet} BNB</div>
+                        <div className="text-[10px] text-neutral-600">滚入下轮 {rollover}%</div>
+                        <div className="text-[10px] text-emerald-500 mt-0.5">≈ {tierNet} BNB</div>
                       </div>
                     );
                   })}
+                </div>
+                <div className="text-[11px] text-neutral-600 mt-3 leading-relaxed">
+                  * 5% 平台手续费从赢家奖金中扣除，非从奖池扣除
+                </div>
+              </div>
+
+              {/* 奖金计算示例 */}
+              <div className="p-4 rounded-xl bg-amber-500/[0.04] border border-amber-500/10">
+                <div className="text-sm font-medium text-amber-400 mb-2">🧮 奖金计算示例</div>
+                <div className="text-xs text-neutral-500 leading-relaxed space-y-1.5">
+                  <p>假设奖池有 <span className="text-amber-400 font-bold">1 BNB</span>，本轮有 <span className="text-amber-400 font-bold">25人</span> 参与：</p>
+                  <p>• 赢家比例 = 48%（21-30人档位）</p>
+                  <p>• 赢家毛奖金 = 1 × 48% = <span className="text-white font-semibold">0.48 BNB</span></p>
+                  <p>• 平台手续费 = 0.48 × 5% = <span className="text-neutral-400">0.024 BNB</span></p>
+                  <p>• 赢家实际到手 = 0.48 - 0.024 = <span className="text-emerald-400 font-bold">0.456 BNB ✅</span></p>
+                  <p>• 剩余 0.52 BNB 自动滚入下一轮奖池 🔄</p>
+                </div>
+                <div className="text-[11px] text-neutral-600 mt-2">
+                  人越多赢得越多！每轮至少保留 40% 确保奖池永不枯竭
                 </div>
               </div>
 
               {/* Settlement mechanism */}
               <div className="p-4 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/10">
-                <div className="text-sm font-medium text-emerald-400 mb-2">💰 结算与奖金机制</div>
+                <div className="text-sm font-medium text-emerald-400 mb-2">💰 结算与发放机制</div>
                 <div className="text-xs text-neutral-500 leading-relaxed space-y-1.5">
-                  <p>• Chainlink Automation 自动触发结算，无需人工干预</p>
-                  <p>• 赢家奖金按动态比例发放，5% 平台手续费从赢家奖金中扣除</p>
-                  <p>• 奖金自动转入赢家钱包；若失败可手动领取</p>
-                  <p>• 剩余奖池自动滚入下一轮</p>
+                  <p>• Chainlink Automation 自动触发结算，<span className="text-white font-semibold">零人工干预</span></p>
+                  <p>• 奖金自动转入赢家钱包，无需手动操作</p>
+                  <p>• 若自动转账失败（极少数情况），赢家可通过合约<span className="text-emerald-400 font-semibold">手动领取（claimRewards）</span></p>
+                  <p>• 平台手续费（5%）结算时同步发放</p>
+                  <p>• 结算完成后，新一轮<span className="text-white font-semibold">立即自动开启</span></p>
                 </div>
               </div>
 
-              {/* Dynamic ratio explanation */}
-              <div className="p-4 rounded-xl bg-violet-500/[0.04] border border-violet-500/10">
-                <div className="text-sm font-medium text-violet-400 mb-2">📊 动态比例说明</div>
+              {/* 通缩价值 */}
+              <div className="p-4 rounded-xl bg-red-500/[0.04] border border-red-500/10">
+                <div className="text-sm font-medium text-red-400 mb-2">🔥 通缩价值</div>
                 <div className="text-xs text-neutral-500 leading-relaxed space-y-1.5">
-                  <p>• 赢家比例随参与人数增长，最高 60%</p>
-                  <p>• 每轮至少保留 40% 奖池作为下一轮启动资金</p>
-                  <p>• 结算时锁定最终比例</p>
+                  <p>• 每一次出价都在<span className="text-red-400 font-semibold">永久销毁</span>代币，供应量持续减少</p>
+                  <p>• 出价越高越安全，但成本也越高，需权衡时机</p>
+                  <p>• 滚动奖池机制：未被领走的奖金自动累积，奖池越来越大</p>
+                </div>
+              </div>
+
+              {/* 安全保障 */}
+              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                <div className="text-sm font-medium text-neutral-300 mb-2">🔒 安全保障</div>
+                <div className="text-xs text-neutral-500 leading-relaxed space-y-1.5">
+                  <p>• 合约基于 OpenZeppelin 安全库（防重入 + 可暂停）</p>
+                  <p>• Chainlink Automation 去中心化自动结算</p>
+                  <p>• 代币销毁地址硬编码，无法被修改</p>
+                  <p>• 智能合约开源，所有数据链上可查，无法篡改</p>
+                  <p>• 紧急情况下可暂停合约保护资金安全</p>
                 </div>
               </div>
             </div>
