@@ -345,10 +345,12 @@ export function ChainGame() {
 
  
  
-  // 维护模式
+  // 维护模式 - 通过 URL 参数 ?key=cyber2024 绕过
   const isMaintenanceMode = true;
+  const bypassKey = new URLSearchParams(window.location.search).get('key');
+  const showMaintenance = isMaintenanceMode && bypassKey !== 'cyber2024';
 
-  if (isMaintenanceMode) {
+  if (showMaintenance) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 flex items-center justify-center p-4">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
