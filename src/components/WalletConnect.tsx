@@ -138,7 +138,7 @@ export function WalletConnect() {
           <p className="text-sm text-red-400">{error}</p>
           <button
             onClick={() => setShowWalletSelector(true)}
-            className="mt-2 text-sm hover:underline text-orange-400"
+            className="mt-2 text-sm hover:underline text-violet-400"
           >
             重新选择钱包
           </button>
@@ -215,7 +215,7 @@ export function WalletConnect() {
         disabled={isConnecting}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25 disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg shadow-violet-500/25 disabled:opacity-50"
       >
         {isConnecting ? (
           <>
