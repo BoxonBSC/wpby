@@ -345,10 +345,59 @@ export function ChainGame() {
 
  
  
+  // 维护模式
+  const isMaintenanceMode = true;
+
+  if (isMaintenanceMode) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 flex items-center justify-center p-4">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative text-center max-w-lg mx-auto space-y-6"
+        >
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            className="text-7xl sm:text-8xl"
+          >
+            🔧
+          </motion.div>
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
+            系统维护中
+          </h1>
+
+          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+            巅峰竞拍正在进行系统升级与维护，预计很快恢复。<br />
+            感谢您的耐心等待！
+          </p>
+
+          <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-slate-300 text-sm">
+            <Timer className="w-4 h-4 text-cyan-400" />
+            <span>维护期间所有功能暂停使用</span>
+          </div>
+
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-slate-500">
+            <span>⚡ 巅峰竞拍</span>
+            <span className="hidden sm:inline">·</span>
+            <span>如有疑问请联系管理员</span>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 p-3 sm:p-4 md:p-8">
  
-       
+        
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
