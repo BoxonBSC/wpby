@@ -9,7 +9,6 @@ import {
 } from '@/config/contracts';
 
 const GAME_CONTRACT = CYBER_CHAIN_GAME_ADDRESS.mainnet;
-
 const BSCSCAN_URL = 'https://bscscan.com/address/';
 
 interface RoundResult {
@@ -120,26 +119,19 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
   const displayHistory = expanded ? history : history.slice(0, 3);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.25 }}
-      className="rounded-2xl bg-neutral-900/60 backdrop-blur border border-neutral-700/50 p-5"
-    >
+    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-white font-semibold">
-          <History className="w-5 h-5 text-violet-400" />
-          中奖记录
+        <div className="flex items-center gap-2">
+          <History className="w-4 h-4 text-violet-400" />
+          <span className="text-sm font-semibold text-white">中奖记录</span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-neutral-500">
-            <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3 text-green-400" /> 已发放</span>
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-violet-400" /> 待领取</span>
-          </div>
+        <div className="flex items-center gap-2 text-[10px] text-neutral-600">
+          <span className="flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5 text-emerald-500" /> 已发放</span>
+          <span className="flex items-center gap-1"><Clock className="w-2.5 h-2.5 text-violet-400" /> 待领取</span>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {displayHistory.map((round, index) => {
           const tierLabel = CHAIN_GAME_DYNAMIC_TIERS.find(
             (t) => round.participantCount >= t.minPlayers && round.participantCount <= t.maxPlayers
@@ -148,58 +140,57 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
           return (
             <motion.div
               key={round.roundId}
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="flex items-center justify-between p-3 rounded-xl bg-neutral-800/40 hover:bg-neutral-800/60 transition-colors"
+              className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-500/10 text-yellow-400 text-sm font-bold">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-yellow-500/[0.08] flex items-center justify-center text-yellow-500 text-[11px] font-bold">
                   #{round.roundId}
                 </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <Trophy className="w-3 h-3 text-yellow-500/70" />
                     <a
                       href={`${BSCSCAN_URL}${round.winner}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-sm text-neutral-300 hover:text-violet-400 transition-colors flex items-center gap-1"
+                      className="font-mono text-xs text-neutral-400 hover:text-violet-400 transition-colors flex items-center gap-1"
                     >
                       {shortenAddress(round.winner)}
-                      <ExternalLink className="w-3 h-3 opacity-50" />
+                      <ExternalLink className="w-2.5 h-2.5 opacity-40" />
                     </a>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-neutral-500">
+                  <div className="flex items-center gap-1.5 text-[10px] text-neutral-600 mt-0.5">
                     <span>{round.endTime}</span>
                     <span>·</span>
-                    <span>{round.participantCount} 人</span>
+                    <span>{round.participantCount}人</span>
                     <span>·</span>
                     <span>{tierLabel} {round.winnerRate}%</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col items-end">
-                  <span className="text-yellow-400 font-bold text-sm">
-                    +{round.prize} BNB
+
+              <div className="flex flex-col items-end">
+                <span className="text-yellow-400 font-bold text-xs">
+                  +{round.prize} BNB
+                </span>
+                {round.paymentStatus === 'paid' ? (
+                  <span className="flex items-center gap-0.5 text-[10px] text-emerald-500">
+                    <CheckCircle className="w-2.5 h-2.5" />
+                    已发放
                   </span>
-                  {round.paymentStatus === 'paid' ? (
-                    <span className="flex items-center gap-1 text-xs text-green-400">
-                      <CheckCircle className="w-3 h-3" />
-                      已发放
-                    </span>
-                  ) : round.paymentStatus === 'pending' ? (
-                    <span className="flex items-center gap-1 text-xs text-violet-400">
-                      <Clock className="w-3 h-3" />
-                      待领取 {round.pendingAmount}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-neutral-500">
-                      奖池 {round.prizePool}
-                    </span>
-                  )}
-                </div>
+                ) : round.paymentStatus === 'pending' ? (
+                  <span className="flex items-center gap-0.5 text-[10px] text-violet-400">
+                    <Clock className="w-2.5 h-2.5" />
+                    待领取 {round.pendingAmount}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-neutral-600">
+                    奖池 {round.prizePool}
+                  </span>
+                )}
               </div>
             </motion.div>
           );
@@ -209,30 +200,27 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
       {history.length > 3 && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full mt-3 flex items-center justify-center gap-1 py-2 rounded-xl text-sm text-neutral-400 hover:text-violet-400 hover:bg-neutral-800/30 transition-colors"
+          className="w-full mt-2 flex items-center justify-center gap-1 py-2 rounded-lg text-xs text-neutral-500 hover:text-violet-400 hover:bg-white/[0.02] transition-colors"
         >
           {expanded ? (
-            <>收起 <ChevronUp className="w-4 h-4" /></>
+            <>收起 <ChevronUp className="w-3.5 h-3.5" /></>
           ) : (
-            <>查看更多 ({history.length - 3}) <ChevronDown className="w-4 h-4" /></>
+            <>查看更多 ({history.length - 3}) <ChevronDown className="w-3.5 h-3.5" /></>
           )}
         </button>
       )}
 
-      {/* BSCScan verification hint */}
-      {(
-        <div className="mt-3 pt-3 border-t border-neutral-700/30 flex items-center justify-center">
-          <a
-            href={`${BSCSCAN_URL}${GAME_CONTRACT}#internaltx`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-neutral-500 hover:text-violet-400 transition-colors flex items-center gap-1"
-          >
-            🔍 在 BscScan 上验证所有转账记录
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        </div>
-      )}
-    </motion.div>
+      <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-center">
+        <a
+          href={`${BSCSCAN_URL}${GAME_CONTRACT}#internaltx`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px] text-neutral-600 hover:text-violet-400 transition-colors flex items-center gap-1"
+        >
+          🔍 在 BscScan 上验证所有转账记录
+          <ExternalLink className="w-2.5 h-2.5" />
+        </a>
+      </div>
+    </div>
   );
 });
