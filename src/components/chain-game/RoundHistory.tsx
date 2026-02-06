@@ -119,7 +119,7 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
   const displayHistory = expanded ? history : history.slice(0, 3);
 
   return (
-    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5">
+    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5 flex-1 flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <History className="w-4 h-4 text-violet-400" />
@@ -131,7 +131,7 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
         </div>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 flex-1 overflow-y-auto">
         {displayHistory.map((round, index) => {
           const tierLabel = CHAIN_GAME_DYNAMIC_TIERS.find(
             (t) => round.participantCount >= t.minPlayers && round.participantCount <= t.maxPlayers

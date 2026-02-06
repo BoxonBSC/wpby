@@ -16,12 +16,12 @@ const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)
 export function BidHistory({ bidHistory }: BidHistoryProps) {
   if (bidHistory.length === 0) {
     return (
-      <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5">
+      <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5 flex-1 flex flex-col">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-4 h-4 text-violet-400" />
           <span className="text-sm font-semibold text-white">出价记录</span>
         </div>
-        <div className="text-center py-8 text-neutral-600 text-sm">
+        <div className="flex-1 flex items-center justify-center text-neutral-600 text-sm">
           暂无出价记录
         </div>
       </div>
@@ -29,7 +29,7 @@ export function BidHistory({ bidHistory }: BidHistoryProps) {
   }
 
   return (
-    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5">
+    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5 flex-1 flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-violet-400" />
@@ -38,7 +38,7 @@ export function BidHistory({ bidHistory }: BidHistoryProps) {
         <span className="text-xs text-neutral-600">{bidHistory.length} 条</span>
       </div>
 
-      <div className="space-y-1.5 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="space-y-1.5 flex-1 overflow-y-auto pr-1 custom-scrollbar">
         {bidHistory.map((record, index) => {
           const isLatest = index === 0;
           const orderNum = bidHistory.length - index;
