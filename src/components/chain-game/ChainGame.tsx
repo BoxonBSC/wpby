@@ -346,7 +346,7 @@ export function ChainGame() {
  
  
   // 维护模式 - 通过 URL 参数 ?key=cyber2024 绕过
-  const isMaintenanceMode = true;
+  const isMaintenanceMode = false;
   const bypassKey = new URLSearchParams(window.location.search).get('key');
   const showMaintenance = isMaintenanceMode && bypassKey !== 'cyber2024';
 
