@@ -128,16 +128,16 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25 }}
-      className="rounded-2xl bg-slate-900/60 backdrop-blur border border-slate-700/50 p-5"
+      className="rounded-2xl bg-stone-900/60 backdrop-blur border border-stone-700/50 p-5"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 text-white font-semibold">
-          <History className="w-5 h-5 text-yellow-400" />
+          <History className="w-5 h-5 text-orange-400" />
           中奖记录
         </div>
         <div className="flex items-center gap-3">
  
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-stone-500">
             <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3 text-green-400" /> 已发放</span>
             <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-orange-400" /> 待领取</span>
           </div>
@@ -156,7 +156,7 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/60 transition-colors"
+              className="flex items-center justify-between p-3 rounded-xl bg-stone-800/40 hover:bg-stone-800/60 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-500/10 text-yellow-400 text-sm font-bold">
@@ -169,13 +169,13 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
                       href={`${BSCSCAN_URL}${round.winner}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-sm text-slate-300 hover:text-cyan-400 transition-colors flex items-center gap-1"
+                      className="font-mono text-sm text-stone-300 hover:text-orange-400 transition-colors flex items-center gap-1"
                     >
                       {shortenAddress(round.winner)}
                       <ExternalLink className="w-3 h-3 opacity-50" />
                     </a>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="flex items-center gap-2 text-xs text-stone-500">
                     <span>{round.endTime}</span>
                     <span>·</span>
                     <span>{round.participantCount} 人</span>
@@ -201,7 +201,7 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
                       待领取 {round.pendingAmount}
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-stone-500">
                       奖池 {round.prizePool}
                     </span>
                   )}
@@ -215,7 +215,7 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
       {history.length > 3 && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full mt-3 flex items-center justify-center gap-1 py-2 rounded-xl text-sm text-slate-400 hover:text-cyan-400 hover:bg-slate-800/30 transition-colors"
+          className="w-full mt-3 flex items-center justify-center gap-1 py-2 rounded-xl text-sm text-stone-400 hover:text-orange-400 hover:bg-stone-800/30 transition-colors"
         >
           {expanded ? (
             <>收起 <ChevronUp className="w-4 h-4" /></>
@@ -227,12 +227,12 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
 
       {/* BSCScan verification hint */}
       {(
-        <div className="mt-3 pt-3 border-t border-slate-700/30 flex items-center justify-center">
+        <div className="mt-3 pt-3 border-t border-stone-700/30 flex items-center justify-center">
           <a
             href={`${BSCSCAN_URL}${GAME_CONTRACT}#internaltx`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-slate-500 hover:text-cyan-400 transition-colors flex items-center gap-1"
+            className="text-xs text-stone-500 hover:text-orange-400 transition-colors flex items-center gap-1"
           >
             🔍 在 BscScan 上验证所有转账记录
             <ExternalLink className="w-3 h-3" />
