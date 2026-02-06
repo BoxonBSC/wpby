@@ -48,6 +48,7 @@ contract CyberChainGame is Ownable, ReentrancyGuard, Pausable, AutomationCompati
     // ============ 状态变量 ============
     IERC20 public token;
     bool public tokenSet;
+    event TokenUpdated(address indexed oldToken, address indexed newToken);
     address public platformWallet;
 
     // 黑洞销毁地址
@@ -150,10 +151,11 @@ contract CyberChainGame is Ownable, ReentrancyGuard, Pausable, AutomationCompati
 
     // ============ 设置代币 ============
     function setToken(address _token) external onlyOwner {
-        require(!tokenSet, "Token already set");
         require(_token != address(0), "Invalid token");
+        address oldToken = address(token);
         token = IERC20(_token);
         tokenSet = true;
+        emit TokenUpdated(oldToken, _token);
         emit TokenSet(_token);
     }
 
