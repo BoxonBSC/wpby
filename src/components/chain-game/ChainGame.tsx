@@ -930,9 +930,13 @@ export function ChainGame() {
           </div>
 
           {/* ——— Right Column: Activity Feed ——— */}
-          <div className="lg:col-span-5 space-y-4">
-            <BidHistory bidHistory={bidHistory} />
-            <RoundHistory currentRoundId={roundData.roundId} />
+          <div className="lg:col-span-5 flex flex-col gap-4 lg:min-h-0">
+            <div className="flex-1 min-h-0 flex flex-col">
+              <BidHistory bidHistory={bidHistory} />
+            </div>
+            <div className="flex-1 min-h-0 flex flex-col">
+              <RoundHistory currentRoundId={roundData.roundId} />
+            </div>
           </div>
         </div>
 
