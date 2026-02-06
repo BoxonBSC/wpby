@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import butterflyLogo from '@/assets/butterfly-logo.png';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Trophy, Users, Zap, Crown, ArrowUp, Wallet, Coins, Timer, CalendarClock } from 'lucide-react';
+import { Flame, Trophy, Users, Zap, Crown, ArrowUp, Wallet, Coins, Timer, CalendarClock, Copy, ExternalLink, LogOut, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useWallet } from '@/contexts/WalletContext';
@@ -60,9 +60,10 @@ export function ChainGame() {
   const [isTaking, setIsTaking] = useState(false);
   const [bidAmount, setBidAmount] = useState<string>('');
   const [showWallet, setShowWallet] = useState(false);
+  const [showWalletDropdown, setShowWalletDropdown] = useState(false);
   const [bidSuccessTrigger, setBidSuccessTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const { isConnected, address } = useWallet();
+  const { isConnected, address, disconnect, balance: walletBalance } = useWallet();
 
   const [roundData, setRoundData] = useState({
     roundId: 0,
@@ -399,9 +400,9 @@ export function ChainGame() {
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[400px] bg-purple-700/[0.04] rounded-full blur-[120px]" />
       </div>
 
-      {/* Wallet modal */}
+      {/* Wallet modal — only for wallet selection (not connected) */}
       <AnimatePresence>
-        {showWallet && (
+        {showWallet && !isConnected && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -422,6 +423,11 @@ export function ChainGame() {
         )}
       </AnimatePresence>
 
+      {/* Dropdown overlay to close */}
+      {showWalletDropdown && isConnected && (
+        <div className="fixed inset-0 z-40" onClick={() => setShowWalletDropdown(false)} />
+      )}
+
       <BidSuccessParticles trigger={bidSuccessTrigger} />
 
       <div className="relative max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
@@ -439,22 +445,140 @@ export function ChainGame() {
             </div>
           </motion.div>
 
-          <motion.button
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={() => setShowWallet(true)}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-violet-500/30 hover:bg-violet-500/[0.04] hover:shadow-[0_0_15px_rgba(139,92,246,0.08)] transition-all duration-300"
-          >
-            <Wallet className="w-4 h-4 text-violet-400 flex-shrink-0" />
-            {isConnected && address ? (
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-xs font-mono text-neutral-300 truncate">{shortenAddress(address)}</span>
-                <span className="text-xs text-violet-400 font-medium truncate hidden sm:block">{tokenBalance} {tokenSymbol}</span>
-              </div>
-            ) : (
-              <span className="text-xs text-neutral-400">连接钱包</span>
-            )}
-          </motion.button>
+          {/* Wallet header button */}
+          <div className="relative">
+            <motion.button
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => {
+                if (isConnected) {
+                  setShowWalletDropdown(prev => !prev);
+                } else {
+                  setShowWallet(true);
+                }
+              }}
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl transition-all duration-300 ${
+                isConnected
+                  ? 'bg-white/[0.04] border border-emerald-500/20 hover:border-violet-500/30 hover:bg-violet-500/[0.04]'
+                  : 'bg-white/[0.04] border border-white/[0.08] hover:border-violet-500/30 hover:bg-violet-500/[0.04]'
+              } hover:shadow-[0_0_15px_rgba(139,92,246,0.08)]`}
+            >
+              {isConnected && address ? (
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400/50 animate-ping" />
+                  </div>
+                  <span className="text-xs font-mono text-neutral-300 truncate">{shortenAddress(address)}</span>
+                  <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/15">
+                    <span className="text-[11px] text-violet-400 font-medium">{tokenBalance} {tokenSymbol}</span>
+                  </div>
+                  <ChevronDown className={`w-3 h-3 text-neutral-500 transition-transform ${showWalletDropdown ? 'rotate-180' : ''}`} />
+                </div>
+              ) : (
+                <>
+                  <Wallet className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                  <span className="text-xs text-neutral-400">连接钱包</span>
+                </>
+              )}
+            </motion.button>
+
+            {/* Connected wallet dropdown */}
+            <AnimatePresence>
+              {showWalletDropdown && isConnected && address && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+                  className="absolute right-0 top-full mt-2 w-72 z-50 rounded-2xl overflow-hidden"
+                >
+                  {/* Border gradient */}
+                  <div className="absolute inset-0 rounded-2xl p-px bg-gradient-to-b from-violet-500/25 via-white/[0.06] to-transparent">
+                    <div className="w-full h-full rounded-2xl bg-[#0e0b18]" />
+                  </div>
+
+                  <div className="relative p-4 space-y-3">
+                    {/* Address row */}
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-sm font-bold text-white">{shortenAddress(address)}</span>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(address); toast.success('地址已复制'); }}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <Copy className="w-3.5 h-3.5 text-neutral-500 group-hover:text-violet-400 transition-colors" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); window.open(`https://bscscan.com/address/${address}`, '_blank'); }}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-violet-400 transition-colors" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Balance cards */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                        <div className="text-[10px] text-neutral-500 mb-0.5">BNB 余额</div>
+                        <div className="text-sm font-bold text-white">{Number(walletBalance).toFixed(4)}</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                        <div className="text-[10px] text-neutral-500 mb-0.5">{tokenSymbol}</div>
+                        <div className="text-sm font-bold text-white">{tokenBalance}</div>
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    {(playerStats.wins > 0 || Number(playerStats.pending) > 0) && (
+                      <div className="p-2.5 rounded-xl bg-violet-500/[0.04] border border-violet-500/10 space-y-1.5">
+                        {playerStats.wins > 0 && (
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-neutral-400 flex items-center gap-1"><Trophy className="w-3 h-3 text-yellow-400" /> 胜场</span>
+                            <span className="text-white font-medium">{playerStats.wins}</span>
+                          </div>
+                        )}
+                        {Number(playerStats.pending) > 0 && (
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-neutral-400 flex items-center gap-1"><Zap className="w-3 h-3 text-violet-400" /> 待领取</span>
+                            <span className="text-violet-300 font-bold">{Number(playerStats.pending).toFixed(4)} BNB</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowWalletDropdown(false);
+                          disconnect();
+                          setTimeout(() => setShowWallet(true), 100);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1.5 text-[11px] py-2 rounded-lg transition-all bg-white/[0.04] border border-white/[0.06] text-neutral-400 hover:border-violet-500/30 hover:text-violet-400"
+                      >
+                        <Wallet className="w-3 h-3" />
+                        切换钱包
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowWalletDropdown(false);
+                          disconnect();
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1.5 text-[11px] py-2 rounded-lg transition-all bg-red-500/[0.06] border border-red-500/15 text-red-400/80 hover:bg-red-500/10 hover:text-red-400"
+                      >
+                        <LogOut className="w-3 h-3" />
+                        断开连接
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </header>
 
         {/* Token set indicator */}
