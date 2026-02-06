@@ -18,6 +18,8 @@ import { RoundHistory } from './RoundHistory';
 import { BidHistory } from './BidHistory';
 import { GameRules } from './GameRules';
 import { BidSuccessParticles } from './BidSuccessParticles';
+import { AnimatedBidButton } from './AnimatedBidButton';
+import { WinCelebration } from './WinCelebration';
 
 // 游戏配置
 const GAME_CONFIG = {
@@ -580,28 +582,12 @@ export function ChainGame() {
                       </div>
                     </motion.div>
                   ) : (
-                    <motion.div key="ended" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="py-6 text-center">
-                      <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4 animate-bounce" />
-                      <div className="text-2xl font-display font-bold text-white mb-2">🎉 本轮结束！</div>
-                      <div className="text-neutral-500 text-sm mb-1">恭喜 {shortenAddress(roundData.currentHolder || '0x0')} 获胜</div>
-                      <div className="text-yellow-400 text-lg font-bold mb-4">+{winnerAmount} BNB</div>
-                      <div className="flex items-center justify-center gap-2 text-violet-400 text-sm">
-                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}>
-                          <Zap className="w-5 h-5" />
-                        </motion.div>
-                        正在自动结算中...
-                      </div>
-                      <div className="flex justify-center gap-1.5 mt-3">
-                        {[0, 1, 2].map(i => (
-                          <motion.div
-                            key={i}
-                            className="w-1.5 h-1.5 rounded-full bg-violet-400"
-                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-                            transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.3 }}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-[11px] text-neutral-600 mt-3">奖金将自动发放至赢家钱包</p>
+                    <motion.div key="ended" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                      <WinCelebration
+                        winnerAddress={roundData.currentHolder || '0x0'}
+                        winnerAmount={winnerAmount}
+                        prizePoolBNB={prizePoolBNB}
+                      />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -821,31 +807,15 @@ export function ChainGame() {
               )}
 
               {/* Main CTA Button */}
-              <Button
+              <AnimatedBidButton
                 onClick={handleTakeover}
                 disabled={isEnded || isTaking || (!!bidAmount && (Number(bidAmount) < minBidNum || (Number(bidAmount) > tokenBalanceNum && tokenBalanceNum > 0)))}
-                className="w-full h-14 sm:h-[60px] text-base sm:text-lg font-display font-bold rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 hover:from-violet-500 hover:via-purple-500 hover:to-violet-500 text-white shadow-[0_4px_20px_rgba(139,92,246,0.3),0_0_40px_rgba(139,92,246,0.15)] hover:shadow-[0_4px_30px_rgba(139,92,246,0.4),0_0_60px_rgba(139,92,246,0.2)] hover:translate-y-[-1px] active:translate-y-[1px] transition-all duration-300 disabled:opacity-40 disabled:shadow-none disabled:hover:translate-y-0 border border-violet-400/20"
-              >
-                {isTaking ? (
-                  <span className="flex items-center gap-2">
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-                      <Zap className="w-5 h-5" />
-                    </motion.div>
-                    出价中...
-                  </span>
-                ) : isEnded ? (
-                  '本轮已结束'
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Flame className="w-5 h-5" />
-                    {!isConnected
-                      ? '连接钱包后出价'
-                      : bidAmount && Number(bidAmount) >= minBidNum
-                        ? `🔥 出价 ${Number(bidAmount).toLocaleString()} 代币`
-                        : '我要出价'}
-                  </span>
-                )}
-              </Button>
+                isTaking={isTaking}
+                isEnded={isEnded}
+                isConnected={isConnected}
+                bidAmount={bidAmount}
+                minBidNum={minBidNum}
+              />
 
               {Number(playerStats.pending) > 0 && (
                 <Button
