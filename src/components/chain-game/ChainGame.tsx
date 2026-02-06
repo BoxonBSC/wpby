@@ -434,7 +434,7 @@ export function ChainGame() {
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => setShowWallet(true)}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-violet-500/30 transition-all duration-200"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-violet-500/30 hover:bg-violet-500/[0.04] hover:shadow-[0_0_15px_rgba(139,92,246,0.08)] transition-all duration-300"
           >
             <Wallet className="w-4 h-4 text-violet-400 flex-shrink-0" />
             {isConnected && address ? (
@@ -475,9 +475,11 @@ export function ChainGame() {
               className="relative rounded-2xl overflow-hidden"
             >
               {/* Gradient border glow */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/20 via-transparent to-purple-500/10 p-px">
-                <div className="w-full h-full rounded-2xl bg-[#0c0a14]" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/25 via-purple-500/10 to-violet-600/20 p-px">
+                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-[#0e0b18] via-[#0c0a14] to-[#0a0812]" />
               </div>
+              {/* Subtle inner glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-violet-400/40 to-transparent" />
 
               <div className="relative p-5 sm:p-7">
                 {/* Status tags */}
@@ -502,13 +504,17 @@ export function ChainGame() {
                     <motion.div key="active" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                       {/* Prize Pool Display */}
                       <div className="mb-6">
-                        <p className="text-xs text-neutral-600 uppercase tracking-widest mb-1">BNB 奖池</p>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-4xl sm:text-5xl lg:text-6xl font-display font-black text-white tracking-tight">
+                        <p className="text-[11px] text-violet-400/60 uppercase tracking-[0.2em] font-medium mb-2">BNB 奖池</p>
+                        <div className="flex items-baseline gap-3">
+                          <span
+                            className="text-4xl sm:text-5xl lg:text-6xl font-display font-black tracking-tight bg-gradient-to-r from-white via-violet-200 to-violet-400 bg-clip-text text-transparent"
+                            style={{ filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.3))' }}
+                          >
                             {prizePoolBNB.toFixed(4)}
                           </span>
-                          <span className="text-sm text-neutral-600 font-medium">BNB</span>
+                          <span className="text-sm text-violet-400/50 font-bold uppercase tracking-wider">BNB</span>
                         </div>
+                        <div className="mt-2 h-px bg-gradient-to-r from-violet-500/30 via-violet-500/10 to-transparent" />
                       </div>
 
                       {/* Countdown */}
@@ -527,19 +533,19 @@ export function ChainGame() {
                         <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                           {countdownDigits.map((char, i) =>
                             char === ':' ? (
-                              <span key={i} className="text-xl sm:text-2xl text-violet-400/50 font-bold mx-0.5 animate-pulse">:</span>
+                              <span key={i} className="text-xl sm:text-2xl text-violet-400/40 font-bold mx-0.5 animate-pulse">:</span>
                             ) : (
                               <motion.div
                                 key={i}
-                                className={`w-12 h-16 sm:w-16 sm:h-20 rounded-xl flex items-center justify-center ${
+                                className={`w-12 h-16 sm:w-16 sm:h-20 rounded-xl flex items-center justify-center backdrop-blur-sm ${
                                   isLastFiveMinutes
-                                    ? 'bg-violet-500/[0.08] border border-violet-500/20'
-                                    : 'bg-white/[0.03] border border-white/[0.06]'
+                                    ? 'bg-gradient-to-b from-violet-500/15 to-violet-600/[0.06] border border-violet-500/25 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
+                                    : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.08]'
                                 }`}
                               >
                                 <span className={`text-2xl sm:text-4xl font-mono font-bold ${
                                   isLastFiveMinutes
-                                    ? timeLeft <= 60 ? 'text-red-400' : 'text-violet-300'
+                                    ? timeLeft <= 60 ? 'text-red-400 animate-pulse' : 'text-violet-200'
                                     : 'text-white'
                                 }`}>
                                   {char}
@@ -560,16 +566,16 @@ export function ChainGame() {
                       </div>
 
                       {/* Winner & Rollover info */}
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/[0.05] border border-yellow-500/10">
-                          <Trophy className="w-3 h-3 text-yellow-500/70" />
-                          <span className="text-neutral-500">赢家获得</span>
-                          <span className="text-yellow-400 font-bold">{winnerAmount} BNB</span>
+                      <div className="flex flex-wrap gap-2.5 text-xs">
+                        <div className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-yellow-500/[0.08] to-yellow-600/[0.04] border border-yellow-500/15">
+                          <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+                          <span className="text-neutral-400">赢家获得</span>
+                          <span className="text-yellow-300 font-bold" style={{ textShadow: '0 0 12px rgba(250,204,21,0.3)' }}>{winnerAmount} BNB</span>
                         </div>
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/[0.05] border border-violet-500/10">
-                          <ArrowUp className="w-3 h-3 text-violet-400/70" />
-                          <span className="text-neutral-500">滚入下轮</span>
-                          <span className="text-violet-400 font-bold">{rolloverAmount} BNB</span>
+                        <div className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-violet-500/[0.08] to-violet-600/[0.04] border border-violet-500/15">
+                          <ArrowUp className="w-3.5 h-3.5 text-violet-400" />
+                          <span className="text-neutral-400">滚入下轮</span>
+                          <span className="text-violet-300 font-bold">{rolloverAmount} BNB</span>
                         </div>
                       </div>
                     </motion.div>
@@ -603,10 +609,12 @@ export function ChainGame() {
             </motion.div>
 
             {/* Current Holder */}
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <Crown className="w-4 h-4 text-yellow-500/60 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-gradient-to-r from-yellow-500/[0.04] via-transparent to-transparent border border-yellow-500/[0.08]">
+              <div className="w-7 h-7 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                <Crown className="w-3.5 h-3.5 text-yellow-400" />
+              </div>
               <span className="text-xs text-neutral-500">当前最高出价者</span>
-              <span className="font-mono text-xs text-neutral-300 ml-auto">
+              <span className="font-mono text-xs text-white font-medium ml-auto">
                 {roundData.currentHolder ? shortenAddress(roundData.currentHolder) : '—'}
               </span>
             </div>
@@ -614,16 +622,24 @@ export function ChainGame() {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: <Coins className="w-3.5 h-3.5 text-violet-400" />, label: '当前出价', value: currentBidFormatted, unit: '代币', accent: 'text-violet-400' },
-                { icon: <ArrowUp className="w-3.5 h-3.5 text-emerald-400" />, label: '最低出价', value: minBidFormatted, unit: '不设上限', accent: 'text-emerald-400' },
+                { icon: <Coins className="w-3.5 h-3.5" />, label: '当前出价', value: currentBidFormatted, unit: '代币', color: 'violet' as const },
+                { icon: <ArrowUp className="w-3.5 h-3.5" />, label: '最低出价', value: minBidFormatted, unit: '不设上限', color: 'emerald' as const },
               ].map((stat, i) => (
-                <div key={i} className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <div className="flex items-center gap-1.5 text-neutral-600 text-[11px] mb-1">
+                <div key={i} className={`relative p-3.5 rounded-xl overflow-hidden border ${
+                  stat.color === 'violet' 
+                    ? 'bg-gradient-to-br from-violet-500/[0.06] to-transparent border-violet-500/10' 
+                    : 'bg-gradient-to-br from-emerald-500/[0.06] to-transparent border-emerald-500/10'
+                }`}>
+                  <div className={`flex items-center gap-1.5 text-[11px] mb-1.5 ${
+                    stat.color === 'violet' ? 'text-violet-400/60' : 'text-emerald-400/60'
+                  }`}>
                     {stat.icon}
                     {stat.label}
                   </div>
-                  <div className={`text-lg font-bold ${stat.accent}`}>{stat.value}</div>
-                  <div className="text-[10px] text-neutral-700">{stat.unit}</div>
+                  <div className={`text-xl font-display font-bold ${
+                    stat.color === 'violet' ? 'text-violet-300' : 'text-emerald-300'
+                  }`}>{stat.value}</div>
+                  <div className="text-[10px] text-neutral-600 mt-0.5">{stat.unit}</div>
                 </div>
               ))}
             </div>
@@ -808,7 +824,7 @@ export function ChainGame() {
               <Button
                 onClick={handleTakeover}
                 disabled={isEnded || isTaking || (!!bidAmount && (Number(bidAmount) < minBidNum || (Number(bidAmount) > tokenBalanceNum && tokenBalanceNum > 0)))}
-                className="w-full h-13 sm:h-14 text-base sm:text-lg font-display font-bold rounded-xl bg-violet-600 hover:bg-violet-500 text-white shadow-[0_0_20px_rgba(139,92,246,0.2)] hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-all duration-300 disabled:opacity-40 disabled:shadow-none"
+                className="w-full h-14 sm:h-[60px] text-base sm:text-lg font-display font-bold rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 hover:from-violet-500 hover:via-purple-500 hover:to-violet-500 text-white shadow-[0_4px_20px_rgba(139,92,246,0.3),0_0_40px_rgba(139,92,246,0.15)] hover:shadow-[0_4px_30px_rgba(139,92,246,0.4),0_0_60px_rgba(139,92,246,0.2)] hover:translate-y-[-1px] active:translate-y-[1px] transition-all duration-300 disabled:opacity-40 disabled:shadow-none disabled:hover:translate-y-0 border border-violet-400/20"
               >
                 {isTaking ? (
                   <span className="flex items-center gap-2">
