@@ -80,6 +80,7 @@ export function ChainGame() {
   const [tokenBalance, setTokenBalance] = useState<string>('0');
   const [tokenSymbol, setTokenSymbol] = useState<string>('CYBER');
   const [tokenSet, setTokenSet] = useState<boolean | null>(null);
+  const [totalBurned, setTotalBurned] = useState<string>('0');
 
   const currentTier = useMemo(() => getCurrentTier(roundData.participantCount), [roundData.participantCount]);
   const prizePoolBNB = Number(ethers.formatEther(roundData.prizePool));
@@ -116,6 +117,13 @@ export function ChainGame() {
         await contract.getCurrentRound();
       
       const minBid = await contract.getMinBid();
+      
+      try {
+        const burned = await contract.totalBurned();
+        setTotalBurned(Number(ethers.formatEther(burned)).toLocaleString(undefined, { maximumFractionDigits: 0 }));
+      } catch (e) {
+        console.warn('Failed to fetch totalBurned:', e);
+      }
      
       setRoundData({
         roundId: Number(roundId),
@@ -830,6 +838,17 @@ export function ChainGame() {
               <span className="text-xs text-neutral-500">当前最高出价者</span>
               <span className="font-mono text-xs text-white font-medium ml-auto">
                 {roundData.currentHolder ? shortenAddress(roundData.currentHolder) : '—'}
+              </span>
+            </div>
+
+            {/* Total Burned */}
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-gradient-to-r from-red-500/[0.04] via-transparent to-transparent border border-red-500/[0.08]">
+              <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <Flame className="w-3.5 h-3.5 text-red-400" />
+              </div>
+              <span className="text-xs text-neutral-500">全网累计销毁</span>
+              <span className="font-mono text-xs text-red-400 font-bold ml-auto">
+                {totalBurned} {tokenSymbol}
               </span>
             </div>
 
