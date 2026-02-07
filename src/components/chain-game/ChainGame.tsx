@@ -147,8 +147,9 @@ export function ChainGame() {
             address: bid.bidder,
             bid: ethers.formatEther(bid.amount),
             time: new Date(Number(bid.timestamp) * 1000).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+            timestamp: Number(bid.timestamp),
           }))
-          .sort((a: { time: string }, b: { time: string }) => b.time.localeCompare(a.time))
+          .sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp)
           .slice(0, 10);
         setBidHistory(formattedBids);
       } catch (e) {
