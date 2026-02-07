@@ -146,7 +146,7 @@ export function ChainGame() {
           .map((bid: { bidder: string; amount: bigint; timestamp: bigint }) => ({
             address: bid.bidder,
             bid: ethers.formatEther(bid.amount),
-            time: new Date(Number(bid.timestamp) * 1000).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+            time: new Date(Number(bid.timestamp) * 1000).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             timestamp: Number(bid.timestamp),
           }))
           .sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp)
