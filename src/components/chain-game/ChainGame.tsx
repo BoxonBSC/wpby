@@ -318,15 +318,17 @@ export function ChainGame() {
       
       const allowance = await tokenContract.allowance(address, GAME_CONTRACT);
       if (allowance < bidValue) {
-        toast.loading('正在授权代币...');
+        const approveToastId = toast.loading('正在授权代币...');
         const approveTx = await tokenContract.approve(GAME_CONTRACT, ethers.MaxUint256);
         await approveTx.wait();
+        toast.dismiss(approveToastId);
         toast.success('授权成功！');
       }
       
-      toast.loading('正在出价...');
+      const bidToastId = toast.loading('正在出价...');
       const tx = await gameContract.placeBid(bidValue);
       await tx.wait();
+      toast.dismiss(bidToastId);
       
       toast.success('出价成功！🔥');
       setBidAmount('');
@@ -334,6 +336,7 @@ export function ChainGame() {
       fetchContractData();
     } catch (error: any) {
       console.error('Takeover failed:', error);
+      toast.dismiss(); // 清除所有 loading 提示
       toast.error(error.reason || '出价失败');
     } finally {
       setIsTaking(false);
@@ -348,13 +351,15 @@ export function ChainGame() {
       const provider = new ethers.BrowserProvider(ethereum);
       const signer = await provider.getSigner();
       const gameContract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, signer);
-      toast.loading('正在领取奖励...');
+      const claimToastId = toast.loading('正在领取奖励...');
       const tx = await gameContract.claimRewards();
       await tx.wait();
+      toast.dismiss(claimToastId);
       toast.success('奖励已领取！');
       fetchContractData();
     } catch (error: any) {
       console.error('Claim failed:', error);
+      toast.dismiss();
       toast.error(error.reason || '领取失败');
     }
   };
