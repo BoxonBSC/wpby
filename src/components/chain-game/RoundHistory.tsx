@@ -139,7 +139,7 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
   const displayHistory = expanded ? history : history.slice(0, 3);
 
   return (
-    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5 flex-1 flex flex-col">
+    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5 flex-1 flex flex-col min-h-0 overflow-hidden">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <History className="w-4 h-4 text-violet-400" />
