@@ -6,8 +6,6 @@ interface WinCelebrationProps {
   winnerAddress: string;
   winnerAmount: string;
   prizePoolBNB: number;
-  onManualSettle?: () => void;
-  isSettling?: boolean;
 }
 
 const CONFETTI_COLORS = [
@@ -42,7 +40,7 @@ function createConfetti(count: number): ConfettiPiece[] {
   }));
 }
 
-export function WinCelebration({ winnerAddress, winnerAmount, prizePoolBNB, onManualSettle, isSettling }: WinCelebrationProps) {
+export function WinCelebration({ winnerAddress, winnerAmount, prizePoolBNB }: WinCelebrationProps) {
   const [confetti] = useState(() => createConfetti(30));
   const [showAmount, setShowAmount] = useState(false);
 
@@ -203,7 +201,7 @@ export function WinCelebration({ winnerAddress, winnerAmount, prizePoolBNB, onMa
         )}
       </AnimatePresence>
 
-      {/* Settlement status & manual settle */}
+      {/* Settlement status */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -217,45 +215,21 @@ export function WinCelebration({ winnerAddress, winnerAmount, prizePoolBNB, onMa
           >
             <Zap className="w-5 h-5" />
           </motion.div>
-          正在等待结算...
+          正在自动结算中...
         </div>
 
-        {/* Manual settle button */}
-        {onManualSettle && (
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2 }}
-            onClick={onManualSettle}
-            disabled={isSettling}
-            className={`mt-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-              isSettling
-                ? 'bg-violet-500/10 border border-violet-500/20 text-violet-400/50 cursor-not-allowed'
-                : 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 active:scale-95'
-            }`}
-          >
-            {isSettling ? (
-              <span className="flex items-center gap-2">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                >
-                  <Zap className="w-4 h-4" />
-                </motion.div>
-                结算中...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Zap className="w-4 h-4" />
-                手动触发结算
-              </span>
-            )}
-          </motion.button>
-        )}
+        <div className="flex justify-center gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="w-1.5 h-1.5 rounded-full bg-violet-400"
+              animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+              transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.3 }}
+            />
+          ))}
+        </div>
 
-        <p className="text-[11px] text-neutral-600 mt-1">
-          {onManualSettle ? '点击手动结算可获得 0.001 BNB 奖励' : '奖金将自动发放至赢家钱包'}
-        </p>
+        <p className="text-[11px] text-neutral-600 mt-1">奖金将自动发放至赢家钱包</p>
       </motion.div>
     </div>
   );

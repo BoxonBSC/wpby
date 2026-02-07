@@ -58,7 +58,6 @@ export function ChainGame() {
   const [nextDrawTime, setNextDrawTime] = useState(getDefaultEndTime());
   const [isEnded, setIsEnded] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
-  const [isSettling, setIsSettling] = useState(false);
   const [bidAmount, setBidAmount] = useState<string>('');
   const [showWallet, setShowWallet] = useState(false);
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
@@ -352,43 +351,7 @@ export function ChainGame() {
     }
   };
 
-  const handleManualSettle = async () => {
-    if (!isConnected) {
-      setShowWallet(true);
-      return;
-    }
-    
-    const ethereum = getEthereumProvider();
-    if (!ethereum) {
-      toast.error('请安装钱包');
-      return;
-    }
-    
-    setIsSettling(true);
-    
-    try {
-      const provider = new ethers.BrowserProvider(ethereum);
-      const signer = await provider.getSigner();
-      const gameContract = new ethers.Contract(GAME_CONTRACT, CYBER_CHAIN_GAME_ABI, signer);
-      
-      toast.loading('正在触发结算...');
-      const tx = await gameContract.settleRound();
-      await tx.wait();
-      
-      toast.success('结算成功！🎉 结算奖励已发放');
-      fetchContractData();
-    } catch (error: any) {
-      console.error('Settlement failed:', error);
-      if (error.reason?.includes('Already settled')) {
-        toast.info('本轮已结算，等待新一轮开始');
-        fetchContractData();
-      } else {
-        toast.error(error.reason || '结算失败，请稍后重试');
-      }
-    } finally {
-      setIsSettling(false);
-    }
-  };
+
 
   // 维护模式
   const isMaintenanceMode = false;
@@ -852,8 +815,6 @@ export function ChainGame() {
                         winnerAddress={roundData.currentHolder || '0x0'}
                         winnerAmount={winnerAmount}
                         prizePoolBNB={prizePoolBNB}
-                        onManualSettle={isConnected ? handleManualSettle : undefined}
-                        isSettling={isSettling}
                       />
                     </motion.div>
                   )}
