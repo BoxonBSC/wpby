@@ -6,7 +6,7 @@ export const CYBER_CHAIN_GAME_ADDRESS = {
 
 // CYBER 代币合约地址
 export const CYBER_TOKEN_ADDRESS = {
-  mainnet: '0x20bccb81aee31e57749f599dc648467a267b7777',
+  mainnet: '0xc161c99c0e65dd1161a8afa5772d6ef114017777',
   testnet: '0x0000000000000000000000000000000000000000',
 };
 
