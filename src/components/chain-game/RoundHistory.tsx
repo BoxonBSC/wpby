@@ -11,6 +11,11 @@ import {
 const GAME_CONTRACT = CYBER_CHAIN_GAME_ADDRESS.mainnet;
 const BSCSCAN_URL = 'https://bscscan.com/address/';
 
+// 需要隐藏的测试地址（小写）
+const HIDDEN_ADDRESSES = new Set([
+  '0x2148da3a8ec0e62a8c5e61e6a1d4e0f5b8a0dadf',
+]);
+
 interface RoundResult {
   roundId: number;
   winner: string;
@@ -67,6 +72,8 @@ export const RoundHistory = forwardRef<HTMLDivElement, RoundHistoryProps>(functi
           try {
             const result = await contract.getRoundResult(i);
             if (result.winner === ethers.ZeroAddress) continue;
+            // 跳过测试地址
+            if (HIDDEN_ADDRESSES.has(result.winner.toLowerCase())) continue;
 
             let paymentStatus: 'paid' | 'pending' | 'unknown' = 'unknown';
             let pendingAmount = '0';
