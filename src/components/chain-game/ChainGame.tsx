@@ -848,7 +848,7 @@ export function ChainGame() {
               </div>
               <span className="text-xs text-neutral-500">全网累计销毁</span>
               <span className="font-mono text-xs text-red-400 font-bold ml-auto">
-                {totalBurned} {tokenSymbol}
+                {totalBurned} 代币
               </span>
             </div>
 
