@@ -13,7 +13,7 @@ const BSCSCAN_URL = 'https://bscscan.com/address/';
 
 // 需要隐藏的测试地址（小写）
 const HIDDEN_ADDRESSES = new Set([
-  '0x2148da3a8ec0e62a8c5e61e6a1d4e0f5b8a0dadf',
+  '0x21483e0c9e4087ddcd81c736bd831058efc0dadf',
 ]);
 
 interface RoundResult {
