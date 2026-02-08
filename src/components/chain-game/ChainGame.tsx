@@ -23,7 +23,6 @@ import { WinCelebration } from './WinCelebration';
 
 // 游戏配置
 const GAME_CONFIG = {
-  roundDurationMinutes: 30,
   startPrice: 10000,
   minPrice: 10000,
   platformFee: 5,
@@ -46,7 +45,7 @@ const getEthereumProvider = () => {
 };
 
 const getDefaultEndTime = () => {
-  return new Date(Date.now() + 30 * 60 * 1000);
+  return new Date(Date.now() + 5 * 60 * 1000);
 };
 
 const formatHourMinute = (date: Date) => {
@@ -81,6 +80,7 @@ export function ChainGame() {
   const [tokenSymbol, setTokenSymbol] = useState<string>('CYBER');
   const [tokenSet, setTokenSet] = useState<boolean | null>(null);
   const [totalBurned, setTotalBurned] = useState<string>('0');
+  const [roundDurationSeconds, setRoundDurationSeconds] = useState<number>(300);
 
   const currentTier = useMemo(() => getCurrentTier(roundData.participantCount), [roundData.participantCount]);
   const prizePoolBNB = Number(ethers.formatEther(roundData.prizePool));
@@ -123,6 +123,13 @@ export function ChainGame() {
         setTotalBurned(Number(ethers.formatEther(burned)).toLocaleString(undefined, { maximumFractionDigits: 0 }));
       } catch (e) {
         console.warn('Failed to fetch totalBurned:', e);
+      }
+
+      try {
+        const duration = await contract.roundDuration();
+        setRoundDurationSeconds(Number(duration));
+      } catch (e) {
+        console.warn('Failed to fetch roundDuration:', e);
       }
      
       setRoundData({
@@ -248,9 +255,9 @@ export function ChainGame() {
 
   useEffect(() => {
     const updateCountdown = () => {
-      // 无人参与时，始终显示满轮时间（30分钟）
+      // 无人参与时，显示从合约读取的轮次时长
       if (roundData.participantCount === 0) {
-        setTimeLeft(GAME_CONFIG.roundDurationMinutes * 60);
+        setTimeLeft(roundDurationSeconds);
         setIsEnded(false);
         return;
       }
@@ -270,7 +277,7 @@ export function ChainGame() {
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, [nextDrawTime, roundData.participantCount, roundData.settled]);
+  }, [nextDrawTime, roundData.participantCount, roundData.settled, roundDurationSeconds]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -1100,7 +1107,7 @@ export function ChainGame() {
 
         {/* ━━━ Game Rules ━━━ */}
         <div className="mt-6">
-          <GameRules currentTier={currentTier} prizePoolBNB={prizePoolBNB} platformFee={GAME_CONFIG.platformFee} />
+          <GameRules currentTier={currentTier} prizePoolBNB={prizePoolBNB} platformFee={GAME_CONFIG.platformFee} roundDurationMinutes={Math.round(roundDurationSeconds / 60)} />
         </div>
       </div>
     </div>

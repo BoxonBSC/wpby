@@ -7,15 +7,16 @@ interface GameRulesProps {
   currentTier: (typeof CHAIN_GAME_DYNAMIC_TIERS)[number];
   prizePoolBNB: number;
   platformFee: number;
+  roundDurationMinutes: number;
 }
 
-export function GameRules({ currentTier, prizePoolBNB, platformFee }: GameRulesProps) {
+export function GameRules({ currentTier, prizePoolBNB, platformFee, roundDurationMinutes }: GameRulesProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const coreRules = [
     { icon: '🔥', title: '代币销毁', text: '出价代币直接转入黑洞地址（0x...dEaD），永久销毁，不可逆' },
     { icon: '📈', title: '递增出价', text: '最低10,000代币起，每次必须严格高于当前最高出价' },
-    { icon: '⏰', title: '30分钟一轮', text: 'Chainlink Automation 自动结算，零人工干预' },
+    { icon: '⏰', title: `${roundDurationMinutes}分钟一轮`, text: 'Chainlink Automation 自动结算，零人工干预' },
     { icon: '🏆', title: '最高出价者赢', text: '倒计时归零时最高出价者赢得奖池BNB，自动到账' },
   ];
 
