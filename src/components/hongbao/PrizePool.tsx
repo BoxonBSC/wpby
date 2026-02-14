@@ -33,7 +33,7 @@ export function PrizePool({ normalPool, luckyPool, totalBurned, participantCount
       >
         <div className="absolute inset-0 bg-gradient-to-t from-cny-gold/5 to-transparent" />
         <div className="relative">
-          <div className="text-xs text-cny-cream/60 mb-1.5 font-medium">🔥 幸运红包池</div>
+          <div className="text-xs text-cny-cream/60 mb-1.5 font-medium">🐴 金马红包池</div>
           <div className="text-2xl sm:text-3xl font-bold gold-shimmer">
             {luckyPool.toFixed(4)}
           </div>

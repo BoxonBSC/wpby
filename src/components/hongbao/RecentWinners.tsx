@@ -36,7 +36,7 @@ export function RecentWinners() {
               <div>
                 <div className="text-sm font-medium text-foreground">{winner.address}</div>
                 <div className="text-[10px] text-muted-foreground">
-                  {winner.mode === 'lucky' ? '幸运红包' : '普通红包'} · {winner.time}
+                  {winner.mode === 'lucky' ? '金马红包' : '普通红包'} · {winner.time}
                 </div>
               </div>
             </div>

@@ -100,7 +100,7 @@ export function HongbaoPage() {
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
               }`}
             >
-              {m === 'normal' ? '🧧 普通红包' : '🔥 幸运红包'}
+              {m === 'normal' ? '🧧 普通红包' : '🐴 金马红包'}
             </button>
           ))}
         </div>
@@ -135,7 +135,7 @@ export function HongbaoPage() {
                   {mode === 'normal' ? '🧧' : '🐴'}
                 </motion.div>
                 <h2 className="text-3xl sm:text-4xl font-display gold-shimmer drop-shadow-lg tracking-wider">
-                  {mode === 'normal' ? '拼手气红包' : '幸运大红包'}
+                  {mode === 'normal' ? '拼手气红包' : '金马红包'}
                 </h2>
               </div>
 

@@ -21,13 +21,9 @@ export const NORMAL_ROUND_CONFIG = {
   winnersCount: 1,           // 只奖给1人
 };
 
-// 幸运红包（C模式）配置 — 每小时开奖
+// 金马红包（C模式）配置 — 每小时开奖
 export const LUCKY_ROUND_CONFIG = {
-  tiers: [
-    { minBurn: 10000, tickets: 1, label: '🎟️ 1张券' },
-    { minBurn: 50000, tickets: 2, label: '🎟️🎟️ 2张券' },
-    { minBurn: 200000, tickets: 5, label: '🎟️×5 5张券' },
-  ],
+  tokensPerTicket: 10000,    // 每10,000代币 = 1张抽奖券
   winnersCount: 3,           // 每轮3个赢家
   intervalMinutes: 60,       // 每小时一轮
 };
