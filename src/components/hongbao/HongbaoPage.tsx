@@ -6,6 +6,7 @@ import { PrizePool } from './PrizePool';
 import { BurnEntry } from './BurnEntry';
 import { GameRules } from './GameRules';
 import { RecentWinners } from './RecentWinners';
+import { Lanterns, Clouds, Fireworks, CardOrnaments } from './DecorativeElements';
 import type { RoundMode } from '@/config/contracts';
 
 export function HongbaoPage() {
@@ -25,6 +26,9 @@ export function HongbaoPage() {
   return (
     <div className="min-h-screen bg-background cny-pattern relative">
       <FallingElements />
+      <Lanterns />
+      <Clouds />
+      <Fireworks />
 
       {/* Header */}
       <header className="relative z-10 border-b border-border/50 bg-background/80 backdrop-blur-md">
@@ -78,11 +82,11 @@ export function HongbaoPage() {
               transition={{ duration: 0.3 }}
               className="hongbao-card p-6 sm:p-8"
             >
-              {/* Decorative corners */}
-              <div className="absolute top-3 left-3 text-cny-gold/30 text-2xl">❖</div>
-              <div className="absolute top-3 right-3 text-cny-gold/30 text-2xl">❖</div>
-              <div className="absolute bottom-3 left-3 text-cny-gold/30 text-2xl">❖</div>
-              <div className="absolute bottom-3 right-3 text-cny-gold/30 text-2xl">❖</div>
+              <CardOrnaments />
+
+              {/* Pulsing ring behind emoji */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-2 border-cny-gold/20 animate-ring-pulse pointer-events-none" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border border-cny-gold/10 animate-ring-pulse pointer-events-none" style={{ animationDelay: '0.5s' }} />
 
               <div className="text-center mb-6">
                 <motion.div
@@ -90,7 +94,7 @@ export function HongbaoPage() {
                 >
                   {mode === 'normal' ? '🧧' : '🐴'}
                 </motion.div>
-                <h2 className="text-2xl sm:text-3xl font-display text-cny-gold-light drop-shadow-lg">
+                <h2 className="text-2xl sm:text-3xl font-display gold-shimmer drop-shadow-lg">
                   {mode === 'normal' ? '拼手气红包' : '幸运大红包'}
                 </h2>
                 <p className="text-xs text-cny-cream/60 mt-1">
