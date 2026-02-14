@@ -1,23 +1,18 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import { useLanguage } from '@/contexts/LanguageContext';
+import { Link } from "react-router-dom";
 
 const NotFound = () => {
-  const location = useLocation();
-  const { t } = useLanguage();
-
-  useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold text-foreground">{t('notFound.title')}</h1>
-        <p className="mb-4 text-xl text-muted-foreground">{t('notFound.message')}</p>
-        <a href="/" className="text-neon-cyan underline hover:text-neon-cyan/80">
-          {t('notFound.backHome')}
-        </a>
+        <div className="text-6xl mb-4">🧧</div>
+        <h1 className="text-4xl font-display text-cny-gold mb-2">404</h1>
+        <p className="text-muted-foreground mb-6">页面不存在</p>
+        <Link
+          to="/"
+          className="px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          回到首页
+        </Link>
       </div>
     </div>
   );
