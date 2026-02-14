@@ -48,7 +48,19 @@ export function HongbaoPage() {
       <Fireworks />
 
       {/* Header */}
-      <header className="relative z-10 border-b border-cny-gold/10 bg-background/60 backdrop-blur-xl">
+      <header className="relative z-10 border-b border-cny-gold/15 bg-background/50 backdrop-blur-xl overflow-hidden">
+        {/* Header decorative elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-primary/10 to-transparent" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-cny-gold/8 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cny-gold/30 to-transparent" />
+          {/* Small decorative clouds */}
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-cny-gold/10 text-xl select-none">☁</div>
+          <div className="absolute right-28 top-1/2 -translate-y-1/2 text-cny-gold/8 text-lg select-none">☁</div>
+          {/* Corner ornaments */}
+          <div className="absolute left-0 top-0 w-6 h-6 border-t border-l border-cny-gold/20 rounded-tl" />
+          <div className="absolute right-0 top-0 w-6 h-6 border-t border-r border-cny-gold/20 rounded-tr" />
+        </div>
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <motion.span
