@@ -85,7 +85,7 @@ export function HongbaoPage() {
               to="/rules"
               className="px-4 py-2.5 rounded-xl bg-muted/40 border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
             >
-              📜 规则
+              📜 马年红包规则说明
             </Link>
             <button className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/40 text-sm font-medium text-foreground hover:from-primary/30 hover:to-primary/20 transition-all hover:shadow-[0_0_20px_hsl(0_85%_50%/0.3)]">
               🔗 连接钱包
