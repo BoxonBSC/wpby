@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { NORMAL_ROUND_CONFIG, LUCKY_ROUND_CONFIG, ANTI_SYBIL_CONFIG } from '@/config/contracts';
+import { NORMAL_ROUND_CONFIG, LUCKY_ROUND_CONFIG, ANTI_SYBIL_CONFIG, TAX_DISTRIBUTION } from '@/config/contracts';
 
 export function GameRules() {
   const [isExpanded, setIsExpanded] = useState(false);
