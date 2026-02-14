@@ -100,7 +100,7 @@ export function HongbaoPage() {
                   {mode === 'normal' ? '拼手气红包' : '幸运大红包'}
                 </h2>
                 <p className="text-xs text-cny-cream/60 mt-1">
-                  {mode === 'normal' ? '满100人开奖 · 人人有份' : '每小时开奖 · 3位幸运儿'}
+                  {mode === 'normal' ? '满100人开奖 · 瓜分奖池50%' : '每小时开奖 · 3位幸运儿'}
                 </p>
               </div>
 
@@ -119,7 +119,7 @@ export function HongbaoPage() {
                     />
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground">
-                    还差 <span className="text-cny-gold font-bold">{participantsNeeded - currentParticipants}</span> 人即可开奖
+                    还差 <span className="text-cny-gold font-bold">{participantsNeeded - currentParticipants}</span> 人 · 开奖瓜分奖池 <span className="text-cny-gold font-bold">50%</span>
                   </div>
                 </div>
               ) : (
