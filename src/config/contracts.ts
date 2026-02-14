@@ -33,3 +33,11 @@ export const TAX_DISTRIBUTION = {
   normalPoolPercent: 70,     // 70% 进普通红包池
   luckyPoolPercent: 30,      // 30% 进幸运红包池
 };
+
+// 防女巫机制
+export const ANTI_SYBIL_CONFIG = {
+  oneEntryPerWallet: true,          // 每轮每钱包限参与1次
+  minHoldMinutes: 10,               // 持币至少10分钟才能参与
+  randomParticipants: true,         // 随机参与人数（80-120）
+  participantsRange: [80, 120],     // 参与人数浮动范围
+};
