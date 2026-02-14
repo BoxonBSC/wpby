@@ -77,7 +77,7 @@ export function GameRules() {
                   <p>• 每 <span className="text-foreground font-bold">{LUCKY_ROUND_CONFIG.tokensPerTicket.toLocaleString()} 代币</span> = <span className="text-cny-gold font-bold">1张抽奖券</span></p>
                   <p>• 买多少张都行，按比例计算中奖概率</p>
                   <p>• VRF 从所有券中随机抽出 <span className="text-cny-gold font-bold">{LUCKY_ROUND_CONFIG.winnersCount} 个赢家</span></p>
-                  <p>• 赢家<span className="text-cny-gold font-bold">平分奖池BNB</span></p>
+                  <p>• 🥇第1名 <span className="text-cny-gold font-bold">40%</span> · 🥈第2名 <span className="text-cny-gold font-bold">30%</span> · 🥉第3名 <span className="text-cny-gold font-bold">20%</span>（10%滚入下轮）</p>
                   <p>• 未中奖者：代币已销毁（通缩贡献），无BNB奖励</p>
                 </div>
               </div>
