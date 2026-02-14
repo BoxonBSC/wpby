@@ -112,7 +112,7 @@ export function BurnEntry({ mode, isConnected, onBurn, isLoading }: BurnEntryPro
           ? '🔗 连接钱包后参与'
           : isLoading
             ? '⏳ 处理中...'
-            : `🐴 燃烧 ${totalBurn.toLocaleString()} 代币 · ${ticketCount} 张券`
+            : `🎁 燃烧 ${totalBurn.toLocaleString()} 代币 · ${ticketCount} 张券`
         }
       </button>
     </motion.div>

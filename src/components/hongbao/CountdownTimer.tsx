@@ -16,7 +16,7 @@ export function CountdownTimer({ timeLeft, isEnded, mode }: CountdownTimerProps)
   return (
     <div className="text-center">
       <div className="text-sm text-cny-gold/70 mb-2 font-serif">
-        🐴 金马红包 · 倒计时
+        🎁 金马红包 · 倒计时
       </div>
       <div className="flex items-center justify-center gap-2">
         {[pad(minutes)[0], pad(minutes)[1], ':', pad(seconds)[0], pad(seconds)[1]].map((char, i) => (
