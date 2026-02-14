@@ -7,8 +7,8 @@ export function GameRules() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const coreRules = [
-    { icon: '🧧', title: '普通红包', text: `每小时一轮，燃烧${NORMAL_ROUND_CONFIG.fixedBurnAmount.toLocaleString()}代币参与，VRF随机分配，人人有奖` },
-    { icon: '🔥', title: '幸运红包', text: `每天一轮，阶梯燃烧获得抽奖券，VRF抽${LUCKY_ROUND_CONFIG.winnersCount}位赢家平分大奖` },
+    { icon: '🧧', title: '普通红包', text: `燃烧${NORMAL_ROUND_CONFIG.fixedBurnAmount.toLocaleString()}代币参与，满${NORMAL_ROUND_CONFIG.requiredParticipants}人自动开奖，人人有奖` },
+    { icon: '🔥', title: '幸运红包', text: `每小时一轮，阶梯燃烧获抽奖券，VRF抽${LUCKY_ROUND_CONFIG.winnersCount}位赢家平分大奖` },
     { icon: '💎', title: '代币通缩', text: '所有燃烧代币直接进入黑洞地址，永久销毁，供应持续减少' },
     { icon: '🏮', title: '奖池来源', text: '交易税自动注入红包池，70%普通池 + 30%幸运池' },
   ];
@@ -59,8 +59,8 @@ export function GameRules() {
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
                 <div className="text-sm font-bold text-primary mb-2">🧧 普通红包规则</div>
                 <div className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
-                  <p>• 每<span className="text-foreground font-bold">1小时</span>自动开一轮</p>
                   <p>• 固定燃烧 <span className="text-foreground font-bold">10,000 代币</span>参与</p>
+                  <p>• 满 <span className="text-foreground font-bold">{NORMAL_ROUND_CONFIG.requiredParticipants} 人</span>自动开奖</p>
                   <p>• 代币直接转入黑洞地址<span className="text-primary font-bold">永久销毁</span></p>
                   <p>• Chainlink VRF 随机生成分配比例</p>
                   <p>• <span className="text-cny-gold font-bold">人人有奖</span>，金额随机（拼手气）</p>
@@ -72,7 +72,7 @@ export function GameRules() {
               <div className="p-4 rounded-xl bg-cny-gold/5 border border-cny-gold/20">
                 <div className="text-sm font-bold text-cny-gold mb-2">🔥 幸运红包规则</div>
                 <div className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
-                  <p>• 每天<span className="text-foreground font-bold">1-2轮</span>（黄金时段开奖）</p>
+                  <p>• 每<span className="text-foreground font-bold">1小时</span>自动开一轮</p>
                   <p>• 阶梯燃烧获得抽奖券：</p>
                   {LUCKY_ROUND_CONFIG.tiers.map((tier, i) => (
                     <p key={i} className="ml-3">
