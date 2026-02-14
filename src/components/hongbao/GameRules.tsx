@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { NORMAL_ROUND_CONFIG, LUCKY_ROUND_CONFIG } from '@/config/contracts';
+import { NORMAL_ROUND_CONFIG, LUCKY_ROUND_CONFIG, ANTI_SYBIL_CONFIG } from '@/config/contracts';
 
 export function GameRules() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const coreRules = [
-    { icon: '🧧', title: '普通红包', text: `燃烧${NORMAL_ROUND_CONFIG.fixedBurnAmount.toLocaleString()}代币参与，满${NORMAL_ROUND_CONFIG.requiredParticipants}人开奖，奖池50%独奖1人` },
+    { icon: '🧧', title: '普通红包', text: `燃烧${NORMAL_ROUND_CONFIG.fixedBurnAmount.toLocaleString()}代币参与，${ANTI_SYBIL_CONFIG.participantsRange[0]}~${ANTI_SYBIL_CONFIG.participantsRange[1]}人随机开奖，奖池50%独奖1人` },
     { icon: '💰', title: '金马红包', text: `每小时一轮，${LUCKY_ROUND_CONFIG.tokensPerTicket.toLocaleString()}代币=1张券，VRF抽${LUCKY_ROUND_CONFIG.winnersCount}位赢家` },
     { icon: '💎', title: '代币通缩', text: '所有燃烧代币直接进入黑洞地址，永久销毁，供应持续减少' },
-    { icon: '🏮', title: '奖池来源', text: '交易税自动注入红包池，70%普通池 + 30%金马池' },
+    { icon: '🛡️', title: '防女巫', text: `每轮每钱包限1次 · 持币≥${ANTI_SYBIL_CONFIG.minHoldMinutes}分钟 · 开奖人数随机` },
   ];
 
   return (
@@ -79,6 +79,18 @@ export function GameRules() {
                   <p>• VRF 从所有券中随机抽出 <span className="text-cny-gold font-bold">{LUCKY_ROUND_CONFIG.winnersCount} 个赢家</span></p>
                   <p>• 赢家<span className="text-cny-gold font-bold">平分奖池BNB</span></p>
                   <p>• 未中奖者：代币已销毁（通缩贡献），无BNB奖励</p>
+                </div>
+              </div>
+
+              {/* 防女巫机制 */}
+              <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                <div className="text-sm font-bold text-emerald-400 mb-2">🛡️ 防女巫机制</div>
+                <div className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
+                  <p>• 每轮每钱包<span className="text-foreground font-bold">限参与1次</span>，合约层面强制执行</p>
+                  <p>• 持币时间 ≥ <span className="text-foreground font-bold">{ANTI_SYBIL_CONFIG.minHoldMinutes} 分钟</span>才可参与，防止临时转入</p>
+                  <p>• 开奖人数<span className="text-foreground font-bold">随机浮动</span>（{ANTI_SYBIL_CONFIG.participantsRange[0]}~{ANTI_SYBIL_CONFIG.participantsRange[1]}人），无法精确霸榜</p>
+                  <p>• 攻击者需大量资金分散到多钱包，<span className="text-emerald-400 font-bold">经济成本极高</span></p>
+                  <p>• 通缩机制让攻击成本持续上升，越攻击代币越稀缺</p>
                 </div>
               </div>
 

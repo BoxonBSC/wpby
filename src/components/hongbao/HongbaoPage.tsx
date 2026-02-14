@@ -9,6 +9,7 @@ import { GameRules } from './GameRules';
 import { RecentWinners } from './RecentWinners';
 import { Lanterns, Clouds, Fireworks, CardOrnaments } from './DecorativeElements';
 import type { RoundMode } from '@/config/contracts';
+import { ANTI_SYBIL_CONFIG } from '@/config/contracts';
 
 export function HongbaoPage() {
   const [mode, setMode] = useState<RoundMode>('normal');
@@ -178,7 +179,7 @@ export function HongbaoPage() {
                   <p className="text-sm text-cny-cream/70">
                     还差 <span className="text-cny-gold font-bold text-base">{participantsNeeded - currentParticipants}</span> 人开奖
                     <span className="mx-2 text-cny-cream/30">|</span>
-                    奖池 <span className="text-cny-gold font-bold">50%</span> 全归1位幸运儿
+                    人数 <span className="text-cny-gold font-bold">{ANTI_SYBIL_CONFIG.participantsRange[0]}~{ANTI_SYBIL_CONFIG.participantsRange[1]}</span> 随机
                   </p>
                 </div>
               ) : (
