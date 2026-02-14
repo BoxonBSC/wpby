@@ -18,6 +18,7 @@ export const NORMAL_ROUND_CONFIG = {
   fixedBurnAmount: 100000,   // 固定燃烧 100,000 代币
   requiredParticipants: 100, // 满100人自动开奖
   poolDistributePercent: 50, // 每轮开出奖池的50%
+  adminFeePercent: 5,        // 5% 给管理员地址（VRF手续费等）
   winnersCount: 1,           // 只奖给1人
 };
 
@@ -26,7 +27,8 @@ export const LUCKY_ROUND_CONFIG = {
   tokensPerTicket: 100000,   // 每100,000代币 = 1张抽奖券
   winnersCount: 3,           // 每轮3个赢家
   intervalMinutes: 60,       // 每小时一轮
-  prizeDistribution: [50, 30, 20], // 第1名50%，第2名30%，第3名20%（全额发放）
+  adminFeePercent: 5,        // 5% 给管理员地址（VRF手续费等）
+  prizeDistribution: [50, 30, 20], // 第1名50%，第2名30%，第3名20%（全额发放剩余95%）
 };
 
 // 税收分配

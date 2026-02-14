@@ -61,7 +61,7 @@ export function GameRules() {
                 <div className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
                   <p>• 固定燃烧 <span className="text-foreground font-bold">10,000 代币</span>参与</p>
                   <p>• 满 <span className="text-foreground font-bold">{NORMAL_ROUND_CONFIG.requiredParticipants} 人</span>自动开奖</p>
-                  <p>• 奖池 <span className="text-cny-gold font-bold">{NORMAL_ROUND_CONFIG.poolDistributePercent}%</span> 全部奖给 <span className="text-cny-gold font-bold">1位幸运儿</span></p>
+                  <p>• 奖池 <span className="text-cny-gold font-bold">{NORMAL_ROUND_CONFIG.poolDistributePercent}%</span> 中，<span className="text-foreground font-bold">{NORMAL_ROUND_CONFIG.adminFeePercent}%</span> 用作VRF手续费，其余奖给 <span className="text-cny-gold font-bold">1位幸运儿</span></p>
                   <p>• 剩余 {100 - NORMAL_ROUND_CONFIG.poolDistributePercent}% 奖池<span className="text-foreground font-bold">滚入下一轮</span>累积</p>
                   <p>• 代币直接转入黑洞地址<span className="text-primary font-bold">永久销毁</span></p>
                   <p>• Chainlink VRF 随机抽取唯一赢家</p>
@@ -77,7 +77,7 @@ export function GameRules() {
                   <p>• 每 <span className="text-foreground font-bold">{LUCKY_ROUND_CONFIG.tokensPerTicket.toLocaleString()} 代币</span> = <span className="text-cny-gold font-bold">1张抽奖券</span></p>
                   <p>• 买多少张都行，按比例计算中奖概率</p>
                   <p>• VRF 从所有券中随机抽出 <span className="text-cny-gold font-bold">{LUCKY_ROUND_CONFIG.winnersCount} 个赢家</span></p>
-                  <p>• 🥇第1名 <span className="text-cny-gold font-bold">50%</span> · 🥈第2名 <span className="text-cny-gold font-bold">30%</span> · 🥉第3名 <span className="text-cny-gold font-bold">20%</span>（全额发放）</p>
+                  <p>• 🥇第1名 <span className="text-cny-gold font-bold">50%</span> · 🥈第2名 <span className="text-cny-gold font-bold">30%</span> · 🥉第3名 <span className="text-cny-gold font-bold">20%</span>（扣除{LUCKY_ROUND_CONFIG.adminFeePercent}%手续费后全额发放）</p>
                   <p>• 未中奖者：代币已销毁（通缩贡献），无BNB奖励</p>
                 </div>
               </div>
