@@ -17,8 +17,8 @@ export type RoundMode = 'normal' | 'lucky';
 export const NORMAL_ROUND_CONFIG = {
   fixedBurnAmount: 10000,    // 固定燃烧 10,000 代币
   requiredParticipants: 100, // 满100人自动开奖
-  poolDistributePercent: 50, // 每轮开出奖池的50%，剩余滚入下轮
-  everyoneWins: true,        // 人人有奖
+  poolDistributePercent: 50, // 每轮开出奖池的50%
+  winnersCount: 1,           // 只奖给1人
 };
 
 // 幸运红包（C模式）配置 — 每小时开奖
