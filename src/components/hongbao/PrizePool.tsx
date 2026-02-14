@@ -11,50 +11,56 @@ export function PrizePool({ normalPool, luckyPool, totalBurned, participantCount
   return (
     <div className="grid grid-cols-2 gap-3">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="p-4 rounded-xl bg-primary/10 border border-primary/20 text-center"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-4 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/25 text-center relative overflow-hidden"
       >
-        <div className="text-xs text-muted-foreground mb-1">🧧 普通红包池</div>
-        <div className="text-xl sm:text-2xl font-bold text-cny-gold gold-shimmer">
-          {normalPool.toFixed(4)}
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent" />
+        <div className="relative">
+          <div className="text-xs text-cny-cream/60 mb-1.5 font-medium">🧧 普通红包池</div>
+          <div className="text-2xl sm:text-3xl font-bold gold-shimmer">
+            {normalPool.toFixed(4)}
+          </div>
+          <div className="text-xs text-cny-cream/40 mt-0.5 font-medium">BNB</div>
         </div>
-        <div className="text-xs text-muted-foreground">BNB</div>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="p-4 rounded-xl bg-cny-gold/5 border border-cny-gold/20 text-center"
+        className="p-4 rounded-xl bg-gradient-to-br from-cny-gold/10 to-cny-gold/3 border border-cny-gold/25 text-center relative overflow-hidden"
       >
-        <div className="text-xs text-muted-foreground mb-1">🔥 幸运红包池</div>
-        <div className="text-xl sm:text-2xl font-bold text-cny-gold gold-shimmer">
-          {luckyPool.toFixed(4)}
+        <div className="absolute inset-0 bg-gradient-to-t from-cny-gold/5 to-transparent" />
+        <div className="relative">
+          <div className="text-xs text-cny-cream/60 mb-1.5 font-medium">🔥 幸运红包池</div>
+          <div className="text-2xl sm:text-3xl font-bold gold-shimmer">
+            {luckyPool.toFixed(4)}
+          </div>
+          <div className="text-xs text-cny-cream/40 mt-0.5 font-medium">BNB</div>
         </div>
-        <div className="text-xs text-muted-foreground">BNB</div>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="p-4 rounded-xl bg-card border border-border text-center"
+        className="p-4 rounded-xl bg-card/80 border border-border/50 text-center"
       >
-        <div className="text-xs text-muted-foreground mb-1">🔥 累计销毁</div>
-        <div className="text-lg font-bold text-primary">{totalBurned}</div>
-        <div className="text-xs text-muted-foreground">代币</div>
+        <div className="text-xs text-cny-cream/60 mb-1.5 font-medium">🔥 累计销毁</div>
+        <div className="text-xl font-bold text-primary">{totalBurned}</div>
+        <div className="text-xs text-cny-cream/40 mt-0.5">代币</div>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="p-4 rounded-xl bg-card border border-border text-center"
+        className="p-4 rounded-xl bg-card/80 border border-border/50 text-center"
       >
-        <div className="text-xs text-muted-foreground mb-1">👥 本轮参与</div>
-        <div className="text-lg font-bold text-foreground">{participantCount}</div>
-        <div className="text-xs text-muted-foreground">人</div>
+        <div className="text-xs text-cny-cream/60 mb-1.5 font-medium">👥 本轮参与</div>
+        <div className="text-xl font-bold text-foreground">{participantCount}</div>
+        <div className="text-xs text-cny-cream/40 mt-0.5">人</div>
       </motion.div>
     </div>
   );

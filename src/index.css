@@ -81,9 +81,13 @@
   /* 红包卡片 */
   .hongbao-card {
     @apply relative rounded-2xl overflow-hidden;
-    background: linear-gradient(135deg, hsl(0 80% 35%) 0%, hsl(0 85% 50%) 50%, hsl(0 80% 40%) 100%);
-    border: 2px solid hsl(43 96% 56% / 0.4);
-    box-shadow: 0 0 30px hsl(0 85% 50% / 0.3), inset 0 1px 0 hsl(43 96% 56% / 0.3);
+    background: linear-gradient(145deg, hsl(0 75% 28%) 0%, hsl(0 85% 42%) 40%, hsl(0 80% 35%) 70%, hsl(0 75% 25%) 100%);
+    border: 2px solid hsl(43 96% 56% / 0.5);
+    box-shadow:
+      0 0 40px hsl(0 85% 50% / 0.4),
+      0 0 80px hsl(0 85% 50% / 0.15),
+      inset 0 1px 0 hsl(43 96% 56% / 0.4),
+      inset 0 -1px 0 hsl(0 60% 20% / 0.5);
   }
 
   /* 金色文字 */
@@ -126,12 +130,22 @@
 
   /* 红色光晕 */
   @keyframes red-pulse {
-    0%, 100% { box-shadow: 0 0 20px hsl(0 85% 50% / 0.3); }
-    50% { box-shadow: 0 0 40px hsl(0 85% 50% / 0.5), 0 0 60px hsl(0 85% 50% / 0.2); }
+    0%, 100% { box-shadow: 0 0 20px hsl(0 85% 50% / 0.3), 0 0 40px hsl(0 85% 50% / 0.1); }
+    50% { box-shadow: 0 0 50px hsl(0 85% 50% / 0.5), 0 0 80px hsl(0 85% 50% / 0.2), 0 0 120px hsl(0 85% 50% / 0.1); }
   }
 
   .red-pulse {
     animation: red-pulse 2s ease-in-out infinite;
+  }
+
+  /* 整体页面呼吸光 */
+  @keyframes ambient-glow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+
+  .animate-ambient-glow {
+    animation: ambient-glow 4s ease-in-out infinite;
   }
 
   /* 金色闪光 */
