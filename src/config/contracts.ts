@@ -30,8 +30,8 @@ export const LUCKY_ROUND_CONFIG = {
 
 // 税收分配
 export const TAX_DISTRIBUTION = {
-  normalPoolPercent: 70,     // 70% 进普通红包池
-  luckyPoolPercent: 30,      // 30% 进幸运红包池
+  normalPoolPercent: 50,     // 50% 进普通红包池
+  luckyPoolPercent: 50,      // 50% 进金马红包池
 };
 
 // 防女巫机制
