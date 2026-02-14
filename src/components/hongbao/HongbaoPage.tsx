@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import cnyBackground from '@/assets/cny-background.jpg';
 import { FallingElements } from './FallingElements';
 import { CountdownTimer } from './CountdownTimer';
 import { PrizePool } from './PrizePool';
@@ -26,7 +27,15 @@ export function HongbaoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background cny-pattern relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* CNY Background Image */}
+      <div
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${cnyBackground})` }}
+      />
+      {/* Dark overlay for readability */}
+      <div className="fixed inset-0 z-0 bg-background/70" />
+
       {/* Ambient glow orbs */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-primary/8 blur-[120px] animate-ambient-glow" />
