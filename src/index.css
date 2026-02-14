@@ -2,66 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Cyberpunk Design System - Neon colors, dark theme */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+/* 马年红包 — 中国红+金色春节主题 */
 
 @layer base {
   :root {
-    /* 蝴蝶竞拍 Flap Purple Theme */
-    --neon-blue: 260 100% 65%;
-    --neon-purple: 270 100% 60%;
-    --neon-pink: 300 100% 65%;
-    --neon-cyan: 280 80% 70%;
-    --neon-green: 142 70% 55%;
-    --neon-yellow: 50 100% 55%;
-    --neon-orange: 270 90% 65%;
-    
-    /* Dark Background Palette - Flap style pure black */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 92%;
+    /* 春节红金主色调 */
+    --cny-red: 0 85% 50%;
+    --cny-red-dark: 0 80% 35%;
+    --cny-red-light: 0 90% 65%;
+    --cny-gold: 43 96% 56%;
+    --cny-gold-light: 45 100% 70%;
+    --cny-gold-dark: 40 90% 40%;
+    --cny-cream: 40 50% 95%;
 
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 92%;
+    /* Semantic tokens */
+    --background: 0 20% 8%;
+    --foreground: 40 50% 95%;
 
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 92%;
+    --card: 0 25% 12%;
+    --card-foreground: 40 50% 95%;
 
-    --primary: 265 100% 65%;
-    --primary-foreground: 0 0% 100%;
+    --popover: 0 25% 14%;
+    --popover-foreground: 40 50% 95%;
 
-    --secondary: 142 70% 55%;
-    --secondary-foreground: 0 0% 4%;
+    --primary: 0 85% 50%;
+    --primary-foreground: 40 50% 95%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 260 20% 55%;
+    --secondary: 43 96% 56%;
+    --secondary-foreground: 0 20% 8%;
 
-    --accent: 270 90% 65%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 0 15% 18%;
+    --muted-foreground: 0 10% 55%;
+
+    --accent: 43 96% 56%;
+    --accent-foreground: 0 20% 8%;
 
     --destructive: 0 100% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 260 20% 18%;
-    --input: 0 0% 10%;
-    --ring: 265 100% 65%;
+    --border: 0 20% 20%;
+    --input: 0 20% 15%;
+    --ring: 0 85% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Glow Effects */
-    --glow-blue: 0 0 20px hsl(260 100% 65% / 0.5), 0 0 40px hsl(260 100% 65% / 0.3);
-    --glow-purple: 0 0 20px hsl(270 100% 60% / 0.5), 0 0 40px hsl(270 100% 60% / 0.3);
-    --glow-pink: 0 0 20px hsl(300 100% 65% / 0.5), 0 0 40px hsl(300 100% 65% / 0.3);
-    --glow-cyan: 0 0 20px hsl(280 80% 70% / 0.5), 0 0 40px hsl(280 80% 70% / 0.3);
+    /* Glow effects */
+    --glow-red: 0 0 20px hsl(0 85% 50% / 0.4), 0 0 40px hsl(0 85% 50% / 0.2);
+    --glow-gold: 0 0 20px hsl(43 96% 56% / 0.4), 0 0 40px hsl(43 96% 56% / 0.2);
 
     /* Sidebar */
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-primary: 265 100% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 90% 65%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 260 20% 18%;
-    --sidebar-ring: 265 100% 65%;
+    --sidebar-background: 0 20% 6%;
+    --sidebar-foreground: 40 50% 95%;
+    --sidebar-primary: 0 85% 50%;
+    --sidebar-primary-foreground: 40 50% 95%;
+    --sidebar-accent: 43 96% 56%;
+    --sidebar-accent-foreground: 0 20% 8%;
+    --sidebar-border: 0 20% 20%;
+    --sidebar-ring: 0 85% 50%;
   }
 }
 
@@ -71,532 +68,128 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Rajdhani', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', 'Noto Serif SC', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Orbitron', sans-serif;
+  h1, h2, h3 {
+    font-family: 'Ma Shan Zheng', 'Noto Serif SC', serif;
   }
 }
 
 @layer components {
-  /* Neon Text Effects */
-  .neon-text-blue {
-    color: hsl(var(--neon-blue));
-    text-shadow: var(--glow-blue);
+  /* 红包卡片 */
+  .hongbao-card {
+    @apply relative rounded-2xl overflow-hidden;
+    background: linear-gradient(135deg, hsl(0 80% 35%) 0%, hsl(0 85% 50%) 50%, hsl(0 80% 40%) 100%);
+    border: 2px solid hsl(43 96% 56% / 0.4);
+    box-shadow: 0 0 30px hsl(0 85% 50% / 0.3), inset 0 1px 0 hsl(43 96% 56% / 0.3);
   }
 
-  .neon-text-purple {
-    color: hsl(var(--neon-purple));
-    text-shadow: var(--glow-purple);
+  /* 金色文字 */
+  .text-gold {
+    color: hsl(var(--cny-gold));
+    text-shadow: 0 0 10px hsl(43 96% 56% / 0.5);
   }
 
-  .neon-text-pink {
-    color: hsl(var(--neon-pink));
-    text-shadow: var(--glow-pink);
+  .text-gold-bright {
+    color: hsl(var(--cny-gold-light));
+    text-shadow: 0 0 15px hsl(45 100% 70% / 0.6), 0 0 30px hsl(45 100% 70% / 0.3);
   }
 
-  .neon-text-cyan {
-    color: hsl(var(--neon-cyan));
-    text-shadow: var(--glow-cyan);
-  }
-
-  /* Neon Border Effects */
-  .neon-border {
-    border: 1px solid hsl(var(--neon-blue));
-    box-shadow: var(--glow-blue), inset 0 0 20px hsl(var(--neon-blue) / 0.1);
-  }
-
-  .neon-border-purple {
-    border: 1px solid hsl(var(--neon-purple));
-    box-shadow: var(--glow-purple), inset 0 0 20px hsl(var(--neon-purple) / 0.1);
-  }
-
-  .neon-border-pink {
-    border: 1px solid hsl(var(--neon-pink));
-    box-shadow: var(--glow-pink), inset 0 0 20px hsl(var(--neon-pink) / 0.1);
-  }
-
-  .neon-border-cyan {
-    border: 1px solid hsl(var(--neon-cyan));
-    box-shadow: var(--glow-cyan), inset 0 0 20px hsl(var(--neon-cyan) / 0.1);
-  }
-
-  .neon-border-yellow {
-    border: 1px solid hsl(var(--neon-yellow));
-    box-shadow: 0 0 20px hsl(var(--neon-yellow) / 0.5), 0 0 40px hsl(var(--neon-yellow) / 0.3), inset 0 0 20px hsl(var(--neon-yellow) / 0.1);
-  }
-
-  .neon-border-green {
-    border: 1px solid hsl(var(--neon-green));
-    box-shadow: 0 0 20px hsl(var(--neon-green) / 0.5), 0 0 40px hsl(var(--neon-green) / 0.3), inset 0 0 20px hsl(var(--neon-green) / 0.1);
-  }
-
-  /* Cyberpunk Button */
-  .cyber-button {
-    @apply relative overflow-hidden px-8 py-4 font-bold uppercase tracking-wider;
-    font-family: 'Orbitron', sans-serif;
-    background: linear-gradient(135deg, hsl(var(--neon-blue) / 0.2), hsl(var(--neon-purple) / 0.2));
-    border: 2px solid hsl(var(--neon-blue));
-    box-shadow: var(--glow-blue);
+  /* 春节按钮 */
+  .cny-button {
+    @apply relative px-8 py-4 font-bold rounded-xl;
+    background: linear-gradient(135deg, hsl(var(--cny-red)) 0%, hsl(var(--cny-red-dark)) 100%);
+    border: 2px solid hsl(var(--cny-gold) / 0.5);
+    box-shadow: var(--glow-red);
     transition: all 0.3s ease;
   }
 
-  .cyber-button:hover {
-    background: linear-gradient(135deg, hsl(var(--neon-blue) / 0.4), hsl(var(--neon-purple) / 0.4));
-    box-shadow: 0 0 30px hsl(var(--neon-blue) / 0.8), 0 0 60px hsl(var(--neon-blue) / 0.4);
+  .cny-button:hover {
+    box-shadow: 0 0 30px hsl(0 85% 50% / 0.6), 0 0 60px hsl(0 85% 50% / 0.3);
     transform: translateY(-2px);
+    border-color: hsl(var(--cny-gold));
   }
 
-  .cyber-button:disabled {
+  .cny-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
   }
 
-  /* Cyberpunk Card */
-  .cyber-card {
-    @apply relative p-6 rounded-lg;
-    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(240 15% 12%) 100%);
-    border: 1px solid hsl(var(--neon-blue) / 0.3);
-    box-shadow: 
-      0 0 20px hsl(var(--neon-blue) / 0.1),
-      inset 0 1px 0 hsl(var(--neon-blue) / 0.2);
+  /* 金色边框 */
+  .gold-border {
+    border: 1px solid hsl(var(--cny-gold) / 0.3);
+    box-shadow: 0 0 15px hsl(43 96% 56% / 0.1);
   }
 
-  /* Glitch Effect */
-  .glitch {
-    position: relative;
-    animation: glitch 2s infinite;
+  /* 红色光晕 */
+  @keyframes red-pulse {
+    0%, 100% { box-shadow: 0 0 20px hsl(0 85% 50% / 0.3); }
+    50% { box-shadow: 0 0 40px hsl(0 85% 50% / 0.5), 0 0 60px hsl(0 85% 50% / 0.2); }
   }
 
-  @keyframes glitch {
-    0%, 90%, 100% {
-      transform: translate(0);
-    }
-    92% {
-      transform: translate(-2px, 2px);
-    }
-    94% {
-      transform: translate(2px, -2px);
-    }
-    96% {
-      transform: translate(-2px, -2px);
-    }
-    98% {
-      transform: translate(2px, 2px);
-    }
+  .red-pulse {
+    animation: red-pulse 2s ease-in-out infinite;
   }
 
-  /* Grid Background */
-  .cyber-grid {
-    background-image: 
-      linear-gradient(hsl(var(--neon-blue) / 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--neon-blue) / 0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
+  /* 金色闪光 */
+  @keyframes gold-shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
   }
 
-  /* Scanline Effect */
-  .scanlines::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      hsl(0 0% 0% / 0.1) 2px,
-      hsl(0 0% 0% / 0.1) 4px
-    );
-    pointer-events: none;
-  }
-
-  /* Neon Pulse Animation */
-  @keyframes neon-pulse {
-    0%, 100% {
-      opacity: 1;
-      filter: brightness(1);
-    }
-    50% {
-      opacity: 0.8;
-      filter: brightness(1.2);
-    }
-  }
-
-  .neon-pulse {
-    animation: neon-pulse 2s ease-in-out infinite;
-  }
-
-  /* Slot Reel Styles */
-  .slot-reel {
-    background: linear-gradient(180deg, 
-      hsl(240 20% 2%) 0%, 
-      hsl(240 15% 8%) 10%, 
-      hsl(240 15% 12%) 50%, 
-      hsl(240 15% 8%) 90%, 
-      hsl(240 20% 2%) 100%
-    );
-    border: 2px solid hsl(var(--neon-purple) / 0.5);
-    box-shadow: 
-      inset 0 0 30px hsl(var(--neon-purple) / 0.2),
-      0 0 20px hsl(var(--neon-purple) / 0.3);
-  }
-
-  /* Win Animation */
-  @keyframes win-flash {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(var(--neon-yellow) / 0.5);
-    }
-    50% {
-      box-shadow: 0 0 60px hsl(var(--neon-yellow) / 1), 0 0 100px hsl(var(--neon-yellow) / 0.5);
-    }
-  }
-
-  .win-animation {
-    animation: win-flash 0.5s ease-in-out infinite;
-  }
-
-  /* Jackpot Celebration */
-  @keyframes jackpot {
-    0% {
-      transform: scale(1) rotate(0deg);
-    }
-    25% {
-      transform: scale(1.1) rotate(-5deg);
-    }
-    50% {
-      transform: scale(1.2) rotate(5deg);
-    }
-    75% {
-      transform: scale(1.1) rotate(-5deg);
-    }
-    100% {
-      transform: scale(1) rotate(0deg);
-    }
-  }
-
-  .jackpot {
-    animation: jackpot 0.5s ease-in-out infinite;
-  }
-
-  /* Floating Animation */
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0) rotate(0deg);
-    }
-    50% {
-      transform: translateY(-10px) rotate(3deg);
-    }
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  /* Sparkle Effect */
-  @keyframes sparkle {
-    0%, 100% {
-      opacity: 0;
-      transform: scale(0) rotate(0deg);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1) rotate(180deg);
-    }
-  }
-
-  .sparkle {
-    animation: sparkle 2s ease-in-out infinite;
-  }
-
-  /* Rainbow Glow */
-  @keyframes rainbow-glow {
-    0% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
-    25% { box-shadow: 0 0 20px hsl(var(--neon-purple) / 0.5), 0 0 40px hsl(var(--neon-purple) / 0.3); }
-    50% { box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.5), 0 0 40px hsl(var(--neon-pink) / 0.3); }
-    75% { box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.5), 0 0 40px hsl(var(--neon-cyan) / 0.3); }
-    100% { box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.5), 0 0 40px hsl(var(--neon-blue) / 0.3); }
-  }
-
-  .rainbow-glow {
-    animation: rainbow-glow 4s linear infinite;
-  }
-
-  /* Shine Effect */
-  @keyframes shine {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  .shine-effect {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      hsl(var(--neon-yellow) / 0.3) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: shine 3s ease-in-out infinite;
-  }
-
-  /* Coin Rain */
-  @keyframes coin-fall {
-    0% {
-      transform: translateY(-100%) rotate(0deg);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(100vh) rotate(720deg);
-      opacity: 0;
-    }
-  }
-
-  .coin-rain {
-    animation: coin-fall 3s linear infinite;
-  }
-
-  /* Pulse Ring */
-  @keyframes pulse-ring {
-    0% {
-      transform: scale(0.8);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(2);
-      opacity: 0;
-    }
-  }
-
-  .pulse-ring {
-    animation: pulse-ring 1.5s ease-out infinite;
-  }
-
-  /* Electric Border */
-  @keyframes electric-border {
-    0%, 100% {
-      border-color: hsl(var(--neon-blue));
-      box-shadow: 0 0 10px hsl(var(--neon-blue) / 0.5);
-    }
-    25% {
-      border-color: hsl(var(--neon-cyan));
-      box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.7);
-    }
-    50% {
-      border-color: hsl(var(--neon-purple));
-      box-shadow: 0 0 30px hsl(var(--neon-purple) / 0.7);
-    }
-    75% {
-      border-color: hsl(var(--neon-pink));
-      box-shadow: 0 0 20px hsl(var(--neon-pink) / 0.7);
-    }
-  }
-
-  .electric-border {
-    animation: electric-border 2s linear infinite;
-  }
-
-  /* Bounce In */
-  @keyframes bounce-in {
-    0% {
-      transform: scale(0);
-      opacity: 0;
-    }
-    50% {
-      transform: scale(1.2);
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .bounce-in {
-    animation: bounce-in 0.5s ease-out;
-  }
-
-  /* Text Shimmer */
-  @keyframes text-shimmer {
-    0% {
-      background-position: -200% center;
-    }
-    100% {
-      background-position: 200% center;
-    }
-  }
-
-  .text-shimmer {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--neon-yellow)) 0%,
-      hsl(var(--neon-orange)) 25%,
-      hsl(var(--neon-pink)) 50%,
-      hsl(var(--neon-purple)) 75%,
-      hsl(var(--neon-yellow)) 100%
+  .gold-shimmer {
+    background: linear-gradient(90deg,
+      hsl(var(--cny-gold)) 0%,
+      hsl(var(--cny-gold-light)) 50%,
+      hsl(var(--cny-gold)) 100%
     );
     background-size: 200% auto;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: text-shimmer 3s linear infinite;
+    animation: gold-shimmer 3s linear infinite;
   }
 
-  /* Glow Button Hover */
-  .glow-hover {
-    transition: all 0.3s ease;
+  /* 飘落动画 */
+  @keyframes fall {
+    0% { transform: translateY(-10%) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
 
-  .glow-hover:hover {
-    transform: translateY(-3px);
-    box-shadow: 
-      0 0 20px hsl(var(--neon-blue) / 0.6),
-      0 0 40px hsl(var(--neon-blue) / 0.4),
-      0 0 60px hsl(var(--neon-blue) / 0.2);
+  .animate-fall {
+    animation: fall var(--fall-duration, 5s) linear infinite;
+    animation-delay: var(--fall-delay, 0s);
   }
 
-  /* Slot Reel Animations - GPU accelerated */
-  @keyframes scan-line {
-    0% {
-      transform: translateY(-100%);
-      opacity: 0.3;
-    }
-    50% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(200%);
-      opacity: 0.3;
-    }
+  /* 红包打开动画 */
+  @keyframes hongbao-open {
+    0% { transform: scale(0.8) rotateY(0deg); opacity: 0; }
+    50% { transform: scale(1.1) rotateY(180deg); opacity: 1; }
+    100% { transform: scale(1) rotateY(360deg); opacity: 1; }
   }
 
-  .animate-scan-line {
-    animation: scan-line 0.8s linear infinite;
-    will-change: transform;
+  .hongbao-open {
+    animation: hongbao-open 0.8s ease-out;
   }
 
-  @keyframes flash {
-    0% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.5;
-      transform: scale(1.02);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(1);
-    }
+  /* 浮动 */
+  @keyframes gentle-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
   }
 
-  .animate-flash {
-    animation: flash 0.3s ease-out forwards;
+  .animate-gentle-float {
+    animation: gentle-float 3s ease-in-out infinite;
   }
 
-  /* Slot symbol bounce */
-  @keyframes symbol-bounce {
-    0%, 100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.15);
-    }
-  }
-
-  .animate-symbol-bounce {
-    animation: symbol-bounce 0.6s ease-in-out infinite;
-  }
-
-  /* Landing bounce animation */
-  @keyframes landing-bounce {
-    0% {
-      transform: scale(1.05);
-    }
-    30% {
-      transform: scale(0.98);
-    }
-    60% {
-      transform: scale(1.02);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-
-  .animate-landing {
-    animation: landing-bounce 0.4s ease-out;
-  }
-
-  /* Reel glow pulse */
-  @keyframes reel-glow {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(195 100% 50% / 0.3);
-    }
-    50% {
-      box-shadow: 0 0 35px hsl(195 100% 50% / 0.5);
-    }
-  }
-
-  .animate-reel-glow {
-    animation: reel-glow 1s ease-in-out infinite;
-  }
-
-  /* Win celebration */
-  @keyframes win-pulse {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(50 100% 50% / 0.4);
-      border-color: hsl(50 100% 50% / 0.6);
-    }
-    50% {
-      box-shadow: 0 0 40px hsl(50 100% 50% / 0.7);
-      border-color: hsl(50 100% 50% / 1);
-    }
-  }
-
-  .animate-win-pulse {
-    animation: win-pulse 0.5s ease-in-out infinite;
-  }
-
-  /* Custom Scrollbar for Plinko */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(201, 163, 71, 0.05);
-    border-radius: 3px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(201, 163, 71, 0.3);
-    border-radius: 3px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(201, 163, 71, 0.5);
-  }
-
-  /* Plinko Gold Theme Utils */
-  .plinko-gold-text {
-    background: linear-gradient(135deg, #E8D490 0%, #C9A347 50%, #8B7230 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .plinko-gold-glow {
-    box-shadow: 0 0 40px rgba(201, 163, 71, 0.3), 0 0 80px rgba(201, 163, 71, 0.15);
-  }
-
-  .plinko-panel {
-    background: linear-gradient(180deg, rgba(26, 22, 18, 0.95) 0%, rgba(15, 12, 8, 0.98) 100%);
-    border: 1px solid rgba(201, 163, 71, 0.25);
-    box-shadow: 
-      0 0 40px rgba(201, 163, 71, 0.15),
-      inset 0 1px 0 rgba(201, 163, 71, 0.2),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  /* 纹样装饰背景 */
+  .cny-pattern {
+    background-image:
+      radial-gradient(circle at 20% 50%, hsl(0 85% 50% / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(43 96% 56% / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 50% 80%, hsl(0 85% 50% / 0.03) 0%, transparent 50%);
   }
 }
