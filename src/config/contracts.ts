@@ -13,14 +13,14 @@ export const TOKEN_ADDRESS = {
 // 红包模式
 export type RoundMode = 'normal' | 'lucky';
 
-// 普通红包（A模式）配置
+// 普通红包（A模式）配置 — 满人开奖
 export const NORMAL_ROUND_CONFIG = {
   fixedBurnAmount: 10000,    // 固定燃烧 10,000 代币
-  intervalMinutes: 60,       // 每小时一轮
+  requiredParticipants: 100, // 满100人自动开奖
   everyoneWins: true,        // 人人有奖
 };
 
-// 幸运红包（C模式）配置
+// 幸运红包（C模式）配置 — 每小时开奖
 export const LUCKY_ROUND_CONFIG = {
   tiers: [
     { minBurn: 10000, tickets: 1, label: '🎟️ 1张券' },
@@ -28,7 +28,7 @@ export const LUCKY_ROUND_CONFIG = {
     { minBurn: 200000, tickets: 5, label: '🎟️×5 5张券' },
   ],
   winnersCount: 3,           // 每轮3个赢家
-  intervalHours: 24,         // 每天一轮
+  intervalMinutes: 60,       // 每小时一轮
 };
 
 // 税收分配

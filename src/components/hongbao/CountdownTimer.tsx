@@ -16,7 +16,7 @@ export function CountdownTimer({ timeLeft, isEnded, mode }: CountdownTimerProps)
   return (
     <div className="text-center">
       <div className="text-sm text-cny-gold/70 mb-2 font-serif">
-        {mode === 'normal' ? '🧧 普通红包' : '🔥 幸运红包'} · 倒计时
+        🔥 幸运红包 · 倒计时
       </div>
       <div className="flex items-center justify-center gap-2">
         {[pad(minutes)[0], pad(minutes)[1], ':', pad(seconds)[0], pad(seconds)[1]].map((char, i) => (
@@ -56,7 +56,7 @@ export function CountdownTimer({ timeLeft, isEnded, mode }: CountdownTimerProps)
       )}
       {!isEnded && timeLeft > 0 && (
         <div className="mt-2 text-xs text-muted-foreground">
-          {mode === 'normal' ? '每小时自动开奖 · 人人有份' : '每天一轮 · 3位幸运赢家'}
+          每小时自动开奖 · 3位幸运赢家
         </div>
       )}
     </div>

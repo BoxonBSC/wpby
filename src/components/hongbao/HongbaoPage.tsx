@@ -14,7 +14,9 @@ export function HongbaoPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Demo state - will be replaced with contract reads
-  const timeLeft = mode === 'normal' ? 2345 : 43200;
+  const participantsNeeded = 100;
+  const currentParticipants = 37;
+  const timeLeft = 2345; // lucky mode countdown
   const isEnded = false;
   const isConnected = false;
 
@@ -98,11 +100,31 @@ export function HongbaoPage() {
                   {mode === 'normal' ? '拼手气红包' : '幸运大红包'}
                 </h2>
                 <p className="text-xs text-cny-cream/60 mt-1">
-                  {mode === 'normal' ? '每小时开奖 · 人人有份' : '每天开奖 · 3位幸运儿'}
+                  {mode === 'normal' ? '满100人开奖 · 人人有份' : '每小时开奖 · 3位幸运儿'}
                 </p>
               </div>
 
-              <CountdownTimer timeLeft={timeLeft} isEnded={isEnded} mode={mode} />
+              {mode === 'normal' ? (
+                <div className="text-center">
+                  <div className="text-sm text-cny-gold/70 mb-2 font-serif">🧧 参与进度</div>
+                  <div className="text-4xl sm:text-5xl font-bold text-cny-gold-light">
+                    {currentParticipants} <span className="text-xl text-cny-cream/50">/ {participantsNeeded}</span>
+                  </div>
+                  <div className="mt-3 w-full h-3 rounded-full bg-card border border-cny-gold/20 overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full bg-gradient-to-r from-primary to-cny-gold"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(currentParticipants / participantsNeeded) * 100}%` }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                    />
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    还差 <span className="text-cny-gold font-bold">{participantsNeeded - currentParticipants}</span> 人即可开奖
+                  </div>
+                </div>
+              ) : (
+                <CountdownTimer timeLeft={timeLeft} isEnded={isEnded} mode={mode} />
+              )}
             </motion.div>
 
             {/* Burn Entry */}
