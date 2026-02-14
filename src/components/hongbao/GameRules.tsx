@@ -8,7 +8,7 @@ export function GameRules() {
 
   const coreRules = [
     { icon: '🧧', title: '普通红包', text: `燃烧${NORMAL_ROUND_CONFIG.fixedBurnAmount.toLocaleString()}代币参与，${ANTI_SYBIL_CONFIG.participantsRange[0]}~${ANTI_SYBIL_CONFIG.participantsRange[1]}人随机开奖，奖池50%独奖1人` },
-    { icon: '💰', title: '金马红包', text: `每小时一轮，${LUCKY_ROUND_CONFIG.tokensPerTicket.toLocaleString()}代币=1张券，VRF抽${LUCKY_ROUND_CONFIG.winnersCount}位赢家` },
+    { icon: '💰', title: '金马红包', text: `每小时一轮，${LUCKY_ROUND_CONFIG.tokensPerTicket.toLocaleString()}代币=1张券，VRF抽${LUCKY_ROUND_CONFIG.winnersCount}位赢家，全额发放` },
     { icon: '💎', title: '代币通缩', text: '所有燃烧代币直接进入黑洞地址，永久销毁，供应持续减少' },
     { icon: '🛡️', title: '防女巫', text: `每轮每钱包限1次 · 持币≥${ANTI_SYBIL_CONFIG.minHoldMinutes}分钟 · 开奖人数随机` },
   ];
@@ -77,7 +77,7 @@ export function GameRules() {
                   <p>• 每 <span className="text-foreground font-bold">{LUCKY_ROUND_CONFIG.tokensPerTicket.toLocaleString()} 代币</span> = <span className="text-cny-gold font-bold">1张抽奖券</span></p>
                   <p>• 买多少张都行，按比例计算中奖概率</p>
                   <p>• VRF 从所有券中随机抽出 <span className="text-cny-gold font-bold">{LUCKY_ROUND_CONFIG.winnersCount} 个赢家</span></p>
-                  <p>• 🥇第1名 <span className="text-cny-gold font-bold">40%</span> · 🥈第2名 <span className="text-cny-gold font-bold">30%</span> · 🥉第3名 <span className="text-cny-gold font-bold">20%</span>（10%滚入下轮）</p>
+                  <p>• 🥇第1名 <span className="text-cny-gold font-bold">50%</span> · 🥈第2名 <span className="text-cny-gold font-bold">30%</span> · 🥉第3名 <span className="text-cny-gold font-bold">20%</span>（全额发放）</p>
                   <p>• 未中奖者：代币已销毁（通缩贡献），无BNB奖励</p>
                 </div>
               </div>

@@ -26,7 +26,7 @@ export const LUCKY_ROUND_CONFIG = {
   tokensPerTicket: 100000,   // 每100,000代币 = 1张抽奖券
   winnersCount: 3,           // 每轮3个赢家
   intervalMinutes: 60,       // 每小时一轮
-  prizeDistribution: [40, 30, 20], // 第1名40%，第2名30%，第3名20%（剩余10%滚入下轮）
+  prizeDistribution: [50, 30, 20], // 第1名50%，第2名30%，第3名20%（全额发放）
 };
 
 // 税收分配
