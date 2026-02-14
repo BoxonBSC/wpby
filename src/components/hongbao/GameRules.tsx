@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { NORMAL_ROUND_CONFIG, LUCKY_ROUND_CONFIG, ANTI_SYBIL_CONFIG, TAX_DISTRIBUTION } from '@/config/contracts';
 
 export function GameRules() {
@@ -103,6 +104,12 @@ export function GameRules() {
                   <p>• 代币销毁地址硬编码，无法被修改</p>
                   <p>• 智能合约开源，所有数据链上可查</p>
                 </div>
+              </div>
+
+              <div className="text-center pt-2">
+                <Link to="/rules" className="inline-flex items-center gap-1 text-xs font-bold text-cny-gold hover:text-cny-gold-light transition-colors">
+                  📖 查看完整规则说明 →
+                </Link>
               </div>
             </div>
           </motion.div>
