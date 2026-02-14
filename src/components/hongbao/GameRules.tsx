@@ -8,9 +8,9 @@ export function GameRules() {
 
   const coreRules = [
     { icon: '🧧', title: '普通红包', text: `燃烧${NORMAL_ROUND_CONFIG.fixedBurnAmount.toLocaleString()}代币参与，满${NORMAL_ROUND_CONFIG.requiredParticipants}人开奖，奖池50%独奖1人` },
-    { icon: '🔥', title: '幸运红包', text: `每小时一轮，阶梯燃烧获抽奖券，VRF抽${LUCKY_ROUND_CONFIG.winnersCount}位赢家平分大奖` },
+    { icon: '🐴', title: '金马红包', text: `每小时一轮，${LUCKY_ROUND_CONFIG.tokensPerTicket.toLocaleString()}代币=1张券，VRF抽${LUCKY_ROUND_CONFIG.winnersCount}位赢家` },
     { icon: '💎', title: '代币通缩', text: '所有燃烧代币直接进入黑洞地址，永久销毁，供应持续减少' },
-    { icon: '🏮', title: '奖池来源', text: '交易税自动注入红包池，70%普通池 + 30%幸运池' },
+    { icon: '🏮', title: '奖池来源', text: '交易税自动注入红包池，70%普通池 + 30%金马池' },
   ];
 
   return (
@@ -69,17 +69,13 @@ export function GameRules() {
                 </div>
               </div>
 
-              {/* 幸运红包详情 */}
+              {/* 金马红包详情 */}
               <div className="p-4 rounded-xl bg-cny-gold/5 border border-cny-gold/20">
-                <div className="text-sm font-bold text-cny-gold mb-2">🔥 幸运红包规则</div>
+                <div className="text-sm font-bold text-cny-gold mb-2">🐴 金马红包规则</div>
                 <div className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
                   <p>• 每<span className="text-foreground font-bold">1小时</span>自动开一轮</p>
-                  <p>• 阶梯燃烧获得抽奖券：</p>
-                  {LUCKY_ROUND_CONFIG.tiers.map((tier, i) => (
-                    <p key={i} className="ml-3">
-                      {tier.label} → 燃烧 ≥ <span className="text-foreground font-bold">{tier.minBurn.toLocaleString()}</span> 代币
-                    </p>
-                  ))}
+                  <p>• 每 <span className="text-foreground font-bold">{LUCKY_ROUND_CONFIG.tokensPerTicket.toLocaleString()} 代币</span> = <span className="text-cny-gold font-bold">1张抽奖券</span></p>
+                  <p>• 买多少张都行，按比例计算中奖概率</p>
                   <p>• VRF 从所有券中随机抽出 <span className="text-cny-gold font-bold">{LUCKY_ROUND_CONFIG.winnersCount} 个赢家</span></p>
                   <p>• 赢家<span className="text-cny-gold font-bold">平分奖池BNB</span></p>
                   <p>• 未中奖者：代币已销毁（通缩贡献），无BNB奖励</p>
